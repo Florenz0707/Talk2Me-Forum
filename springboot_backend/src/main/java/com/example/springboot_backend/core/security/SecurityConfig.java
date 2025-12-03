@@ -49,7 +49,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/login", "/api/v1/register", "/api/v1/refresh").permitAll()
+                        // 公开端点：登录、注册、刷新token不需要认证
+                        // 注意：Spring Security会自动处理server.servlet.context-path，这里不需要包含context-path
+                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh").permitAll()
+                        // 其他认证相关端点需要认证
+                        .requestMatchers("/api/v1/auth/**").authenticated()
+                        // 其他所有请求需要认证
                         .anyRequest().authenticated());
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

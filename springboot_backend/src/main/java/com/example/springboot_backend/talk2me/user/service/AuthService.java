@@ -5,7 +5,10 @@ import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
 import com.example.springboot_backend.talk2me.user.model.domain.UserDO;
 import com.example.springboot_backend.talk2me.user.model.vo.AuthResponse;
 import com.example.springboot_backend.talk2me.user.model.vo.LoginRequest;
+import com.example.springboot_backend.talk2me.user.model.vo.RefreshResponse;
 import com.example.springboot_backend.talk2me.user.model.vo.RegisterRequest;
+import com.example.springboot_backend.talk2me.user.model.vo.RegisterResponse;
+import com.example.springboot_backend.talk2me.user.model.vo.VerificationResponse;
 import com.example.springboot_backend.talk2me.user.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,7 +40,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
-    public AuthResponse register(RegisterRequest registerRequest) {
+    public RegisterResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new RuntimeException("Username is already taken!");
         }
@@ -49,12 +52,9 @@ public class AuthService implements IAuthService {
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
 
-        UserDO savedUser = userRepository.save(user);
+        userRepository.save(user);
 
-        String accessToken = tokenProvider.generateTokenFromUsername(savedUser.getUsername());
-        String refreshToken = tokenProvider.generateRefreshToken(savedUser.getUsername());
-
-        return new AuthResponse(accessToken, refreshToken);
+        return new RegisterResponse("User registered successfully");
     }
 
     @Override
@@ -80,7 +80,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
-    public AuthResponse refreshToken(String refreshToken) {
+    public RefreshResponse refreshToken(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
             throw new RuntimeException("Invalid refresh token");
         }
@@ -89,10 +89,14 @@ public class AuthService implements IAuthService {
             throw new RuntimeException("Token is not a refresh token");
         }
 
-        String username = tokenProvider.getUsernameFromToken(refreshToken);
-        String newAccessToken = tokenProvider.generateTokenFromUsername(username);
-        String newRefreshToken = tokenProvider.generateRefreshToken(username);
+        // 返回成功消息
+        return new RefreshResponse("Token refreshed successfully");
+    }
 
-        return new AuthResponse(newAccessToken, newRefreshToken);
+    @Override
+    public VerificationResponse verification() {
+        // 验证access_token的正确性
+        // 如果请求能到达这里，说明JWT过滤器已经验证了token的有效性
+        return new VerificationResponse("Token is valid");
     }
 }

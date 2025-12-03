@@ -2,8 +2,11 @@ package com.example.springboot_backend.talk2me.user.controller;
 
 import com.example.springboot_backend.talk2me.user.model.vo.AuthResponse;
 import com.example.springboot_backend.talk2me.user.model.vo.LoginRequest;
+import com.example.springboot_backend.talk2me.user.model.vo.RefreshResponse;
 import com.example.springboot_backend.talk2me.user.model.vo.RefreshTokenRequest;
 import com.example.springboot_backend.talk2me.user.model.vo.RegisterRequest;
+import com.example.springboot_backend.talk2me.user.model.vo.RegisterResponse;
+import com.example.springboot_backend.talk2me.user.model.vo.VerificationResponse;
 import com.example.springboot_backend.talk2me.user.service.IAuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -14,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final IAuthService authService;
@@ -26,8 +29,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
-            authService.register(registerRequest);
-            return ResponseEntity.ok().build();
+            RegisterResponse response = authService.register(registerRequest);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -47,9 +50,20 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         try {
-            AuthResponse response = authService.refreshToken(refreshTokenRequest.getRefreshToken());
+            RefreshResponse response = authService.refreshToken(refreshTokenRequest.getRefreshToken());
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/verification")
+    public ResponseEntity<?> verification() {
+        try {
+            VerificationResponse response = authService.verification();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(e.getMessage());
         }

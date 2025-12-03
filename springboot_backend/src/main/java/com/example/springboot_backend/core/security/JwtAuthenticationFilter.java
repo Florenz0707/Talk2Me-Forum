@@ -34,6 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
+            // 只有当请求中包含有效的JWT Token时，才设置认证上下文
+            // 对于公开端点（如登录、注册），如果没有token，Spring Security的permitAll()会允许访问
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromToken(jwt);
 
