@@ -35,3 +35,8 @@ build/
 ### env ###
 *.env
 !template.env
+
+### log ###
+logs/
+log/
+*.log
