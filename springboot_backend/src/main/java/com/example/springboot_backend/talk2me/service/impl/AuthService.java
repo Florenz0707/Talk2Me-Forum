@@ -1,15 +1,16 @@
-package com.example.springboot_backend.talk2me.user.service;
+package com.example.springboot_backend.talk2me.service.impl;
 
 import com.example.springboot_backend.core.security.JwtTokenProvider;
 import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
-import com.example.springboot_backend.talk2me.user.model.domain.UserDO;
-import com.example.springboot_backend.talk2me.user.model.vo.AuthResponse;
-import com.example.springboot_backend.talk2me.user.model.vo.LoginRequest;
-import com.example.springboot_backend.talk2me.user.model.vo.RefreshResponse;
-import com.example.springboot_backend.talk2me.user.model.vo.RegisterRequest;
-import com.example.springboot_backend.talk2me.user.model.vo.RegisterResponse;
-import com.example.springboot_backend.talk2me.user.model.vo.VerificationResponse;
-import com.example.springboot_backend.talk2me.user.repository.UserRepository;
+import com.example.springboot_backend.talk2me.model.domain.UserDO;
+import com.example.springboot_backend.talk2me.model.vo.AuthResponse;
+import com.example.springboot_backend.talk2me.model.vo.LoginRequest;
+import com.example.springboot_backend.talk2me.model.vo.RefreshResponse;
+import com.example.springboot_backend.talk2me.model.vo.RegisterRequest;
+import com.example.springboot_backend.talk2me.model.vo.RegisterResponse;
+import com.example.springboot_backend.talk2me.model.vo.VerificationResponse;
+import com.example.springboot_backend.talk2me.repository.UserRepository;
+import com.example.springboot_backend.talk2me.service.IAuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,7 +23,6 @@ import java.time.LocalDateTime;
 
 @Service
 public class AuthService implements IAuthService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
