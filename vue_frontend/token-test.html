@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>令牌测试</title>
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* 背景样式 */
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        /* 测试卡片容器 */
+        .test-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* 测试标题 */
+        .test-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2d3748;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* 按钮样式 */
+        .test-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .test-btn:hover {
+            background: #5a67d8;
+        }
+
+        /* 状态信息 */
+        .status-info {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .status-content {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #4a5568;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* 消息提示 */
+        .message {
+            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        /* 返回按钮 */
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-card">
+        <h2 class="test-title">令牌测试</h2>
+        <div id="message"></div>
+        
+        <button class="test-btn" id="checkAuthBtn">检查身份验证状态</button>
+        <button class="test-btn" id="refreshTokenBtn">手动刷新令牌</button>
+        <button class="test-btn" id="logoutBtn">登出</button>
+        
+        <div class="status-info">
+            <div class="status-title">当前状态：</div>
+            <div class="status-content" id="statusContent">
+                点击按钮开始测试...
+            </div>
+        </div>
+        
+        <div class="back-link">
+            <a href="login.html"><i class="fas fa-arrow-left"></i> 返回登录页</a>
+        </div>
+    </div>
+
+    <!-- 引入API服务层 -->
+    <script type="module">
+        // 导入API服务
+        import { authApi, setupAutoRefresh, cancelAutoRefresh } from './api.js';
+
+        // 获取DOM元素
+        const checkAuthBtn = document.getElementById('checkAuthBtn');
+        const refreshTokenBtn = document.getElementById('refreshTokenBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const message = document.getElementById('message');
+        const statusContent = document.getElementById('statusContent');
+
+        // 显示消息
+        function showMessage(text, isSuccess = true) {
+            message.textContent = text;
+            message.className = `message ${isSuccess ? 'success' : 'error'}`;
+            message.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        // 更新状态信息
+        function updateStatus() {
+            const isAuthenticated = authApi.isAuthenticated();
+            const token = authApi.getToken();
+            
+            let statusText = `已登录: ${isAuthenticated}\n`;
+            statusText += `令牌: ${token ? token.substring(0, 20) + '...' : '无'}\n`;
+            statusText += `当前时间: ${new Date().toLocaleString()}`;
+            
+            statusContent.textContent = statusText;
+        }
+
+        // 检查身份验证状态
+        checkAuthBtn.addEventListener('click', async () => {
+            try {
+                const response = await authApi.verifyAuth();
+                showMessage('身份验证成功！');
+                console.log('身份验证响应:', response);
+                updateStatus();
+            } catch (error) {
+                showMessage('身份验证失败: ' + error.message, false);
+                console.error('身份验证错误:', error);
+                updateStatus();
+            }
+        });
+
+        // 手动刷新令牌
+        refreshTokenBtn.addEventListener('click', async () => {
+            try {
+                const response = await authApi.refreshToken();
+                showMessage('令牌刷新成功！');
+                console.log('令牌刷新响应:', response);
+                updateStatus();
+            } catch (error) {
+                showMessage('令牌刷新失败: ' + error.message, false);
+                console.error('令牌刷新错误:', error);
+                updateStatus();
+            }
+        });
+
+        // 登出
+        logoutBtn.addEventListener('click', () => {
+            authApi.logout();
+            cancelAutoRefresh();
+            showMessage('登出成功！');
+            updateStatus();
+        });
+
+        // 页面加载时更新状态
+        window.addEventListener('load', () => {
+            updateStatus();
+            
+            // 如果已登录，则设置自动刷新
+            if (authApi.isAuthenticated()) {
+                setupAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

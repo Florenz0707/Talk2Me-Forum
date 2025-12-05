@@ -246,14 +246,14 @@
         <div class="input-group">
             <i class="fas fa-lock"></i>
             <input type="password" id="password" placeholder="请设置密码（至少6位）" required>
-            <button type="button" class="password-toggle" id="passwordToggle">
+            <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示密码" title="显示密码">
                 <i class="fas fa-eye-slash"></i>
             </button>
         </div>
         <div class="input-group">
             <i class="fas fa-lock"></i>
             <input type="password" id="confirmPassword" placeholder="请确认密码" required>
-            <button type="button" class="password-toggle" id="confirmPasswordToggle">
+            <button type="button" class="password-toggle" id="confirmPasswordToggle" aria-label="显示密码" title="显示密码">
                 <i class="fas fa-eye-slash"></i>
             </button>
         </div>
@@ -280,37 +280,60 @@
 
 
 
+<!-- 密码显示/隐藏切换功能 - 放在普通script标签中以支持file://协议 -->
 <script>
     // 获取DOM元素
     const passwordToggle = document.getElementById('passwordToggle');
     const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
-    const registerForm = document.getElementById('registerForm');
-    const errorMessage = document.getElementById('errorMessage');
-    const captchaBtn = document.getElementById('captchaBtn');
-    const phoneInput = document.getElementById('phone');
-
-    // 密码显示/隐藏切换（主密码）
-    passwordToggle.addEventListener('click', () => {
-        togglePasswordVisibility(passwordInput, passwordToggle);
-    });
-
-    // 确认密码显示/隐藏切换
-    confirmPasswordToggle.addEventListener('click', () => {
-        togglePasswordVisibility(confirmPasswordInput, confirmPasswordToggle);
-    });
 
     // 通用密码切换函数
     function togglePasswordVisibility(input, toggleBtn) {
+        if (!input || !toggleBtn) return;
+        
         const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
         input.setAttribute('type', type);
 
         // 切换图标
         const icon = toggleBtn.querySelector('i');
-        icon.classList.toggle('fa-eye');
-        icon.classList.toggle('fa-eye-slash');
+        if (icon) {
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+        
+        // 更新按钮状态文本
+        const isPasswordVisible = type === 'text';
+        toggleBtn.setAttribute('aria-label', isPasswordVisible ? '隐藏密码' : '显示密码');
+        toggleBtn.setAttribute('title', isPasswordVisible ? '隐藏密码' : '显示密码');
     }
+
+    // 密码显示/隐藏切换（主密码）
+    if (passwordToggle) {
+        passwordToggle.addEventListener('click', () => {
+            togglePasswordVisibility(passwordInput, passwordToggle);
+        });
+    }
+
+    // 确认密码显示/隐藏切换
+    if (confirmPasswordToggle) {
+        confirmPasswordToggle.addEventListener('click', () => {
+            togglePasswordVisibility(confirmPasswordInput, confirmPasswordToggle);
+        });
+    }
+</script>
+
+<!-- 引入API服务层 -->
+<script type="module">
+    // 导入API服务
+    import { authApi } from './api.js';
+
+    // 获取DOM元素
+    const registerForm = document.getElementById('registerForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const captchaBtn = document.getElementById('captchaBtn');
+    const phoneInput = document.getElementById('phone');
+
 
     // // 获取验证码倒计时功能
     // let countdown = 0;
@@ -358,15 +381,12 @@
     // }
 
     // 表单提交验证
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // 阻止默认提交行为
 
         const username = document.getElementById('username').value.trim();
-        const phone = phoneInput.value.trim();
         const password = passwordInput.value.trim();
         const confirmPassword = confirmPasswordInput.value.trim();
-        const captcha = document.getElementById('captcha').value.trim();
-        const agreement = document.getElementById('agreement').checked;
 
         // 逐项验证
         if (username === '') {
@@ -379,11 +399,6 @@
             return;
         }
 
-        // if (!/^1[3-9]\d{9}$/.test(phone)) {
-        //     showError('请输入有效的手机号');
-        //     return;
-        // }
-
         if (password.length < 6) {
             showError('密码长度不能少于6位');
             return;
@@ -394,24 +409,22 @@
             return;
         }
 
-        // if (captcha.length !== 6 || !/^\d{6}$/.test(captcha)) {
-        //     showError('请输入6位数字验证码');
-        //     return;
-        // }
+        try {
+            // 调用后端注册接口
+            await authApi.register(username, password);
+            
+            // 注册成功
+            showError('注册成功，正在跳转登录页...', false);
 
-        // if (!agreement) {
-        //     showError('请阅读并同意用户协议和隐私政策');
-        //     return;
-        // }
-
-        // 验证通过，模拟注册请求
-        showError('注册成功，正在跳转登录页...', false);
-
-        // 模拟注册成功跳转
-        setTimeout(() => {
-            alert('注册成功！即将跳转到登录页');
-            // window.location.href = 'login.html'; // 实际项目中跳转到登录页
-        }, 1500);
+            // 注册成功跳转
+            setTimeout(() => {
+                alert('注册成功！即将跳转到登录页');
+                window.location.href = 'login.html'; // 跳转到登录页
+            }, 1500);
+        } catch (error) {
+            // 处理注册失败
+            showError(error.message || '注册失败，请稍后重试');
+        }
     });
 
     // 错误提示函数（与登录页一致）

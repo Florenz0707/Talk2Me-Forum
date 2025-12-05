@@ -224,34 +224,46 @@
 
 
 
+<!-- 密码显示/隐藏切换功能 - 放在普通script标签中以支持file://协议 -->
 <script>
     // 获取DOM元素
     const passwordToggle = document.getElementById('passwordToggle');
     const passwordInput = document.getElementById('password');
+
+    // 密码显示/隐藏切换
+    if (passwordToggle) {
+        passwordToggle.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // 切换图标
+            const icon = passwordToggle.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
+</script>
+
+<!-- 引入API服务层 -->
+<script type="module">
+    // 导入API服务
+    import { authApi, setupAutoRefresh } from './api.js';
+
+    // 获取DOM元素
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
 
-    // 密码显示/隐藏切换
-    passwordToggle.addEventListener('click', () => {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-
-        // 切换图标
-        const icon = passwordToggle.querySelector('i');
-        icon.classList.toggle('fa-eye');
-        icon.classList.toggle('fa-eye-slash');
-    });
-
     // 表单提交验证
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // 阻止默认提交行为
 
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
+        const rememberMe = document.getElementById('rememberMe').checked;
 
         // 简单验证
         if (username === '') {
-            showError('请输入用户名或手机号');
+            showError('请输入用户名');
             return;
         }
 
@@ -265,14 +277,25 @@
             return;
         }
 
-        // 验证通过，这里可以添加实际的登录逻辑（如AJAX请求）
-        showError('登录成功！正在跳转...', false);
-
-        // 模拟登录跳转
-        setTimeout(() => {
-            alert('登录成功！');
-            // window.location.href = 'home.html'; // 实际项目中跳转到首页
-        }, 1500);
+        try {
+            // 调用后端登录接口
+            const response = await authApi.login(username, password);
+            
+            // 登录成功
+            showError('登录成功！正在跳转...', false);
+            
+            // 设置自动刷新令牌
+            setupAutoRefresh();
+            
+            // 模拟登录跳转
+            setTimeout(() => {
+                alert('登录成功！');
+                // window.location.href = 'home.html'; // 实际项目中跳转到首页
+            }, 1500);
+        } catch (error) {
+            // 处理登录失败
+            showError(error.message || '登录失败，请检查用户名和密码');
+        }
     });
 
     // 错误提示函数
@@ -282,7 +305,6 @@
     }
 
     // 记住密码功能（本地存储示例）
-    const rememberMe = document.getElementById('rememberMe');
     const usernameInput = document.getElementById('username');
 
     // 页面加载时检查本地存储
