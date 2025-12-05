@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS 跨域访问测试 - 注册请求</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .config-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .config-section label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+            color: #555;
+        }
+        .config-section input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result-section {
+            margin-top: 30px;
+        }
+        .result-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .error-box {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        .info-box {
+            background: #e3f2fd;
+            border-left-color: #2196F3;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .status-success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .status-error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .cors-headers {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .cors-headers h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 CORS 跨域访问测试</h1>
+        <p>此页面用于测试 Spring Boot 后端的 CORS 跨域访问配置。</p>
+
+        <div class="config-section">
+            <h2>配置</h2>
+            <label for="apiUrl">API 基础 URL:</label>
+            <input type="text" id="apiUrl" value="http://localhost:8080" placeholder="http://localhost:8080">
+
+            <label for="contextPath">Context Path (可选):</label>
+            <input type="text" id="contextPath" value="" placeholder="/talk2me 或留空">
+
+            <label for="username">用户名:</label>
+            <input type="text" id="username" value="testuser" placeholder="testuser">
+
+            <label for="password">密码:</label>
+            <input type="password" id="password" value="testpass123" placeholder="testpass123">
+        </div>
+
+        <div>
+            <button onclick="testRegister()">🚀 发送注册请求</button>
+            <button onclick="testPreflight()">🔍 测试预检请求 (OPTIONS)</button>
+            <button onclick="clearResults()">🗑️ 清除结果</button>
+        </div>
+
+        <div class="result-section" id="results"></div>
+    </div>
+
+    <script>
+        function addResult(title, content, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultBox = document.createElement('div');
+            resultBox.className = `result-box ${type === 'error' ? 'error-box' : type === 'success' ? '' : 'info-box'}`;
+
+            const timestamp = new Date().toLocaleTimeString();
+            resultBox.innerHTML = `
+                <h3>${title} <span style="font-size: 12px; color: #999;">(${timestamp})</span></h3>
+                <div>${content}</div>
+            `;
+            resultsDiv.appendChild(resultBox);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function getApiUrl() {
+            const baseUrl = document.getElementById('apiUrl').value.trim();
+            const contextPath = document.getElementById('contextPath').value.trim();
+            const fullUrl = baseUrl + (contextPath ? contextPath : '') + '/api/v1/auth/register';
+            return fullUrl;
+        }
+
+        function displayCorsHeaders(headers) {
+            const corsHeaders = [
+                'access-control-allow-origin',
+                'access-control-allow-methods',
+                'access-control-allow-headers',
+                'access-control-allow-credentials',
+                'access-control-max-age',
+                'access-control-expose-headers'
+            ];
+
+            let corsInfo = '<div class="cors-headers"><h3>CORS 响应头:</h3><ul>';
+            let foundCorsHeaders = false;
+
+            headers.forEach((value, key) => {
+                const lowerKey = key.toLowerCase();
+                if (corsHeaders.some(h => lowerKey.includes(h))) {
+                    corsInfo += `<li><strong>${key}:</strong> ${value}</li>`;
+                    foundCorsHeaders = true;
+                }
+            });
+
+            if (!foundCorsHeaders) {
+                corsInfo += '<li style="color: #f44336;">⚠️ 未找到 CORS 响应头</li>';
+            }
+
+            corsInfo += '</ul></div>';
+            return corsInfo;
+        }
+
+        async function testRegister() {
+            const apiUrl = getApiUrl();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                addResult('❌ 错误', '请填写用户名和密码', 'error');
+                return;
+            }
+
+            addResult('📤 发送注册请求', `
+                <p><strong>URL:</strong> ${apiUrl}</p>
+                <p><strong>方法:</strong> POST</p>
+                <p><strong>请求体:</strong></p>
+                <pre>${JSON.stringify({ username, password }, null, 2)}</pre>
+            `, 'info');
+
+            try {
+                const startTime = performance.now();
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    }),
+                    credentials: 'include' // 测试携带凭证
+                });
+
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+
+                // 获取响应头
+                const headers = new Map();
+                response.headers.forEach((value, key) => {
+                    headers.set(key, value);
+                });
+
+                // 显示 CORS 响应头
+                const corsInfo = displayCorsHeaders(headers);
+
+                // 读取响应体
+                let responseBody;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    responseBody = await response.json();
+                } else {
+                    responseBody = await response.text();
+                }
+
+                const statusClass = response.ok ? 'status-success' : 'status-error';
+                const statusText = response.ok ? '✅ 成功' : '❌ 失败';
+
+                addResult(`${statusText} - HTTP ${response.status} ${response.statusText}`, `
+                    <p class="${statusClass}">状态码: ${response.status} ${response.statusText}</p>
+                    <p>响应时间: ${duration} ms</p>
+                    ${corsInfo}
+                    <p><strong>响应体:</strong></p>
+                    <pre>${JSON.stringify(responseBody, null, 2)}</pre>
+                    <p><strong>所有响应头:</strong></p>
+                    <pre>${JSON.stringify(Object.fromEntries(headers), null, 2)}</pre>
+                `, response.ok ? 'success' : 'error');
+
+            } catch (error) {
+                addResult('❌ 请求失败', `
+                    <p class="status-error">错误类型: ${error.name}</p>
+                    <p class="status-error">错误信息: ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                    <p><strong>可能的原因:</strong></p>
+                    <ul>
+                        <li>CORS 配置未正确设置</li>
+                        <li>服务器未运行</li>
+                        <li>URL 配置错误</li>
+                        <li>网络连接问题</li>
+                    </ul>
+                `, 'error');
+            }
+        }
+
+        async function testPreflight() {
+            const apiUrl = getApiUrl();
+
+            addResult('🔍 发送预检请求 (OPTIONS)', `
+                <p><strong>URL:</strong> ${apiUrl}</p>
+                <p><strong>方法:</strong> OPTIONS</p>
+                <p>预检请求用于检查 CORS 是否允许实际请求</p>
+            `, 'info');
+
+            try {
+                const startTime = performance.now();
+                const response = await fetch(apiUrl, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'content-type'
+                    },
+                    credentials: 'include'
+                });
+
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+
+                // 获取响应头
+                const headers = new Map();
+                response.headers.forEach((value, key) => {
+                    headers.set(key, value);
+                });
+
+                // 显示 CORS 响应头
+                const corsInfo = displayCorsHeaders(headers);
+
+                const statusClass = response.ok ? 'status-success' : 'status-error';
+                const statusText = response.ok ? '✅ 预检请求成功' : '❌ 预检请求失败';
+
+                addResult(`${statusText} - HTTP ${response.status}`, `
+                    <p class="${statusClass}">状态码: ${response.status} ${response.statusText}</p>
+                    <p>响应时间: ${duration} ms</p>
+                    ${corsInfo}
+                    <p><strong>所有响应头:</strong></p>
+                    <pre>${JSON.stringify(Object.fromEntries(headers), null, 2)}</pre>
+                `, response.ok ? 'success' : 'error');
+
+            } catch (error) {
+                addResult('❌ 预检请求失败', `
+                    <p class="status-error">错误类型: ${error.name}</p>
+                    <p class="status-error">错误信息: ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `, 'error');
+            }
+        }
+
+        // 页面加载时显示当前页面源信息
+        window.addEventListener('DOMContentLoaded', () => {
+            addResult('ℹ️ 当前页面信息', `
+                <p><strong>当前页面源 (Origin):</strong> ${window.location.origin}</p>
+                <p><strong>当前页面 URL:</strong> ${window.location.href}</p>
+                <p><strong>说明:</strong> 如果当前页面源不在 CORS 配置的允许列表中，跨域请求将被阻止。</p>
+            `, 'info');
+        });
+    </script>
+</body>
+</html>
