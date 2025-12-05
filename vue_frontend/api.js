@@ -47,7 +47,7 @@ async function request(endpoint, method, data = null, useAuth = true) {
     try {
         console.log(url, method, data);
         const response = await fetch(url, options);
-        
+
         let responseData;
         try {
             responseData = await response.json();
@@ -62,7 +62,7 @@ async function request(endpoint, method, data = null, useAuth = true) {
         if (!response.ok) {
             // 处理不同的错误状态码
             let errorMessage = responseData.message || `请求失败: ${response.status}`;
-            
+
             switch (response.status) {
                 case 401:
                     // 未授权，清除令牌
@@ -79,7 +79,7 @@ async function request(endpoint, method, data = null, useAuth = true) {
                     errorMessage = responseData.message || '服务器内部错误，请稍后重试';
                     break;
             }
-            
+
             throw new ApiError(errorMessage, response.status, responseData.errorCode);
         }
 
@@ -99,7 +99,7 @@ export const authApi = {
     async login(username, password) {
         try {
             const response = await request('/auth/login', 'POST', { username, password }, false);
-            
+
             // 存储令牌和用户信息
             if (response.accessToken) {
                 localStorage.setItem(TOKEN_KEY, response.accessToken);
@@ -110,10 +110,10 @@ export const authApi = {
             if (response.user) {
                 localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
             }
-            
+
             // 触发登录事件
             this._emitAuthChangeEvent(true);
-            
+
             return response;
         } catch (error) {
             console.error('登录失败:', error);
@@ -140,7 +140,7 @@ export const authApi = {
             }
 
             const response = await request('/auth/refresh', 'POST', { refreshToken }, false);
-            
+
             // 更新令牌
             if (response.accessToken) {
                 localStorage.setItem(TOKEN_KEY, response.accessToken);
@@ -148,7 +148,7 @@ export const authApi = {
             if (response.refreshToken) {
                 localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
             }
-            
+
             return response;
         } catch (error) {
             console.error('令牌刷新失败:', error);
@@ -162,12 +162,12 @@ export const authApi = {
     async verifyAuth() {
         try {
             const response = await request('/auth/verify', 'GET', null, true);
-            
+
             // 更新用户信息
             if (response.user) {
                 localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
             }
-            
+
             return response;
         } catch (error) {
             console.error('身份验证失败:', error);
@@ -180,7 +180,7 @@ export const authApi = {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(REFRESH_TOKEN_KEY);
         localStorage.removeItem(USER_INFO_KEY);
-        
+
         // 触发登出事件
         this._emitAuthChangeEvent(false);
     },
@@ -194,23 +194,23 @@ export const authApi = {
     getToken() {
         return localStorage.getItem(TOKEN_KEY);
     },
-    
+
     // 获取用户信息
     getUserInfo() {
         const userInfo = localStorage.getItem(USER_INFO_KEY);
         return userInfo ? JSON.parse(userInfo) : null;
     },
-    
+
     // 更新用户信息
     updateUserInfo(userInfo) {
         localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
     },
-    
+
     // 清除用户信息
     clearUserInfo() {
         localStorage.removeItem(USER_INFO_KEY);
     },
-    
+
     // 触发认证状态变化事件
     _emitAuthChangeEvent(isAuthenticated) {
         const event = new CustomEvent('authChange', {
@@ -221,7 +221,7 @@ export const authApi = {
         });
         window.dispatchEvent(event);
     },
-    
+
     // 监听认证状态变化
     onAuthChange(callback) {
         window.addEventListener('authChange', (event) => {

@@ -2,37 +2,37 @@
   <div class="login-container">
     <div class="login-card">
       <h2 class="login-title">用户登录</h2>
-      
+
       <div class="input-group">
         <i class="fas fa-user"></i>
-        <input 
-          type="text" 
-          v-model="loginForm.username" 
-          placeholder="请输入用户名" 
+        <input
+          type="text"
+          v-model="loginForm.username"
+          placeholder="请输入用户名"
           required
         >
       </div>
-      
+
       <div class="input-group">
         <i class="fas fa-lock"></i>
-        <input 
-          :type="showPassword ? 'text' : 'password'" 
-          v-model="loginForm.password" 
-          placeholder="请输入密码" 
+        <input
+          :type="showPassword ? 'text' : 'password'"
+          v-model="loginForm.password"
+          placeholder="请输入密码"
           required
         >
-        <button 
-          class="password-toggle" 
+        <button
+          class="password-toggle"
           @click="togglePasswordVisibility"
         >
           <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
         </button>
       </div>
-      
+
       <button class="login-button" @click="handleLogin" :disabled="isLoading">
         {{ isLoading ? '登录中...' : '登录' }}
       </button>
-      
+
       <div class="register-link">
         <span>还没有账号？</span>
         <router-link to="/register">立即注册</router-link>
@@ -56,11 +56,11 @@ export default {
     })
     const showPassword = ref(false)
     const isLoading = ref(false)
-    
+
     const togglePasswordVisibility = () => {
       showPassword.value = !showPassword.value
     }
-    
+
     const handleLogin = async () => {
       isLoading.value = true
       try {
@@ -78,7 +78,7 @@ export default {
         isLoading.value = false
       }
     }
-    
+
     return {
       loginForm,
       showPassword,

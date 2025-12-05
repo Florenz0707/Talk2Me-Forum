@@ -2,63 +2,63 @@
   <div class="register-container">
     <div class="register-card">
       <h2 class="register-title">用户注册</h2>
-      
+
       <div class="input-group">
         <i class="fas fa-user"></i>
-        <input 
-          type="text" 
-          v-model="registerForm.username" 
-          placeholder="请输入用户名" 
+        <input
+          type="text"
+          v-model="registerForm.username"
+          placeholder="请输入用户名"
           required
         >
       </div>
-      
+
       <div class="input-group">
         <i class="fas fa-envelope"></i>
-        <input 
-          type="email" 
-          v-model="registerForm.email" 
-          placeholder="请输入邮箱" 
+        <input
+          type="email"
+          v-model="registerForm.email"
+          placeholder="请输入邮箱"
           required
         >
       </div>
-      
+
       <div class="input-group">
         <i class="fas fa-lock"></i>
-        <input 
-          :type="showPassword ? 'text' : 'password'" 
-          v-model="registerForm.password" 
-          placeholder="请输入密码" 
+        <input
+          :type="showPassword ? 'text' : 'password'"
+          v-model="registerForm.password"
+          placeholder="请输入密码"
           required
         >
-        <button 
-          class="password-toggle" 
+        <button
+          class="password-toggle"
           @click="togglePasswordVisibility"
         >
           <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
         </button>
       </div>
-      
+
       <div class="input-group">
         <i class="fas fa-lock"></i>
-        <input 
-          :type="showConfirmPassword ? 'text' : 'password'" 
-          v-model="registerForm.confirmPassword" 
-          placeholder="请确认密码" 
+        <input
+          :type="showConfirmPassword ? 'text' : 'password'"
+          v-model="registerForm.confirmPassword"
+          placeholder="请确认密码"
           required
         >
-        <button 
-          class="password-toggle" 
+        <button
+          class="password-toggle"
           @click="toggleConfirmPasswordVisibility"
         >
           <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
         </button>
       </div>
-      
+
       <button class="register-button" @click="handleRegister" :disabled="isLoading">
         {{ isLoading ? '注册中...' : '注册' }}
       </button>
-      
+
       <div class="login-link">
         <span>已有账号？</span>
         <router-link to="/login">立即登录</router-link>
@@ -85,21 +85,21 @@ export default {
     const showPassword = ref(false)
     const showConfirmPassword = ref(false)
     const isLoading = ref(false)
-    
+
     const togglePasswordVisibility = () => {
       showPassword.value = !showPassword.value
     }
-    
+
     const toggleConfirmPasswordVisibility = () => {
       showConfirmPassword.value = !showConfirmPassword.value
     }
-    
+
     const handleRegister = async () => {
       if (registerForm.value.password !== registerForm.value.confirmPassword) {
         alert('两次输入的密码不一致')
         return
       }
-      
+
       isLoading.value = true
       try {
         const response = await authApi.register({
@@ -117,7 +117,7 @@ export default {
         isLoading.value = false
       }
     }
-    
+
     return {
       registerForm,
       showPassword,
