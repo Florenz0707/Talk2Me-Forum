@@ -6,7 +6,7 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    port: 3000 // 固定端口为3000
+    port: 8900 // 固定端口为8900
   },
   resolve: {
     alias: {
