@@ -1,13 +1,13 @@
-package com.example.springboot_backend.talk2me.user.controller;
+package com.example.springboot_backend.talk2me.controller;
 
-import com.example.springboot_backend.talk2me.user.model.vo.AuthResponse;
-import com.example.springboot_backend.talk2me.user.model.vo.LoginRequest;
-import com.example.springboot_backend.talk2me.user.model.vo.RefreshResponse;
-import com.example.springboot_backend.talk2me.user.model.vo.RefreshTokenRequest;
-import com.example.springboot_backend.talk2me.user.model.vo.RegisterRequest;
-import com.example.springboot_backend.talk2me.user.model.vo.RegisterResponse;
-import com.example.springboot_backend.talk2me.user.model.vo.VerificationResponse;
-import com.example.springboot_backend.talk2me.user.service.IAuthService;
+import com.example.springboot_backend.talk2me.model.vo.AuthResponse;
+import com.example.springboot_backend.talk2me.model.vo.LoginRequest;
+import com.example.springboot_backend.talk2me.model.vo.RefreshResponse;
+import com.example.springboot_backend.talk2me.model.vo.RefreshTokenRequest;
+import com.example.springboot_backend.talk2me.model.vo.RegisterRequest;
+import com.example.springboot_backend.talk2me.model.vo.RegisterResponse;
+import com.example.springboot_backend.talk2me.model.vo.VerificationResponse;
+import com.example.springboot_backend.talk2me.service.IAuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +27,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> register(
+            @Valid @RequestBody RegisterRequest registerRequest) {
         try {
             RegisterResponse response = authService.register(registerRequest);
             return ResponseEntity.ok(response);
@@ -37,7 +38,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest loginRequest) {
         try {
             AuthResponse response = authService.login(loginRequest);
             return ResponseEntity.ok(response);
@@ -48,7 +50,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<?> refresh(
+            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         try {
             RefreshResponse response = authService.refreshToken(refreshTokenRequest.getRefreshToken());
             return ResponseEntity.ok(response);

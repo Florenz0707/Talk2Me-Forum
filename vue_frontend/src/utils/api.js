@@ -1,7 +1,7 @@
 // API服务层 - 处理与后端的所有HTTP请求
 
 // API基础URL
-const API_BASE_URL = 'http://127.0.0.1:8099/talk2me/api/v1';
+const API_BASE_URL = 'http://127.0.0.1:8900/talk2me/api/v1';
 
 // 存储键名
 const TOKEN_KEY = 'auth_token';
@@ -122,9 +122,9 @@ export const authApi = {
     },
 
     // 注册
-    async register(username, password) {
+    async register(registrationData) {
         try {
-            return await request('/auth/register', 'POST', {username, password}, false);
+            return await request('/auth/register', 'POST', registrationData, false);
         } catch (error) {
             console.error('注册失败:', error);
             throw error;

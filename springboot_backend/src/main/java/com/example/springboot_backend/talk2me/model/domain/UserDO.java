@@ -1,4 +1,4 @@
-package com.example.springboot_backend.talk2me.user.model.domain;
+package com.example.springboot_backend.talk2me.model.domain;
 
 import com.example.springboot_backend.core.model.BaseEntity;
 import jakarta.persistence.Column;

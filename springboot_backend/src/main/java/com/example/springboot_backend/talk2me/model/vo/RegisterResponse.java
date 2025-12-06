@@ -1,9 +1,9 @@
-package com.example.springboot_backend.talk2me.user.model.vo;
+package com.example.springboot_backend.talk2me.model.vo;
 
-public class VerificationResponse {
+public class RegisterResponse {
     private String message;
 
-    public VerificationResponse(String message) {
+    public RegisterResponse(String message) {
         this.message = message;
     }
 

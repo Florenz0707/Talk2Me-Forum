@@ -1,7 +1,7 @@
 package com.example.springboot_backend.core.security;
 
-import com.example.springboot_backend.talk2me.user.model.domain.UserDO;
-import com.example.springboot_backend.talk2me.user.repository.UserRepository;
+import com.example.springboot_backend.talk2me.model.domain.UserDO;
+import com.example.springboot_backend.talk2me.repository.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,11 +41,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     public static class UserPrincipal implements UserDetails {
-        private Long id;
-        private String username;
-        private String password;
-        private Collection<? extends GrantedAuthority> authorities;
-        private Boolean enabled;
+        private final Long id;
+        private final String username;
+        private final String password;
+        private final Collection<? extends GrantedAuthority> authorities;
+        private final Boolean enabled;
 
         public UserPrincipal(Long id, String username, String password,
                              Collection<? extends GrantedAuthority> authorities, Boolean enabled) {
