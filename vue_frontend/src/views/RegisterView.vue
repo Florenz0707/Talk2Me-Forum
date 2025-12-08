@@ -17,19 +17,6 @@
       </div>
 
       <div class="input-group">
-        <i class="fas fa-envelope"></i>
-        <input
-          type="email"
-          v-model="registerForm.email"
-          placeholder="请输入邮箱"
-          @blur="validateEmail"
-          @input="clearError('email')"
-          :class="{ 'input-error': errors.email }"
-        >
-        <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
-      </div>
-
-      <div class="input-group">
         <i class="fas fa-lock"></i>
         <input
           :type="showPassword ? 'text' : 'password'"
@@ -93,7 +80,6 @@ export default {
     const router = useRouter()
     const registerForm = ref({
       username: '',
-      email: '',
       password: '',
       confirmPassword: ''
     })
@@ -117,46 +103,15 @@ export default {
         errors.value.username = '用户名不能为空'
         return false
       }
-      if (registerForm.value.username.length < 3) {
-        errors.value.username = '用户名至少需要3个字符'
-        return false
-      }
-      if (registerForm.value.username.length > 20) {
-        errors.value.username = '用户名不能超过20个字符'
-        return false
-      }
       return true
     }
 
-    // 验证邮箱
-    const validateEmail = () => {
-      if (!registerForm.value.email.trim()) {
-        errors.value.email = '邮箱不能为空'
-        return false
-      }
-      // 简单的邮箱格式验证
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(registerForm.value.email)) {
-        errors.value.email = '请输入有效的邮箱地址'
-        return false
-      }
-      return true
-    }
+
 
     // 验证密码
     const validatePassword = () => {
       if (!registerForm.value.password) {
         errors.value.password = '密码不能为空'
-        return false
-      }
-      if (registerForm.value.password.length < 6) {
-        errors.value.password = '密码至少需要6个字符'
-        return false
-      }
-      // 密码复杂度验证（至少包含一个字母和一个数字）
-      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/
-      if (!passwordRegex.test(registerForm.value.password)) {
-        errors.value.password = '密码必须包含至少一个字母和一个数字'
         return false
       }
       return true
@@ -181,7 +136,6 @@ export default {
       errors.value = {}
 
       if (!validateUsername()) isValid = false
-      if (!validateEmail()) isValid = false
       if (!validatePassword()) isValid = false
       if (!validateConfirmPassword()) isValid = false
 
@@ -208,7 +162,6 @@ export default {
       try {
         const response = await authApi.register({
           username: registerForm.value.username,
-          email: registerForm.value.email,
           password: registerForm.value.password
         })
         console.log('注册成功:', response)
@@ -217,7 +170,6 @@ export default {
         // 清空表单
         registerForm.value = {
           username: '',
-          email: '',
           password: '',
           confirmPassword: ''
         }
@@ -250,7 +202,6 @@ export default {
       toggleConfirmPasswordVisibility,
       handleRegister,
       validateUsername,
-      validateEmail,
       validatePassword,
       validateConfirmPassword,
       clearError

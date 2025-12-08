@@ -1,7 +1,7 @@
 // API服务层 - 处理与后端的所有HTTP请求
 
 // API基础URL
-const API_BASE_URL = 'http://127.0.0.1:8099/talk2me/api/v1';
+const API_BASE_URL = 'http://127.0.0.1:8099/talk2me/api/v1'
 
 // 存储键名
 const TOKEN_KEY = 'auth_token';
@@ -101,14 +101,18 @@ export const authApi = {
             const response = await request('/auth/login', 'POST', { username, password }, false);
 
             // 存储令牌和用户信息
-            if (response.accessToken) {
-                localStorage.setItem(TOKEN_KEY, response.accessToken);
+            if (response.access_token) {
+                localStorage.setItem(TOKEN_KEY, response.access_token);
             }
-            if (response.refreshToken) {
-                localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+            if (response.refresh_token) {
+                localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
             }
+            // 检查是否有用户信息，如果有则存储
             if (response.user) {
                 localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
+            } else if (response.username) {
+                // 兼容可能的不同返回格式
+                localStorage.setItem(USER_INFO_KEY, JSON.stringify({ username: response.username }));
             }
 
             // 触发登录事件
@@ -135,18 +139,20 @@ export const authApi = {
     async refreshToken() {
         try {
             const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+
             if (!refreshToken) {
                 throw new ApiError('没有刷新令牌', null, 'NO_REFRESH_TOKEN');
             }
 
-            const response = await request('/auth/refresh', 'POST', { refreshToken }, false);
+            // 严格按照API文档规范，使用refresh_token作为参数名
+            const response = await request('/auth/refresh', 'POST', { refresh_token: refreshToken }, false);
 
             // 更新令牌
-            if (response.accessToken) {
-                localStorage.setItem(TOKEN_KEY, response.accessToken);
+            if (response.access_token) {
+                localStorage.setItem(TOKEN_KEY, response.access_token);
             }
-            if (response.refreshToken) {
-                localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+            if (response.refresh_token) {
+                localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
             }
 
             return response;
@@ -161,12 +167,8 @@ export const authApi = {
     // 验证身份
     async verifyAuth() {
         try {
-            const response = await request('/auth/verify', 'GET', null, true);
-
-            // 更新用户信息
-            if (response.user) {
-                localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
-            }
+            // 严格按照API文档规范，使用POST方法和/verification端点
+            const response = await request('/auth/verification', 'POST', null, true);
 
             return response;
         } catch (error) {
