@@ -52,6 +52,14 @@
         {{ isLoading ? '登录中...' : '登录' }}
       </button>
 
+      <button class="refresh-token-button" @click="handleRefreshToken" :disabled="isTokenRefreshing">
+        {{ isTokenRefreshing ? '刷新中...' : '刷新Token' }}
+      </button>
+
+      <button class="verify-token-button" @click="handleVerifyToken" :disabled="isTokenVerifying">
+        {{ isTokenVerifying ? '验证中...' : '验证Token' }}
+      </button>
+
       <div class="register-link">
         <span>还没有账号？</span>
         <router-link to="/register">立即注册</router-link>
@@ -75,6 +83,8 @@ export default {
     })
     const showPassword = ref(false)
     const isLoading = ref(false)
+    const isTokenRefreshing = ref(false)
+    const isTokenVerifying = ref(false)
     const rememberMe = ref(false)
     const errors = ref({})
     const successMessage = ref('')
@@ -168,12 +178,10 @@ export default {
         }
 
         // 显示成功信息
-        successMessage.value = '登录成功，正在跳转到首页...'
+        successMessage.value = '登录成功，Token已安全记录！'
 
-        // 登录成功后跳转到首页（这里暂时跳转到注册页作为演示）
-        setTimeout(() => {
-          router.push('/register')
-        }, 1500)
+        // 登录成功后不执行页面跳转，保持在当前登录页面
+        // token已由authApi.login方法自动存储在localStorage中
       } catch (error) {
         console.error('登录失败:', error)
         // 显示友好的错误信息
@@ -192,16 +200,75 @@ export default {
       alert('忘记密码功能开发中...')
     }
 
+    // 刷新Token功能
+    const handleRefreshToken = async () => {
+      isTokenRefreshing.value = true
+      errors.value.form = ''
+      successMessage.value = ''
+
+      try {
+        // 步骤1：刷新Token
+        const refreshResponse = await authApi.refreshToken()
+        console.log('Token刷新成功:', refreshResponse)
+
+        // 显示成功信息
+        successMessage.value = 'Token刷新成功'
+      } catch (error) {
+        console.error('Token刷新失败:', error)
+        // 显示友好的错误信息，但对于没有刷新令牌的情况进行特殊处理
+        if (error.errorCode === 'NO_REFRESH_TOKEN') {
+          // 不直接显示"没有刷新令牌"，而是显示更友好的提示
+          errors.value.form = '请先登录获取令牌后再尝试刷新'
+        } else {
+          errors.value.form = error.message || 'Token刷新失败，请检查网络或重新登录'
+        }
+      } finally {
+        isTokenRefreshing.value = false
+      }
+    }
+
+    // 验证Token功能
+    const handleVerifyToken = async () => {
+      isTokenVerifying.value = true
+      errors.value.form = ''
+      successMessage.value = ''
+
+      try {
+        // 调用验证接口
+        const verifyResponse = await authApi.verifyAuth()
+        console.log('Token验证成功:', verifyResponse)
+
+        // 显示成功信息
+        successMessage.value = 'Token验证成功，当前用户已认证'
+      } catch (error) {
+        console.error('Token验证失败:', error)
+        // 显示友好的错误信息
+        if (error.errorCode === 'NETWORK_ERROR') {
+          errors.value.form = '网络错误，请检查您的网络连接'
+        } else if (error.statusCode === 401) {
+          errors.value.form = 'Token已过期或无效，请重新登录'
+        } else {
+          errors.value.form = error.message || 'Token验证失败'
+        }
+      } finally {
+        isTokenVerifying.value = false
+      }
+    }
+
     return {
       loginForm,
       showPassword,
       isLoading,
+      isTokenRefreshing,
+      isTokenVerifying,
       rememberMe,
       errors,
       successMessage,
       togglePasswordVisibility,
       handleLogin,
       handleForgotPassword,
+      handleRefreshToken,
+      handleVerifyToken,
       validateUsername,
       validatePassword,
       clearError,
@@ -339,9 +406,105 @@ export default {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 刷新Token按钮 */
+.refresh-token-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 验证Token按钮 */
+.verify-token-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
   margin-bottom: 20px;
   position: relative;
   overflow: hidden;
+}
+
+.verify-token-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.verify-token-button:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+.verify-token-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+}
+
+.verify-token-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.refresh-token-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.refresh-token-button:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+.refresh-token-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+}
+
+.refresh-token-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .login-button::after {
@@ -486,7 +649,8 @@ export default {
     font-size: 0.8rem;
   }
 
-  .login-button {
+  .login-button,
+  .refresh-token-button {
     padding: 10px;
     font-size: 0.9rem;
   }
