@@ -47,8 +47,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         private final Collection<? extends GrantedAuthority> authorities;
         private final Boolean enabled;
 
-        public UserPrincipal(Long id, String username, String password,
-                             Collection<? extends GrantedAuthority> authorities, Boolean enabled) {
+        public UserPrincipal(Long id,
+                             String username,
+                             String password,
+                             Collection<? extends GrantedAuthority> authorities,
+                             Boolean enabled) {
             this.id = id;
             this.username = username;
             this.password = password;
