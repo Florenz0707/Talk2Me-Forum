@@ -13,10 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -52,12 +49,8 @@ public class H2ConsoleUserAgentFilterConfig {
 
             // 检查是否是 H2 控制台请求
             if (requestURI != null && fullPath.contains(H2_CONSOLE_PATH)) {
-                logger.info("H2 Console request detected - URI: {}, ContextPath: {}, FullPath: {}",
+                logger.debug("H2 Console request detected - URI: {}, ContextPath: {}, FullPath: {}",
                         requestURI, contextPath, fullPath);
-
-                // 记录原始请求头
-                logger.info("Original User-Agent: {}", httpRequest.getHeader("User-Agent"));
-                logger.info("Original Accept: {}", httpRequest.getHeader("Accept"));
 
                 // 包装请求，修改请求头
                 HttpServletRequestWrapper wrappedRequest = new HttpServletRequestWrapper(httpRequest) {
@@ -65,32 +58,28 @@ public class H2ConsoleUserAgentFilterConfig {
                     private final Map<String, String> headerOverrides = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
                     {
-                        // 设置标准的浏览器请求头（使用标准格式）
+                        // 设置标准的浏览器请求头
                         headerOverrides.put("User-Agent", STANDARD_USER_AGENT);
                         headerOverrides.put("Accept", STANDARD_ACCEPT);
                         headerOverrides.put("Accept-Language", STANDARD_ACCEPT_LANGUAGE);
                         headerOverrides.put("Accept-Encoding", STANDARD_ACCEPT_ENCODING);
-                        logger.info("Header overrides initialized: {}", headerOverrides.keySet());
                     }
 
                     @Override
                     public String getHeader(String name) {
-                        // 尝试大小写不敏感查找
                         String override = findHeaderOverride(name);
                         if (override != null) {
-                            logger.info("Overriding header '{}' with: {}", name, override);
+                            logger.debug("Overriding header '{}'", name);
                             return override;
                         }
-                        String original = super.getHeader(name);
-                        logger.debug("Header '{}' not overridden, original value: {}", name, original);
-                        return original;
+                        return super.getHeader(name);
                     }
 
                     @Override
                     public Enumeration<String> getHeaders(String name) {
                         String override = findHeaderOverride(name);
                         if (override != null) {
-                            logger.info("Overriding headers '{}' with: {}", name, override);
+                            logger.debug("Overriding headers '{}'", name);
                             return Collections.enumeration(Collections.singletonList(override));
                         }
                         return super.getHeaders(name);
@@ -110,33 +99,20 @@ public class H2ConsoleUserAgentFilterConfig {
 
                     /**
                      * 大小写不敏感地查找请求头覆盖
+                     * TreeMap 使用 CASE_INSENSITIVE_ORDER，所以直接 get 即可
                      */
                     private String findHeaderOverride(String name) {
-                        // 直接查找
-                        String override = headerOverrides.get(name);
-                        if (override != null) {
-                            return override;
-                        }
-                        // 如果直接查找失败，尝试大小写不敏感查找
-                        for (Map.Entry<String, String> entry : headerOverrides.entrySet()) {
-                            if (entry.getKey().equalsIgnoreCase(name)) {
-                                return entry.getValue();
-                            }
-                        }
-                        return null;
+                        return headerOverrides.get(name);
                     }
                 };
 
-                logger.info("Wrapped request created, proceeding with filter chain");
-
-                // 同时包装响应，拦截并修改错误消息
+                // 包装响应，移除 X-Frame-Options 头以允许 H2 控制台在 iframe 中加载
                 HttpServletResponse httpResponse = (HttpServletResponse) response;
-                ResponseWrapper wrappedResponse = new ResponseWrapper(httpResponse) {
+                HttpServletResponseWrapper wrappedResponse = new HttpServletResponseWrapper(httpResponse) {
                     @Override
                     public void setHeader(String name, String value) {
-                        // 移除 X-Frame-Options 头，允许 H2 控制台在 iframe 中加载
                         if ("X-Frame-Options".equalsIgnoreCase(name)) {
-                            logger.info("Removing X-Frame-Options header for H2 console");
+                            logger.debug("Removing X-Frame-Options header for H2 console");
                             return;
                         }
                         super.setHeader(name, value);
@@ -144,9 +120,8 @@ public class H2ConsoleUserAgentFilterConfig {
 
                     @Override
                     public void addHeader(String name, String value) {
-                        // 移除 X-Frame-Options 头，允许 H2 控制台在 iframe 中加载
                         if ("X-Frame-Options".equalsIgnoreCase(name)) {
-                            logger.info("Removing X-Frame-Options header for H2 console");
+                            logger.debug("Removing X-Frame-Options header for H2 console");
                             return;
                         }
                         super.addHeader(name, value);
@@ -155,99 +130,14 @@ public class H2ConsoleUserAgentFilterConfig {
 
                 chain.doFilter(wrappedRequest, wrappedResponse);
 
-                // 移除 X-Frame-Options 头（如果存在），允许 H2 控制台在 iframe 中加载
+                // 确保移除 X-Frame-Options 头（如果仍然存在）
                 if (httpResponse.containsHeader("X-Frame-Options")) {
-                    logger.info("Removing X-Frame-Options header from response for H2 console");
+                    logger.debug("Removing X-Frame-Options header from response for H2 console");
                     httpResponse.setHeader("X-Frame-Options", "");
-                }
-
-                // 检查响应内容，替换错误消息
-                try {
-                    byte[] content = wrappedResponse.getContent();
-                    if (content.length > 0) {
-                        String contentStr = new String(content, StandardCharsets.UTF_8);
-                        if (contentStr.contains("Sorry, Lynx is not supported yet") ||
-                            contentStr.contains("Lynx is not supported")) {
-                            logger.warn("Detected 'Lynx is not supported' error in response, attempting to fix...");
-                            // 尝试替换错误消息，或者重定向到正确的页面
-                            contentStr = contentStr.replace("Sorry, Lynx is not supported yet", "");
-                            contentStr = contentStr.replace("Lynx is not supported", "");
-                            content = contentStr.getBytes(StandardCharsets.UTF_8);
-                        }
-                        httpResponse.setContentLength(content.length);
-                        httpResponse.getOutputStream().write(content);
-                        httpResponse.getOutputStream().flush();
-                    }
-                } catch (IOException e) {
-                    logger.error("Error processing H2 console response", e);
-                    throw new ServletException("Error processing H2 console response", e);
                 }
             } else {
                 chain.doFilter(request, response);
             }
-        }
-    }
-
-    /**
-     * 响应包装器，用于拦截和修改响应内容
-     */
-    private static class ResponseWrapper extends HttpServletResponseWrapper {
-        private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        private PrintWriter writer;
-        private ServletOutputStream outputStream;
-
-        public ResponseWrapper(HttpServletResponse response) {
-            super(response);
-        }
-
-        @Override
-        public PrintWriter getWriter() throws IOException {
-            if (writer == null) {
-                writer = new PrintWriter(new java.io.OutputStreamWriter(buffer, StandardCharsets.UTF_8), true);
-            }
-            return writer;
-        }
-
-        @Override
-        public ServletOutputStream getOutputStream() throws IOException {
-            if (outputStream == null) {
-                outputStream = new ServletOutputStream() {
-                    @Override
-                    public void write(int b) throws IOException {
-                        buffer.write(b);
-                    }
-
-                    @Override
-                    public boolean isReady() {
-                        return true;
-                    }
-
-                    @Override
-                    public void setWriteListener(WriteListener listener) {
-                        // Not needed
-                    }
-                };
-            }
-            return outputStream;
-        }
-
-        @Override
-        public void flushBuffer() throws IOException {
-            if (writer != null) {
-                writer.flush();
-            }
-            if (outputStream != null) {
-                outputStream.flush();
-            }
-        }
-
-        public byte[] getContent() {
-            try {
-                flushBuffer();
-            } catch (IOException e) {
-                // Ignore flush errors
-            }
-            return buffer.toByteArray();
         }
     }
 
