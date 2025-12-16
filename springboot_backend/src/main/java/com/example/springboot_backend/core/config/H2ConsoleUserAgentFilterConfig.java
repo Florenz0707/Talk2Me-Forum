@@ -19,7 +19,6 @@ import java.util.*;
 /**
  * H2 控制台请求头过滤器配置
  * 解决 H2 控制台显示 "Sorry, Lynx is not supported yet" 的问题
- *
  * H2 控制台会检查请求头（User-Agent、Accept 等），如果检测到是文本浏览器或缺少必要的请求头，
  * 就会显示错误。此过滤器为 H2 控制台请求设置标准的浏览器请求头。
  */
@@ -49,9 +48,6 @@ public class H2ConsoleUserAgentFilterConfig {
 
             // 检查是否是 H2 控制台请求
             if (requestURI != null && fullPath.contains(H2_CONSOLE_PATH)) {
-                logger.debug("H2 Console request detected - URI: {}, ContextPath: {}, FullPath: {}",
-                        requestURI, contextPath, fullPath);
-
                 // 包装请求，修改请求头
                 HttpServletRequestWrapper wrappedRequest = new HttpServletRequestWrapper(httpRequest) {
                     // 使用 TreeMap 进行大小写不敏感的查找
@@ -112,7 +108,6 @@ public class H2ConsoleUserAgentFilterConfig {
                     @Override
                     public void setHeader(String name, String value) {
                         if ("X-Frame-Options".equalsIgnoreCase(name)) {
-                            logger.debug("Removing X-Frame-Options header for H2 console");
                             return;
                         }
                         super.setHeader(name, value);
@@ -121,7 +116,6 @@ public class H2ConsoleUserAgentFilterConfig {
                     @Override
                     public void addHeader(String name, String value) {
                         if ("X-Frame-Options".equalsIgnoreCase(name)) {
-                            logger.debug("Removing X-Frame-Options header for H2 console");
                             return;
                         }
                         super.addHeader(name, value);
@@ -132,7 +126,6 @@ public class H2ConsoleUserAgentFilterConfig {
 
                 // 确保移除 X-Frame-Options 头（如果仍然存在）
                 if (httpResponse.containsHeader("X-Frame-Options")) {
-                    logger.debug("Removing X-Frame-Options header from response for H2 console");
                     httpResponse.setHeader("X-Frame-Options", "");
                 }
             } else {
@@ -149,11 +142,8 @@ public class H2ConsoleUserAgentFilterConfig {
         FilterRegistrationBean<H2ConsoleUserAgentFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new H2ConsoleUserAgentFilter());
         registration.addUrlPatterns("/h2-console/*");
-        // 支持 context-path
-        registration.addUrlPatterns("/*/h2-console/*");
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         registration.setName("h2ConsoleUserAgentFilter");
-        logger.info("H2 Console User-Agent Filter registered with highest precedence");
         return registration;
     }
 }

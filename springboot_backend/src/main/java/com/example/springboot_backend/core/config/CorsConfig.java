@@ -164,8 +164,8 @@ public class CorsConfig {
 
             http.csrf(AbstractHttpConfigurer::disable)
                     .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                    .sessionManagement(session -> session
-                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .sessionManagement(session ->
+                            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
                             // H2控制台允许访问（仅开发环境）
                             .requestMatchers("/h2-console", "/h2-console/**").permitAll()
