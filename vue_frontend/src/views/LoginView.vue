@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '../utils/api'
 
@@ -77,6 +77,7 @@ export default {
   name: 'LoginView',
   setup() {
     const router = useRouter()
+    const updateLoginStatus = inject('updateLoginStatus')
     const loginForm = ref({
       username: '',
       password: ''
@@ -178,10 +179,19 @@ export default {
         }
 
         // 显示成功信息
-        successMessage.value = '登录成功，Token已安全记录！'
+        successMessage.value = '登录成功，正在跳转...'
 
-        // 登录成功后不执行页面跳转，保持在当前登录页面
-        // token已由authApi.login方法自动存储在localStorage中
+        // 确认token已正确存储
+        const token = localStorage.getItem('auth_token')
+        if (token) {
+          // 更新全局登录状态
+          updateLoginStatus(true)
+          // 立即跳转到首页
+          router.push('/home')
+        } else {
+          // 如果token未存储成功，显示错误信息
+          errors.value.form = '登录成功但令牌未正确记录，请重试'
+        }
       } catch (error) {
         console.error('登录失败:', error)
         // 显示友好的错误信息
