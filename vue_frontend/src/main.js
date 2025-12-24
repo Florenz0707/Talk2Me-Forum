@@ -9,11 +9,11 @@ const app = createApp(App)
 // 应用路由
 app.use(router)
 
-// 设置全局CSS变量
-app.mount('#app')
-
 // 将CSS变量应用到根元素
 const rootElement = document.documentElement
 Object.keys(cssVariables).forEach(key => {
   rootElement.style.setProperty(key, cssVariables[key])
 })
+
+// 挂载应用
+app.mount('#app')

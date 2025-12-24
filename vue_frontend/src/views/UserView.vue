@@ -179,13 +179,13 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background-color: var(--sapphire-blue);
   padding: 20px;
 }
 
 /* 主页卡片 */
 .home-card {
-  background: #ffffff;
+  background: var(--card-background-color);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
   padding: 40px;
@@ -197,7 +197,7 @@ export default {
 .home-title {
   text-align: center;
   margin-bottom: 10px;
-  color: var(--dark-color);
+  color: var(--text-color);
   font-size: 28px;
   font-weight: 600;
 }
@@ -235,11 +235,10 @@ export default {
   transform: translateY(0);
 }
 
-/* 主页副标题 */
 .home-subtitle {
   text-align: center;
   margin-bottom: 30px;
-  color: var(--gray-color);
+  color: var(--light-text-color);
   font-size: 16px;
 }
 
@@ -253,7 +252,7 @@ export default {
 
 /* 统计卡片 */
 .stat-card {
-  background: linear-gradient(135deg, var(--background-color) 0%, #edf2f7 100%);
+  background: linear-gradient(135deg, var(--light-background-color) 0%, var(--card-background-color) 100%);
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -290,15 +289,14 @@ export default {
 .stat-number {
   font-size: 24px;
   font-weight: 600;
-  color: var(--dark-color);
+  color: var(--text-color);
   margin-bottom: 4px;
-}
 }
 
 /* 统计标签 */
 .stat-label {
   font-size: 12px;
-  color: #718096;
+  color: var(--light-text-color);
 }
 
 /* 快速操作区域 */
@@ -310,7 +308,7 @@ export default {
 .actions-title {
   font-size: 18px;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--text-color);
   margin-bottom: 16px;
   text-align: center;
 }
@@ -324,7 +322,7 @@ export default {
 
 /* 操作按钮 */
 .action-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   border: none;
   border-radius: 8px;
   color: #ffffff;
@@ -343,7 +341,7 @@ export default {
 .action-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--primary-color), 0.4);
 }
 
 /* 操作按钮图标 */
@@ -355,7 +353,7 @@ export default {
 .logout-button {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, var(--tertiary-color) 0%, var(--error-color) 100%);
   border: none;
   border-radius: 8px;
   color: #ffffff;
@@ -389,7 +387,7 @@ export default {
 .logout-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--tertiary-color), 0.4);
 }
 
 .logout-button:disabled {

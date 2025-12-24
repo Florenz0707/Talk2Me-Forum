@@ -313,7 +313,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #203060;
+  background-color: var(--sapphire-blue);
   padding: 20px;
 }
 
@@ -331,7 +331,7 @@ export default {
 .login-title {
   text-align: center;
   margin-bottom: 30px;
-  color: #2d3748;
+  color: var(--text-color);
   font-size: 24px;
   font-weight: 600;
 }
@@ -349,7 +349,7 @@ export default {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 16px;
-  color: #2d3748;
+  color: var(--text-color);
   outline: none;
   transition: all 0.3s ease;
 }
@@ -368,7 +368,7 @@ export default {
 
 /* 错误信息 */
 .error-message {
-  color: #e53e3e;
+  color: var(--error-color);
   font-size: 12px;
   margin-top: 4px;
   margin-left: 45px;
@@ -376,21 +376,21 @@ export default {
 
 /* 表单级错误 */
 .form-error {
-  color: #e53e3e;
+  color: var(--error-color);
   text-align: center;
   margin-bottom: 16px;
   padding: 10px;
-  background-color: #fed7d7;
+  background-color: rgba(var(--error-color), 0.1);
   border-radius: 4px;
 }
 
 /* 成功信息 */
 .success-message {
-  color: #38a169;
+  color: var(--success-color);
   text-align: center;
   margin-bottom: 16px;
   padding: 10px;
-  background-color: #c6f6d5;
+  background-color: rgba(var(--success-color), 0.1);
   border-radius: 4px;
 }
 
@@ -400,7 +400,7 @@ export default {
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-color);
+  color: var(--light-text-color);
   font-size: 18px;
 }
 
@@ -412,7 +412,7 @@ export default {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--gray-color);
+  color: #718096;
   cursor: pointer;
   font-size: 18px;
   transition: color 0.3s ease;
@@ -443,7 +443,7 @@ export default {
 .refresh-token-button {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, var(--tertiary-color) 0%, var(--danger-color) 100%);
+  background: linear-gradient(135deg, var(--tertiary-color) 0%, var(--error-color) 100%);
   border: none;
   border-radius: 8px;
   color: #ffffff;
@@ -580,7 +580,7 @@ export default {
   align-items: center;
   cursor: pointer;
   font-size: 14px;
-  color: var(--gray-color);
+  color: var(--light-text-color);
 }
 
 .remember-me input {
@@ -649,7 +649,7 @@ export default {
 
 .register-link {
   text-align: center;
-  color: var(--gray-color);
+  color: var(--light-text-color);
   font-size: 14px;
 }
 

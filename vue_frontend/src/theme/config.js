@@ -1,37 +1,44 @@
 // 主题配置文件
-// 定义主题颜色变量
-export const themeConfig = {
-  // 主题强调色
-  primary: '#667eea', // 强调色一
-  secondary: '#764ba2', // 强调色二
-  tertiary: '#f093fb', // 强调色三
-  quaternary: '#4facfe', // 强调色四
 
-  // 中性色
-  dark: '#2d3748',
-  gray: '#718096',
-  lightGray: '#e2e8f0',
-  background: '#f7fafc',
+// 主色调
+const primaryColor = '#667eea'
 
-  // 功能色
-  success: '#48bb78',
-  warning: '#ed8936',
-  danger: '#f56565',
-  info: '#4299e1'
-}
+// 辅助色调
+const secondaryColor = '#764ba2'
 
-// 导出CSS变量格式的主题
+// 第三色调
+const tertiaryColor = '#f093fb'
+
+// 第四色调
+const quaternaryColor = '#4facfe'
+
+// 文本颜色
+const textColor = '#2d3748'
+const lightTextColor = '#718096'
+
+// 背景颜色
+const backgroundColor = '#f7fafc'
+const darkBackgroundColor = '#edf2f7'
+
+// 特殊颜色
+const successColor = '#38a169'
+const errorColor = '#e53e3e'
+const warningColor = '#dd6b20'
+const infoColor = '#00f2fe'
+
+// 全局 CSS 变量
 export const cssVariables = {
-  '--primary-color': themeConfig.primary,
-  '--secondary-color': themeConfig.secondary,
-  '--tertiary-color': themeConfig.tertiary,
-  '--quaternary-color': themeConfig.quaternary,
-  '--dark-color': themeConfig.dark,
-  '--gray-color': themeConfig.gray,
-  '--light-gray-color': themeConfig.lightGray,
-  '--background-color': themeConfig.background,
-  '--success-color': themeConfig.success,
-  '--warning-color': themeConfig.warning,
-  '--danger-color': themeConfig.danger,
-  '--info-color': themeConfig.info
+  '--primary-color': primaryColor,
+  '--secondary-color': secondaryColor,
+  '--tertiary-color': tertiaryColor,
+  '--quaternary-color': quaternaryColor,
+  '--text-color': textColor,
+  '--light-text-color': lightTextColor,
+  '--background-color': backgroundColor,
+  '--dark-background-color': darkBackgroundColor,
+  '--success-color': successColor,
+  '--error-color': errorColor,
+  '--warning-color': warningColor,
+  '--info-color': infoColor,
+  '--sapphire-blue': '#203060' // 用户指定的蓝宝石蓝颜色
 }

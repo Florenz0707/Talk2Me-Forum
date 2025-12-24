@@ -400,7 +400,7 @@ onMounted(() => {
 .breadcrumb {
   margin-bottom: 15px;
   font-size: 14px;
-  color: var(--gray-color);
+  color: #666;
 }
 
 /* 版块信息 */
@@ -416,12 +416,12 @@ onMounted(() => {
   margin: 0 0 10px 0;
   font-size: 24px;
   font-weight: 600;
-  color: var(--dark-color);
+  color: #333;
 }
 
 .forum-description {
   margin: 0;
-  color: var(--gray-color);
+  color: #666;
 }
 
 /* 操作栏 */
@@ -444,7 +444,7 @@ onMounted(() => {
 
 .sort-options label, .filter-options label {
   font-size: 14px;
-  color: var(--gray-color);
+  color: #666;
 }
 
 .sort-options select, .filter-options select {
@@ -468,21 +468,21 @@ onMounted(() => {
 }
 
 .thread-table thead {
-  background-color: var(--background-color);
-  border-bottom: 2px solid var(--light-gray-color);
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .thread-table th {
   padding: 15px 20px;
   text-align: left;
   font-weight: 600;
-  color: var(--dark-color);
+  color: #333;
   font-size: 14px;
 }
 
 .thread-table td {
   padding: 15px 20px;
-  border-bottom: 1px solid var(--light-gray-color);
+  border-bottom: 1px solid #e9ecef;
   font-size: 14px;
 }
 
@@ -497,14 +497,14 @@ onMounted(() => {
 }
 
 .thread-title a {
-  color: var(--dark-color);
+  color: #2c3e50;
   text-decoration: none;
   font-weight: 500;
   line-height: 1.5;
 }
 
 .thread-title a:hover {
-  color: var(--primary-color);
+  color: #3498db;
 }
 
 .thread-tag {
@@ -515,13 +515,13 @@ onMounted(() => {
 }
 
 .thread-tag.hot {
-  background-color: rgba(245, 101, 101, 0.1);
-  color: var(--danger-color);
+  background-color: #ffebee;
+  color: #c62828;
 }
 
 .thread-tag.recommended {
-  background-color: rgba(66, 153, 225, 0.1);
-  color: var(--info-color);
+  background-color: #e3f2fd;
+  color: #1565c0;
 }
 
 .thread-author {
@@ -529,18 +529,18 @@ onMounted(() => {
 }
 
 .author-name {
-  color: var(--gray-color);
+  color: #666;
 }
 
 .thread-time, .thread-replies, .thread-views {
   width: 10%;
-  color: var(--gray-color);
+  color: #999;
   text-align: center;
 }
 
 .thread-last {
   width: 15%;
-  color: var(--gray-color);
+  color: #666;
 }
 
 .last-reply {
@@ -551,12 +551,11 @@ onMounted(() => {
 
 .last-author {
   font-weight: 500;
-  color: var(--dark-color);
 }
 
 .last-time {
   font-size: 12px;
-  color: var(--gray-color);
+  color: #999;
 }
 
 /* 分页控件 */
@@ -594,7 +593,7 @@ onMounted(() => {
 
 .page-info {
   font-size: 14px;
-  color: var(--gray-color);
+  color: #666;
 }
 
 .page-jump {
@@ -602,7 +601,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: var(--gray-color);
+  color: #666;
 }
 
 .page-jump input {
@@ -647,21 +646,21 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
+  background-color: #3498db;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: var(--secondary-color);
+  background-color: #2980b9;
 }
 
 .btn-secondary {
-  background-color: var(--gray-color);
+  background-color: #95a5a6;
   color: white;
 }
 
 .btn-secondary:hover {
-  background-color: var(--dark-color);
+  background-color: #7f8c8d;
 }
 
 /* 响应式设计 */
