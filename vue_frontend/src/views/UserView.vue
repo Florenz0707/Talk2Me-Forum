@@ -1,6 +1,12 @@
 <template>
   <div class="home-container">
     <div class="home-card">
+      <div class="header-section">
+        <button class="back-home-button" @click="goToHome">
+          <i class="fas fa-home"></i>
+          <span>返回主页</span>
+        </button>
+      </div>
       <h2 class="home-title">欢迎回来，{{ username }}</h2>
       <p class="home-subtitle">这是您的个人主页</p>
 
@@ -151,10 +157,16 @@ export default {
       fetchUserInfo()
     })
 
+    // 返回主页
+    const goToHome = () => {
+      router.push('/home')
+    }
+
     return {
       username,
       isLoggingOut,
-      handleLogout
+      handleLogout,
+      goToHome
     }
   }
 }
@@ -167,7 +179,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   padding: 20px;
 }
 
@@ -185,16 +197,49 @@ export default {
 .home-title {
   text-align: center;
   margin-bottom: 10px;
-  color: #2d3748;
+  color: var(--dark-color);
   font-size: 28px;
   font-weight: 600;
+}
+
+/* 主页副标题 */
+.header-section {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+}
+
+/* 返回主页按钮 */
+.back-home-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-home-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-color), 0.4);
+}
+
+.back-home-button:active {
+  transform: translateY(0);
 }
 
 /* 主页副标题 */
 .home-subtitle {
   text-align: center;
   margin-bottom: 30px;
-  color: #718096;
+  color: var(--gray-color);
   font-size: 16px;
 }
 
@@ -208,7 +253,7 @@ export default {
 
 /* 统计卡片 */
 .stat-card {
-  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  background: linear-gradient(135deg, var(--background-color) 0%, #edf2f7 100%);
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -228,7 +273,7 @@ export default {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -245,8 +290,9 @@ export default {
 .stat-number {
   font-size: 24px;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--dark-color);
   margin-bottom: 4px;
+}
 }
 
 /* 统计标签 */

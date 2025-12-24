@@ -60,6 +60,11 @@
         {{ isTokenVerifying ? '验证中...' : '验证Token' }}
       </button>
 
+      <button class="guest-access-button" @click="handleGuestAccess">
+        <i class="fas fa-user-secret"></i>
+        <span>以游客身份进入</span>
+      </button>
+
       <div class="register-link">
         <span>还没有账号？</span>
         <router-link to="/register">立即注册</router-link>
@@ -70,13 +75,14 @@
 
 <script>
 import { ref, inject } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { authApi } from '../utils/api'
 
 export default {
   name: 'LoginView',
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const updateLoginStatus = inject('updateLoginStatus')
     const loginForm = ref({
       username: '',
@@ -186,8 +192,11 @@ export default {
         if (token) {
           // 更新全局登录状态
           updateLoginStatus(true)
-          // 立即跳转到首页
-          router.push('/home')
+
+          // 获取重定向路径，如果没有则默认跳转到主页
+          const redirectPath = route.query.redirect || '/home'
+          // 跳转到重定向路径或主页
+          router.push(redirectPath)
         } else {
           // 如果token未存储成功，显示错误信息
           errors.value.form = '登录成功但令牌未正确记录，请重试'
@@ -265,6 +274,14 @@ export default {
       }
     }
 
+    // 以游客身份进入
+    const handleGuestAccess = () => {
+      // 更新全局登录状态为未登录
+      updateLoginStatus(false)
+      // 跳转至主页
+      router.push('/home')
+    }
+
     return {
       loginForm,
       showPassword,
@@ -279,6 +296,7 @@ export default {
       handleForgotPassword,
       handleRefreshToken,
       handleVerifyToken,
+      handleGuestAccess,
       validateUsername,
       validatePassword,
       clearError,
@@ -295,7 +313,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #203060;
   padding: 20px;
 }
 
@@ -382,7 +400,7 @@ export default {
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: #718096;
+  color: var(--gray-color);
   font-size: 18px;
 }
 
@@ -394,21 +412,21 @@ export default {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #718096;
+  color: var(--gray-color);
   cursor: pointer;
   font-size: 18px;
   transition: color 0.3s ease;
 }
 
 .password-toggle:hover {
-  color: #667eea;
+  color: var(--primary-color);
 }
 
 /* 登录按钮 */
 .login-button {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   border: none;
   border-radius: 8px;
   color: #ffffff;
@@ -425,7 +443,7 @@ export default {
 .refresh-token-button {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, var(--tertiary-color) 0%, var(--danger-color) 100%);
   border: none;
   border-radius: 8px;
   color: #ffffff;
@@ -442,7 +460,7 @@ export default {
 .verify-token-button {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, var(--quaternary-color) 0%, var(--info-color) 100%);
   border: none;
   border-radius: 8px;
   color: #ffffff;
@@ -476,7 +494,7 @@ export default {
 .verify-token-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--quaternary-color), 0.4);
 }
 
 .verify-token-button:disabled {
@@ -507,7 +525,7 @@ export default {
 .refresh-token-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--tertiary-color), 0.4);
 }
 
 .refresh-token-button:disabled {
@@ -538,7 +556,7 @@ export default {
 .login-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--primary-color), 0.4);
 }
 
 .login-button:disabled {
@@ -562,7 +580,7 @@ export default {
   align-items: center;
   cursor: pointer;
   font-size: 14px;
-  color: #718096;
+  color: var(--gray-color);
 }
 
 .remember-me input {
@@ -572,33 +590,78 @@ export default {
 
 /* 忘记密码链接 */
 .forgot-password a {
-  color: #667eea;
+  color: var(--primary-color);
   text-decoration: none;
   font-size: 14px;
   transition: color 0.3s ease;
 }
 
 .forgot-password a:hover {
-  color: #764ba2;
+  color: var(--secondary-color);
   text-decoration: underline;
 }
 
 /* 注册链接 */
+/* 以游客身份进入按钮 */
+.guest-access-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--quaternary-color) 0%, var(--info-color) 100%);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.guest-access-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.guest-access-button:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+.guest-access-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--quaternary-color), 0.4);
+}
+
 .register-link {
   text-align: center;
-  color: #718096;
+  color: var(--gray-color);
   font-size: 14px;
 }
 
 .register-link a {
-  color: #667eea;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .register-link a:hover {
-  color: #764ba2;
+  color: var(--secondary-color);
 }
 
 /* 响应式设计 */
