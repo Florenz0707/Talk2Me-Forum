@@ -380,7 +380,7 @@ export default {
   text-align: center;
   margin-bottom: 16px;
   padding: 10px;
-  background-color: rgba(var(--error-color), 0.1);
+  background-color: rgba(229, 62, 62, 0.1);
   border-radius: 4px;
 }
 
@@ -390,7 +390,7 @@ export default {
   text-align: center;
   margin-bottom: 16px;
   padding: 10px;
-  background-color: rgba(var(--success-color), 0.1);
+  background-color: rgba(56, 161, 105, 0.1);
   border-radius: 4px;
 }
 
@@ -494,7 +494,7 @@ export default {
 .verify-token-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--quaternary-color), 0.4);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
 }
 
 .verify-token-button:disabled {
@@ -525,7 +525,7 @@ export default {
 .refresh-token-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--tertiary-color), 0.4);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
 }
 
 .refresh-token-button:disabled {
@@ -556,7 +556,7 @@ export default {
 .login-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--primary-color), 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .login-button:disabled {
@@ -644,7 +644,7 @@ export default {
 .guest-access-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--quaternary-color), 0.4);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
 }
 
 .register-link {

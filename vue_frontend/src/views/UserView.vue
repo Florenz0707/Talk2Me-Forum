@@ -228,7 +228,7 @@ export default {
 .back-home-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--primary-color), 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .back-home-button:active {
@@ -252,7 +252,7 @@ export default {
 
 /* 统计卡片 */
 .stat-card {
-  background: linear-gradient(135deg, var(--light-background-color) 0%, var(--card-background-color) 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -264,7 +264,7 @@ export default {
 /* 统计卡片悬停效果 */
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(31, 38, 135, 0.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* 统计图标 */
@@ -289,14 +289,14 @@ export default {
 .stat-number {
   font-size: 24px;
   font-weight: 600;
-  color: var(--text-color);
+  color: #ffffff;
   margin-bottom: 4px;
 }
 
 /* 统计标签 */
 .stat-label {
   font-size: 12px;
-  color: var(--light-text-color);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* 快速操作区域 */
@@ -341,7 +341,7 @@ export default {
 .action-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--primary-color), 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* 操作按钮图标 */
@@ -387,7 +387,7 @@ export default {
 .logout-button:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--tertiary-color), 0.4);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
 }
 
 .logout-button:disabled {

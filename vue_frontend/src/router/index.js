@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import UserView from '../views/UserView.vue'
+import ColorTest from '../components/ColorTest.vue'
 
 // 检查是否已登录的函数
 const isAuthenticated = () => {
@@ -13,6 +14,11 @@ const routes = [
   {
     path: '/',
     redirect: '/home'
+  },
+  {
+    path: '/color-test',
+    name: 'ColorTest',
+    component: ColorTest
   },
   {
     path: '/login',
