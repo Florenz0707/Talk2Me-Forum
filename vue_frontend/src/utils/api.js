@@ -98,7 +98,7 @@ export const authApi = {
     // 登录
     async login(username, password) {
         try {
-            const response = await request('/auth/login', 'POST', { username, password }, false);
+            const response = await request('/auth/login', 'POST', {username, password}, false);
 
             // 存储令牌和用户信息
             if (response.access_token) {
@@ -112,7 +112,7 @@ export const authApi = {
                 localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
             } else if (response.username) {
                 // 兼容可能的不同返回格式
-                localStorage.setItem(USER_INFO_KEY, JSON.stringify({ username: response.username }));
+                localStorage.setItem(USER_INFO_KEY, JSON.stringify({username: response.username}));
             }
 
             // 触发登录事件
@@ -145,7 +145,7 @@ export const authApi = {
             }
 
             // 严格按照API文档规范，使用refresh_token作为参数名
-            const response = await request('/auth/refresh', 'POST', { refresh_token: refreshToken }, false);
+            const response = await request('/auth/refresh', 'POST', {refresh_token: refreshToken}, false);
 
             // 更新令牌
             if (response.access_token) {

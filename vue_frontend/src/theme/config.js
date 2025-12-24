@@ -27,19 +27,19 @@ export const sapphireBlue = '#203060'
 
 // 全局 CSS 变量
 export const cssVariables = {
-  '--primary-color': primaryColor,
-  '--secondary-color': secondaryColor,
-  '--tertiary-color': tertiaryColor,
-  '--quaternary-color': quaternaryColor,
-  '--text-color': textColor,
-  '--light-text-color': lightTextColor,
-  '--background-color': backgroundColor,
-  '--dark-background-color': darkBackgroundColor,
-  '--card-background-color': cardBackgroundColor,
-  '--light-background-color': lightBackgroundColor,
-  '--success-color': successColor,
-  '--error-color': errorColor,
-  '--warning-color': warningColor,
-  '--info-color': infoColor,
-  '--sapphire-blue': sapphireBlue
+    '--primary-color': primaryColor,
+    '--secondary-color': secondaryColor,
+    '--tertiary-color': tertiaryColor,
+    '--quaternary-color': quaternaryColor,
+    '--text-color': textColor,
+    '--light-text-color': lightTextColor,
+    '--background-color': backgroundColor,
+    '--dark-background-color': darkBackgroundColor,
+    '--card-background-color': cardBackgroundColor,
+    '--light-background-color': lightBackgroundColor,
+    '--success-color': successColor,
+    '--error-color': errorColor,
+    '--warning-color': warningColor,
+    '--info-color': infoColor,
+    '--sapphire-blue': sapphireBlue
 }
