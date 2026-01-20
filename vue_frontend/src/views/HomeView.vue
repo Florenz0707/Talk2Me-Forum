@@ -1,16 +1,17 @@
 <template>
   <div class="home-page">
     <!-- 页面头部 -->
-    <header class="page-header">
-      <div class="container">
-        <h1 class="page-title">论坛首页</h1>
-        <div class="user-actions">
-          <router-link v-if="showAuthButtons" to="/login" class="btn btn-primary">登录</router-link>
-          <router-link v-if="showAuthButtons" to="/register" class="btn btn-secondary">注册</router-link>
-          <router-link v-else to="/user" class="btn btn-primary">用户中心</router-link>
-        </div>
-      </div>
-    </header>
+    <Header title="论坛首页" />
+
+    <!-- 用户操作区 - 移动端额外显示 -->
+    <div class="mobile-user-actions">
+      <router-link v-if="showAuthButtons" to="/login" class="btn btn-primary">登录</router-link>
+      <router-link v-if="showAuthButtons" to="/register" class="btn btn-secondary">注册</router-link>
+      <template v-else>
+        <router-link to="/create-thread" class="btn btn-primary create-thread-btn">发帖</router-link>
+        <router-link to="/user" class="btn btn-primary">用户中心</router-link>
+      </template>
+    </div>
 
     <!-- 主内容区域 -->
     <main class="main-content">
@@ -133,6 +134,7 @@
 <script setup>
 import { ref, onMounted, computed, inject } from 'vue'
 import { useRouter } from 'vue-router'
+import Header from '../components/Header.vue'
 
 const router = useRouter()
 
@@ -356,44 +358,25 @@ onMounted(() => {
   background-color: #f5f7fa;
 }
 
-/* 页面头部 */
-.page-header {
-  background-color: #2c3e50;
-  color: white;
-  padding: 20px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* 移动端用户操作区 */
+.mobile-user-actions {
+  display: none;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: white;
+  border-bottom: 1px solid var(--forum-border-color);
 }
 
-.page-header .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.user-actions {
-  display: flex;
-  gap: 12px;
+@media (max-width: 768px) {
+  .mobile-user-actions {
+    display: flex;
+  }
 }
 
 /* 主内容区域 */
 .main-content {
   flex: 1;
-  padding: 30px 0;
-}
-
-.main-content .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
 }
 
 /* 面包屑导航 */
@@ -632,43 +615,10 @@ onMounted(() => {
   padding: 0 20px;
 }
 
-/* 按钮样式 */
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s;
-}
 
-.btn-primary {
-  background-color: #3498db;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #2980b9;
-}
-
-.btn-secondary {
-  background-color: #95a5a6;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #7f8c8d;
-}
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .page-header .container {
-    flex-direction: column;
-    gap: 15px;
-  }
 
   .action-bar {
     flex-direction: column;

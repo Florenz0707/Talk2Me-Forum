@@ -1,0 +1,245 @@
+/* 共享样式文件 - Talk2Me论坛 */
+
+/* 容器样式 */
+.container {
+  max-width: var(--container-max-width, 1200px);
+  margin: 0 auto;
+  padding: var(--container-padding, 0 20px);
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-block;
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  border: none;
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: var(--base-font-size, 16px);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: var(--forum-primary-color, #3498db);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--forum-primary-hover-color, #2980b9);
+}
+
+.btn-secondary {
+  background-color: var(--forum-light-color, #f8f9fa);
+  color: var(--forum-dark-color, #333);
+  border: 1px solid var(--forum-border-color, #ddd);
+}
+
+.btn-secondary:hover {
+  background-color: var(--forum-light-hover-color, #e9ecef);
+}
+
+.btn-danger {
+  background-color: var(--forum-error-color, #e74c3c);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: var(--forum-error-hover-color, #c0392b);
+}
+
+.btn-small {
+  padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+  font-size: 14px;
+}
+
+.btn-large {
+  padding: var(--spacing-md, 12px) var(--spacing-xl, 24px);
+  font-size: 18px;
+}
+
+/* 发帖按钮特殊样式 */
+.create-thread-btn {
+  background-color: var(--forum-primary-color, #3498db);
+  color: white;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.create-thread-btn:hover {
+  background-color: var(--forum-primary-hover-color, #2980b9);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* 页面头部样式 */
+.page-header {
+  background-color: var(--forum-dark-color, #2c3e50);
+  color: white;
+  padding: var(--header-padding, 20px 0);
+  box-shadow: var(--shadow-medium, 0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.page-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  margin: 0;
+  font-size: var(--page-title-size, 24px);
+  font-weight: 600;
+}
+
+.user-actions {
+  display: flex;
+  gap: var(--spacing-md, 16px);
+}
+
+/* 主内容区域 */
+.main-content {
+  flex: 1;
+  padding: var(--main-content-padding, 30px 0);
+  background-color: var(--forum-background-color, #f5f7fa);
+}
+
+/* 页面页脚 */
+.page-footer {
+  background-color: var(--forum-dark-color, #2c3e50);
+  color: white;
+  padding: var(--footer-padding, 20px 0);
+  text-align: center;
+}
+
+/* 表单样式 */
+.form-input {
+  width: 100%;
+  padding: var(--spacing-sm, 12px) var(--spacing-md, 15px);
+  border: 1px solid var(--forum-border-color, #ddd);
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: var(--base-font-size, 16px);
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: var(--forum-primary-color, #3498db);
+  outline: none;
+}
+
+.form-section {
+  margin-bottom: var(--spacing-xl, 30px);
+}
+
+.section-title {
+  font-size: var(--section-title-size, 18px);
+  font-weight: 600;
+  color: var(--forum-dark-color, #333);
+  margin-bottom: var(--spacing-md, 15px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  /* 容器 */
+  .container {
+    padding: var(--container-padding-mobile, 0 15px);
+  }
+
+  /* 页面头部 */
+  .page-header {
+    padding: var(--header-padding-mobile, 15px 0);
+  }
+
+  .page-title {
+    font-size: var(--page-title-size-mobile, 20px);
+  }
+
+  /* 用户操作区 */
+  .user-actions {
+    gap: var(--spacing-sm, 8px);
+  }
+
+  /* 按钮 */
+  .btn {
+    padding: var(--spacing-xs, 6px) var(--spacing-sm, 12px);
+    font-size: var(--base-font-size-mobile, 14px);
+  }
+
+  /* 主内容 */
+  .main-content {
+    padding: var(--main-content-padding-mobile, 20px 0);
+  }
+
+  /* 编辑器工具栏 */
+  .editor-toolbar {
+    gap: var(--spacing-xs, 4px);
+  }
+
+  .toolbar-btn {
+    padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+    font-size: 12px;
+  }
+
+  /* 发帖表单 */
+  .create-thread-form {
+    padding: var(--spacing-xl, 20px);
+  }
+
+  /* 图片预览 */
+  .image-preview-container {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+/* 通用动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 辅助类 */
+.text-center {
+  text-align: center;
+}
+
+.mb-1 {
+  margin-bottom: var(--spacing-xs, 4px);
+}
+
+.mb-2 {
+  margin-bottom: var(--spacing-sm, 8px);
+}
+
+.mb-3 {
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+.mb-4 {
+  margin-bottom: var(--spacing-lg, 24px);
+}
+
+.mt-1 {
+  margin-top: var(--spacing-xs, 4px);
+}
+
+.mt-2 {
+  margin-top: var(--spacing-sm, 8px);
+}
+
+.mt-3 {
+  margin-top: var(--spacing-md, 16px);
+}
+
+.mt-4 {
+  margin-top: var(--spacing-lg, 24px);
+}

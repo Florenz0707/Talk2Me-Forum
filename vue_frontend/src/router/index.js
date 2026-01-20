@@ -40,6 +40,12 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: () => import('../views/HomeView.vue')
+  },
+  {
+    path: '/create-thread',
+    name: 'CreateThread',
+    component: () => import('../views/CreateThreadView.vue'),
+    meta: { requiresAuth: true } // 添加路由元信息，表示需要认证
   }
 ]
 

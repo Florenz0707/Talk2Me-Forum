@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import './theme/variables.css'
+import './theme/shared.css'
 import { cssVariables } from './theme/config'
 
 // 创建Vue应用实例
