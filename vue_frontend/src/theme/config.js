@@ -5,6 +5,8 @@ export const primaryColor = '#667eea'
 export const secondaryColor = '#764ba2'
 export const tertiaryColor = '#f093fb'
 export const quaternaryColor = '#4facfe'
+export const quinaryColor = '#ffffff'
+export const senaryColor = '#000000'
 
 // 文本颜色
 export const textColor = '#2d3748'
@@ -45,6 +47,8 @@ export const cssVariables = {
   '--secondary-color': secondaryColor,
   '--tertiary-color': tertiaryColor,
   '--quaternary-color': quaternaryColor,
+  '--quinary-color': quinaryColor,
+  '--senary-color': senaryColor,
   '--text-color': textColor,
   '--light-text-color': lightTextColor,
   '--background-color': backgroundColor,

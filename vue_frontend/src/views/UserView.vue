@@ -55,7 +55,7 @@
       <div class="quick-actions">
         <h3 class="actions-title">快速操作</h3>
         <div class="actions-grid">
-          <button class="action-button">
+          <button class="action-button" @click="navigateToCreateThread">
             <i class="fas fa-pen"></i>
             <span>发布动态</span>
           </button>
@@ -162,11 +162,17 @@ export default {
       router.push('/home')
     }
 
+    // 导航到发布动态页面
+    const navigateToCreateThread = () => {
+      router.push('/create-thread')
+    }
+
     return {
       username,
       isLoggingOut,
       handleLogout,
-      goToHome
+      goToHome,
+      navigateToCreateThread
     }
   }
 }
@@ -181,16 +187,34 @@ export default {
   align-items: center;
   background-color: var(--sapphire-blue);
   padding: 20px;
+  position: relative;
 }
 
 /* 主页卡片 */
 .home-card {
-  background: var(--card-background-color);
+  background: #FFFFFF;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
   padding: 40px;
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
+  animation: slideUpFadeIn 1s ease-out forwards;
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+/* 从底部向上移动并背景色渐变的动画 */
+@keyframes slideUpFadeIn {
+  0% {
+    transform: translateY(100%);
+    background: #FFFFFF;
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    background: var(--card-background-color);
+    opacity: 1;
+  }
 }
 
 /* 主页标题 */
@@ -215,14 +239,18 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-  border: none;
+  background: linear-gradient(135deg, var(--quinary-color) 100%);
+  border: 2px solid var(--primary-color);
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--senary-color);
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.back-home-button i {
+  color: var(--primary-color);
 }
 
 .back-home-button:hover {
@@ -252,7 +280,8 @@ export default {
 
 /* 统计卡片 */
 .stat-card {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  background: var(--quinary-color);
+  border: 2px solid var(--primary-color);
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -276,7 +305,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #ffffff;
+  color: var(--quinary-color);
   font-size: 20px;
 }
 
@@ -289,14 +318,14 @@ export default {
 .stat-number {
   font-size: 24px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--senary-color);
   margin-bottom: 4px;
 }
 
 /* 统计标签 */
 .stat-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--senary-color);
 }
 
 /* 快速操作区域 */
@@ -322,10 +351,10 @@ export default {
 
 /* 操作按钮 */
 .action-button {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-  border: none;
+  background: var(--quinary-color);
+  border: 2px solid var(--primary-color);
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--senary-color);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -346,7 +375,15 @@ export default {
 
 /* 操作按钮图标 */
 .action-button i {
-  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--quinary-color);
+  font-size: 20px;
 }
 
 /* 退出登录按钮 */
@@ -400,8 +437,6 @@ export default {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .home-container {
-    width: 90%;
-    margin: 20px auto;
     padding: 20px;
   }
 
@@ -426,9 +461,7 @@ export default {
 /* 针对小屏幕手机优化 */
 @media (max-width: 480px) {
   .home-container {
-    width: 95%;
     padding: 15px;
-    margin: 10px auto;
   }
 
   .home-card {

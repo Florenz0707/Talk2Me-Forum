@@ -3,6 +3,25 @@
     <!-- 页面头部 -->
     <Header title="论坛首页" />
 
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+      <div class="container">
+        <div class="search-form">
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="搜索帖子、用户或话题..."
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
+          <button @click="handleSearch" class="search-button">
+            <i class="fas fa-search"></i>
+            <span>搜索</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 用户操作区 - 移动端额外显示 -->
     <div class="mobile-user-actions">
       <router-link v-if="showAuthButtons" to="/login" class="btn btn-primary">登录</router-link>
@@ -40,9 +59,8 @@
           <div class="filter-options">
             <label for="filter">筛选：</label>
             <select v-model="filterBy" id="filter" @change="handleFilterChange">
-              <option value="all">全部</option>
               <option value="hot">热门</option>
-              <option value="recommended">推荐</option>
+              <option value="latest">最新</option>
             </select>
           </div>
         </div>
@@ -57,7 +75,6 @@
                 <th class="thread-time">发布时间</th>
                 <th class="thread-replies">回复</th>
                 <th class="thread-views">浏览</th>
-                <th class="thread-last">最后回复</th>
               </tr>
             </thead>
             <tbody>
@@ -75,12 +92,6 @@
                 <td class="thread-time">{{ formatTime(thread.createdAt) }}</td>
                 <td class="thread-replies">{{ thread.replies }}</td>
                 <td class="thread-views">{{ thread.views }}</td>
-                <td class="thread-last">
-                  <div class="last-reply">
-                    <span class="last-author">{{ thread.lastReplyAuthor }}</span>
-                    <span class="last-time">{{ formatTime(thread.lastReplyTime) }}</span>
-                  </div>
-                </td>
               </tr>
             </tbody>
           </table>
@@ -152,7 +163,19 @@ const jumpPage = ref(1)
 
 // 排序和筛选
 const sortBy = ref('latest')
-const filterBy = ref('all')
+const filterBy = ref('hot')
+
+// 搜索功能
+const searchQuery = ref('')
+
+// 处理搜索
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    console.log('搜索内容:', searchQuery.value)
+    // 这里可以添加搜索逻辑，例如调用API或过滤本地数据
+    // 暂时只打印搜索内容
+  }
+}
 
 // 计算是否显示登录/注册按钮
 const showAuthButtons = computed(() => !isLoggedIn.value)
@@ -358,6 +381,61 @@ onMounted(() => {
   background-color: #f5f7fa;
 }
 
+/* 搜索栏 */
+.search-bar {
+  background-color: var(--quinary-color);
+  padding: 15px 0;
+  border-bottom: 1px solid var(--forum-border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid var(--primary-color);
+  border-radius: var(--border-radius-md);
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.search-button i {
+  font-size: 14px;
+}
+
 /* 移动端用户操作区 */
 .mobile-user-actions {
   display: none;
@@ -521,25 +599,7 @@ onMounted(() => {
   text-align: center;
 }
 
-.thread-last {
-  width: 15%;
-  color: #666;
-}
 
-.last-reply {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.last-author {
-  font-weight: 500;
-}
-
-.last-time {
-  font-size: 12px;
-  color: #999;
-}
 
 /* 分页控件 */
 .pagination {
@@ -619,6 +679,29 @@ onMounted(() => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+
+  /* 搜索栏 */
+  .search-bar {
+    padding: 10px 0;
+  }
+
+  .search-form {
+    gap: 8px;
+  }
+
+  .search-input {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .search-button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .search-button span {
+    display: none;
+  }
 
   .action-bar {
     flex-direction: column;
