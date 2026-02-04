@@ -1,5 +1,5 @@
 <template>
-  <div class="home-page">
+  <div class="home-page" :class="{ 'fade-leave-active': isLeaving }">
     <!-- 页面头部 -->
     <Header title="论坛首页" />
 
@@ -143,11 +143,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, inject } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onBeforeUnmount, computed, inject } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import Header from '../components/Header.vue'
 
 const router = useRouter()
+const route = useRoute()
+
+// 离开页面动画控制
+const isLeaving = ref(false)
+let navigationGuard = null
 
 // 从全局注入获取登录状态
 const isLoggedIn = inject('isLoggedIn')
@@ -370,6 +375,28 @@ const handlePageJump = () => {
 onMounted(() => {
   checkLoginStatus()
   loadThreads()
+
+  // 设置导航守卫
+  navigationGuard = router.beforeEach((to, from, next) => {
+    if (from.path === route.path) {
+      // 从当前页面离开，触发动画
+      isLeaving.value = true
+
+      // 等待动画完成后再导航
+      setTimeout(() => {
+        next()
+      }, 500) // 0.5秒动画时间
+    } else {
+      next()
+    }
+  })
+})
+
+// 组件卸载时清除导航守卫
+onBeforeUnmount(() => {
+  if (navigationGuard) {
+    navigationGuard() // 调用返回的函数移除守卫
+  }
 })
 </script>
 
@@ -379,6 +406,19 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   background-color: #f5f7fa;
+  transition: all 2s ease-in-out;
+}
+
+/* 页面离开时的淡出动画 */
+.home-page.fade-leave-active {
+  opacity: 0;
+  filter: blur(20px);
+  transform: scale(0.95);
+}
+
+/* 确保所有子元素都继承过渡效果 */
+.home-page * {
+  transition: all 2s ease-in-out;
 }
 
 /* 搜索栏 */

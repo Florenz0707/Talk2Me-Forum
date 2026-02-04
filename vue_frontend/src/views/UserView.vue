@@ -1,6 +1,6 @@
 <template>
-  <div class="home-container">
-    <div class="home-card">
+  <div class="home-container" :class="{ 'bg-gradient-complete': bgGradientComplete, 'bg-fade-leave-active': isLeaving }">
+    <div class="home-card" :class="{ 'card-popup-active': showCardPopup, 'card-popup-leave-active': isLeaving }">
       <div class="header-section">
         <button class="back-home-button" @click="goToHome">
           <i class="fas fa-home"></i>
@@ -96,6 +96,9 @@ export default {
     const updateLoginStatus = inject('updateLoginStatus')
     const username = ref('')
     const isLoggingOut = ref(false)
+    const bgGradientComplete = ref(false)
+    const showCardPopup = ref(false)
+    const isLeaving = ref(false)
 
     // 获取当前登录用户信息
     const fetchUserInfo = async () => {
@@ -133,8 +136,10 @@ export default {
         // 更新全局登录状态
         updateLoginStatus(false)
 
-        // 跳转到登录页面
-        router.push('/login')
+        // 触发离开动画后跳转到登录页面
+        triggerLeaveAnimation(() => {
+          router.push('/login')
+        })
       } catch (error) {
         console.error('退出登录失败:', error)
         // 即使API调用失败，仍然清除本地存储并跳转到登录页面
@@ -146,7 +151,10 @@ export default {
         // 更新全局登录状态
         updateLoginStatus(false)
 
-        router.push('/login')
+        // 触发离开动画后跳转到登录页面
+        triggerLeaveAnimation(() => {
+          router.push('/login')
+        })
       } finally {
         isLoggingOut.value = false
       }
@@ -155,16 +163,45 @@ export default {
     // 页面挂载时获取用户信息
     onMounted(() => {
       fetchUserInfo()
+
+      // 触发背景渐变动画
+      setTimeout(() => {
+        bgGradientComplete.value = true
+
+        // 背景渐变完成后触发卡片弹出动画
+        setTimeout(() => {
+          showCardPopup.value = true
+        }, 300) // 0.3秒背景渐变时间
+      }, 100) // 给DOM一点时间渲染
     })
 
     // 返回主页
     const goToHome = () => {
-      router.push('/home')
+      triggerLeaveAnimation(() => {
+        router.push('/home')
+      })
     }
 
     // 导航到发布动态页面
     const navigateToCreateThread = () => {
-      router.push('/create-thread')
+      triggerLeaveAnimation(() => {
+        router.push('/create-thread')
+      })
+    }
+
+    // 触发离开动画
+    const triggerLeaveAnimation = (callback) => {
+      isLeaving.value = true
+
+      // 卡片弹出动画完成后（0.3秒），启动背景渐变动画
+      setTimeout(() => {
+        bgGradientComplete.value = false
+
+        // 背景渐变动画完成后（0.3秒），执行导航
+        setTimeout(() => {
+          callback()
+        }, 300) // 0.3秒背景渐变时间
+      }, 300) // 0.3秒卡片弹出动画时间
     }
 
     return {
@@ -172,7 +209,10 @@ export default {
       isLoggingOut,
       handleLogout,
       goToHome,
-      navigateToCreateThread
+      navigateToCreateThread,
+      bgGradientComplete,
+      showCardPopup,
+      isLeaving
     }
   }
 }
@@ -185,9 +225,15 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--sapphire-blue);
+  background-color: #FFFFFF;
   padding: 20px;
   position: relative;
+  transition: background-color 0.3s ease-in-out;
+}
+
+/* 背景渐变完成状态 */
+.home-container.bg-gradient-complete {
+  background-color: var(--sapphire-blue);
 }
 
 /* 主页卡片 */
@@ -198,24 +244,30 @@ export default {
   padding: 40px;
   width: 100%;
   max-width: 800px;
-  animation: slideUpFadeIn 1s ease-out forwards;
-  transform: translateY(100%);
   opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* 从底部向上移动并背景色渐变的动画 */
-@keyframes slideUpFadeIn {
-  0% {
-    transform: translateY(100%);
-    background: #FFFFFF;
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    background: var(--card-background-color);
-    opacity: 1;
-  }
+/* 卡片弹出动画激活状态 */
+.home-card.card-popup-active {
+  opacity: 1;
+  transform: scale(1);
 }
+
+/* 卡片离开时的弹出动画 */
+.home-card.card-popup-leave-active {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 背景离开时的渐变动画 */
+.home-container.bg-fade-leave-active {
+  transition: background-color 0.3s ease-in-out;
+}
+
+
 
 /* 主页标题 */
 .home-title {
