@@ -1,5 +1,5 @@
 <template>
-  <div class="create-thread-page">
+  <div class="create-thread-page" :class="{ 'fade-leave-active': isLeaving }">
     <!-- 页面头部 -->
     <Header title="发布新帖子" :showCreateThreadBtn="false" />
 
@@ -142,6 +142,11 @@
       </div>
     </transition>
 
+    <!-- 回到顶部按钮 -->
+    <button v-if="showBackToTop" @click="scrollToTop" class="back-to-top-btn">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+
     <!-- 页脚 -->
     <footer class="page-footer">
       <div class="container">
@@ -152,11 +157,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import Header from '../components/Header.vue'
 
 const router = useRouter()
+const route = useRoute()
+
+// 离开页面动画控制
+const isLeaving = ref(false)
+let navigationGuard = null
+
+// 回到顶部按钮控制
+const showBackToTop = ref(false)
 
 // 表单数据
 const formData = ref({
@@ -461,6 +474,20 @@ const formatTime = (timeString) => {
   }
 }
 
+// 回到顶部函数
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
+// 处理滚动事件
+const handleScroll = () => {
+  // 当滚动距离超过300px时显示回到顶部按钮
+  showBackToTop.value = window.scrollY > 300
+}
+
 // 页面加载时初始化
 onMounted(() => {
   // 加载保存的草稿
@@ -468,6 +495,33 @@ onMounted(() => {
   if (saved) {
     savedDrafts.value = JSON.parse(saved)
   }
+
+  // 添加滚动事件监听器
+  window.addEventListener('scroll', handleScroll)
+
+  // 设置导航守卫
+  navigationGuard = router.beforeEach((to, from, next) => {
+    if (from.path === route.path) {
+      // 从当前页面离开，触发动画
+      isLeaving.value = true
+
+      // 等待动画完成后再导航
+      setTimeout(() => {
+        next()
+      }, 500) // 0.5秒动画时间
+    } else {
+      next()
+    }
+  })
+})
+
+// 组件卸载时清除导航守卫和滚动事件监听器
+onBeforeUnmount(() => {
+  if (navigationGuard) {
+    navigationGuard() // 调用返回的函数移除守卫
+  }
+  // 移除滚动事件监听器
+  window.removeEventListener('scroll', handleScroll)
 })
 
 // 监听表单数据变化
@@ -485,6 +539,19 @@ watch(
   display: flex;
   flex-direction: column;
   background-color: #f5f7fa;
+  transition: all 2s ease-in-out;
+}
+
+/* 页面离开时的淡出动画 */
+.create-thread-page.fade-leave-active {
+  opacity: 0;
+  filter: blur(20px);
+  transform: scale(0.95);
+}
+
+/* 确保所有子元素都继承过渡效果 */
+.create-thread-page * {
+  transition: all 2s ease-in-out;
 }
 
 /* 主内容区域 */
@@ -810,6 +877,33 @@ watch(
   transform: translateX(100%);
 }
 
+/* 回到顶部按钮 */
+.back-to-top-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  z-index: 998;
+  border: none;
+  cursor: pointer;
+}
+
+.back-to-top-btn:hover {
+  background-color: var(--secondary-color);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .create-thread-form {
@@ -845,6 +939,15 @@ watch(
 
   .submit-actions {
     flex-direction: column;
+  }
+
+  /* 移动端回到顶部按钮 */
+  .back-to-top-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+    bottom: 20px;
+    right: 20px;
   }
 }
 </style>
