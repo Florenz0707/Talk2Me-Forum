@@ -174,6 +174,8 @@ public class CorsConfig {
                             // 公开端点：登录、注册、刷新token不需要认证
                             // 注意：Spring Security会自动处理server.servlet.context-path，这里不需要包含context-path
                             .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh").permitAll()
+                            // Swagger文档允许访问
+                            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                             // 其他认证相关端点需要认证
                             .requestMatchers("/api/v1/auth/**").authenticated()
                             // 其他所有请求需要认证
