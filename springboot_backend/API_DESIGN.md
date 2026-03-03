@@ -3,6 +3,7 @@
 ## 数据结构
 
 ### 分区（Section）
+
 - id: 分区ID
 - name: 分区名称
 - description: 分区描述
@@ -10,6 +11,7 @@
 - sortOrder: 排序顺序
 
 ### 帖子（Post）
+
 - id: 帖子ID
 - sectionId: 所属分区ID
 - userId: 发帖人ID
@@ -21,6 +23,7 @@
 - status: 状态（0:正常 1:删除 2:隐藏）
 
 ### 回复（Reply）
+
 - id: 回复ID
 - postId: 所属帖子ID
 - userId: 回复人ID
@@ -30,6 +33,7 @@
 - status: 状态（0:正常 1:删除）
 
 ### 点赞（Like）
+
 - targetType: 目标类型（POST/REPLY）
 - targetId: 目标ID
 
@@ -38,10 +42,13 @@
 ### 1. 分区相关
 
 #### 1.1 获取分区列表
+
 ```
 GET /api/v1/sections
 ```
+
 响应：
+
 ```json
 {
   "code": 200,
@@ -59,20 +66,25 @@ GET /api/v1/sections
 ```
 
 #### 1.2 获取分区详情
+
 ```
 GET /api/v1/sections/{id}
 ```
+
 响应：同上单个对象
 
 ### 2. 帖子相关
 
 #### 2.1 创建帖子
+
 ```
 POST /api/v1/posts
 Content-Type: application/json
 Authorization: Bearer {token}
 ```
+
 请求体：
+
 ```json
 {
   "sectionId": 1,
@@ -80,7 +92,9 @@ Authorization: Bearer {token}
   "content": "帖子内容"
 }
 ```
+
 响应：
+
 ```json
 {
   "code": 200,
@@ -100,18 +114,23 @@ Authorization: Bearer {token}
 ```
 
 #### 2.2 获取帖子详情
+
 ```
 GET /api/v1/posts/{id}
 ```
+
 响应：同上
 
 #### 2.3 更新帖子
+
 ```
 PUT /api/v1/posts/{id}
 Content-Type: application/json
 Authorization: Bearer {token}
 ```
+
 请求体：
+
 ```json
 {
   "title": "新标题",
@@ -120,21 +139,26 @@ Authorization: Bearer {token}
 ```
 
 #### 2.4 删除帖子
+
 ```
 DELETE /api/v1/posts/{id}
 Authorization: Bearer {token}
 ```
 
 #### 2.5 获取帖子列表
+
 ```
 GET /api/v1/posts?sectionId={sectionId}&page={page}&size={size}
 ```
+
 参数：
+
 - sectionId: 分区ID（可选）
 - page: 页码（默认1）
 - size: 每页数量（默认20）
 
 响应：
+
 ```json
 {
   "code": 200,
@@ -149,12 +173,15 @@ GET /api/v1/posts?sectionId={sectionId}&page={page}&size={size}
 ### 3. 回复相关
 
 #### 3.1 创建回复
+
 ```
 POST /api/v1/posts/{postId}/replies
 Content-Type: application/json
 Authorization: Bearer {token}
 ```
+
 请求体：
+
 ```json
 {
   "content": "回复内容"
@@ -162,11 +189,13 @@ Authorization: Bearer {token}
 ```
 
 #### 3.2 获取回复列表
+
 ```
 GET /api/v1/posts/{postId}/replies?page={page}&size={size}
 ```
 
 #### 3.3 删除回复
+
 ```
 DELETE /api/v1/replies/{id}
 Authorization: Bearer {token}
@@ -175,12 +204,15 @@ Authorization: Bearer {token}
 ### 4. 点赞相关
 
 #### 4.1 点赞
+
 ```
 POST /api/v1/likes
 Content-Type: application/json
 Authorization: Bearer {token}
 ```
+
 请求体：
+
 ```json
 {
   "targetType": "POST",
@@ -189,6 +221,7 @@ Authorization: Bearer {token}
 ```
 
 #### 4.2 取消点赞
+
 ```
 DELETE /api/v1/likes?targetType={targetType}&targetId={targetId}
 Authorization: Bearer {token}

@@ -3,6 +3,7 @@
 ## 1. 项目架构
 
 ### 1.1 分层结构
+
 项目采用标准的 **Controller-Service-Repository** 三层架构：
 
 ```
@@ -16,6 +17,7 @@ Database (数据库)
 ```
 
 ### 1.2 包结构规范
+
 代码包结构应按照以下方式组织：
 
 ```
@@ -35,6 +37,7 @@ com.example.springboot_backend.talk2me.{模块名}/
 ## 2. 数据模型规范
 
 ### 2.1 Model分类
+
 Model应分为三类，各司其职：
 
 - **VO (View Object)**: 返回模型
@@ -54,6 +57,7 @@ Model应分为三类，各司其职：
   - 命名规范：`{实体名}DO.java`，如 `UserDO.java`
 
 ### 2.2 实体类规范
+
 - 所有DO类应继承 `BaseEntity`（包含id、createTime、updateTime等通用字段）
 - 使用 `@MappedSuperclass` 注解标注 `BaseEntity`，避免继承层次问题
 - DO类使用 `@Entity` 和 `@Table` 注解
@@ -61,6 +65,7 @@ Model应分为三类，各司其职：
 ## 3. 依赖注入规范
 
 ### 3.1 禁止使用 @Autowired 字段注入
+
 **不允许**使用 `@Autowired` 进行字段注入：
 
 ```java
@@ -70,6 +75,7 @@ private UserService userService;
 ```
 
 ### 3.2 使用构造函数注入
+
 **必须**使用构造函数注入：
 
 ```java
@@ -84,6 +90,7 @@ public class UserController {
 ```
 
 ### 3.3 Service接口注入
+
 Controller中应注入Service接口，而不是实现类：
 
 ```java
@@ -100,11 +107,13 @@ public class UserController {
 ## 4. Service层规范
 
 ### 4.1 接口命名
+
 - Service接口命名：`I{ServiceName}`，如 `IAuthService`
 - Service实现类命名：`{ServiceName}`，如 `AuthService`
 - Service实现类必须实现对应的接口
 
 ### 4.2 接口定义
+
 ```java
 public interface IAuthService {
     AuthResponse register(RegisterRequest request);
@@ -113,6 +122,7 @@ public interface IAuthService {
 ```
 
 ### 4.3 实现类
+
 ```java
 @Service
 public class AuthService implements IAuthService {
@@ -130,6 +140,7 @@ public class AuthService implements IAuthService {
 ```
 
 ### 4.4 @Override注解规范
+
 **必须**在实现接口方法时添加 `@Override` 注解：
 
 - 明确标识这是接口方法的实现
@@ -150,6 +161,7 @@ public AuthResponse register(RegisterRequest request) {
 ```
 
 **注意**：
+
 - 所有实现接口的方法都必须添加 `@Override` 注解
 - 重写父类方法时也必须添加 `@Override` 注解
 - 这是Java编程的最佳实践，有助于避免方法签名错误
@@ -157,12 +169,14 @@ public AuthResponse register(RegisterRequest request) {
 ## 5. Controller层规范
 
 ### 5.1 基本规范
+
 - 使用 `@RestController` 注解
 - 使用 `@RequestMapping` 定义基础路径
 - 方法使用 `@GetMapping`、`@PostMapping` 等注解
 - 使用 `@Valid` 进行参数校验
 
 ### 5.2 示例
+
 ```java
 @RestController
 @RequestMapping("/api/v1")
@@ -183,6 +197,7 @@ public class AuthController {
 ## 6. Repository层规范
 
 ### 6.1 JPA Repository
+
 - 继承 `JpaRepository<Entity, ID>`
 - 使用 `@Repository` 注解
 - 方法命名遵循Spring Data JPA规范
@@ -196,6 +211,7 @@ public interface UserRepository extends JpaRepository<UserDO, Long> {
 ```
 
 ### 6.2 MyBatis Mapper（如使用MyBatis）
+
 - 接口使用 `@Mapper` 注解
 - XML映射文件放在 `resources/mapper/` 目录下
 - 命名规范：`{Entity}Mapper.java` 和 `{Entity}Mapper.xml`
@@ -203,6 +219,7 @@ public interface UserRepository extends JpaRepository<UserDO, Long> {
 ## 7. 异常处理规范
 
 ### 7.1 业务异常
+
 - 使用 `RuntimeException` 或其子类
 - 异常信息应清晰明确
 
@@ -213,6 +230,7 @@ if (userRepository.existsByUsername(username)) {
 ```
 
 ### 7.2 Controller异常处理
+
 - 使用 `try-catch` 捕获异常
 - 返回合适的HTTP状态码和错误信息
 
@@ -231,6 +249,7 @@ public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
 ## 8. 代码风格规范
 
 ### 8.1 命名规范
+
 - **类名**: 大驼峰命名，如 `UserController`、`AuthService`
 - **方法名**: 小驼峰命名，如 `getUserById`、`registerUser`
 - **变量名**: 小驼峰命名，如 `userName`、`authService`
@@ -238,11 +257,13 @@ public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
 - **包名**: 全小写，单词间用点分隔
 
 ### 8.2 注释规范
+
 - 类和方法应添加JavaDoc注释
 - 复杂业务逻辑应添加行内注释
 - 使用中文注释说明业务逻辑
 
 ### 8.3 代码格式
+
 - 使用4个空格缩进（不使用Tab）
 - 每行代码不超过120个字符
 - 方法之间空一行
@@ -251,11 +272,13 @@ public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
 ## 9. 安全规范
 
 ### 9.1 JWT认证
+
 - 使用JWT Bearer Token进行认证
 - Token放在请求头：`Authorization: Bearer <token>`
 - 实现Refresh Token机制
 
 ### 9.2 密码安全
+
 - 使用BCrypt加密存储密码
 - 不在日志中输出敏感信息
 - 使用HTTPS传输敏感数据
@@ -263,10 +286,12 @@ public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
 ## 10. 数据库规范
 
 ### 10.1 当前实现
+
 - 当前项目使用 **JPA** 进行数据访问
 - 支持MySQL和H2数据库
 
 ### 10.2 未来迁移（如需要）
+
 - 如需迁移到MyBatis，需要：
   1. 添加MyBatis依赖
   2. 创建Mapper接口和XML文件
@@ -276,15 +301,18 @@ public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
 ## 11. 其他规范
 
 ### 11.1 事务管理
+
 - Service层方法使用 `@Transactional` 注解
 - 只读操作使用 `@Transactional(readOnly = true)`
 
 ### 11.2 日志规范
+
 - 使用SLF4J + Logback
 - 日志级别：ERROR > WARN > INFO > DEBUG
 - 关键业务操作记录日志
 
 ### 11.3 环境变量
+
 - 敏感配置使用环境变量
 - 提供 `template.env` 作为配置模板
 - 不将 `.env` 文件提交到版本控制

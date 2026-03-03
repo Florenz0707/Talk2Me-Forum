@@ -9,21 +9,20 @@ language_tabs:
   - php: PHP
   - java: Java
   - go: Go
-toc_footers: [ ]
-includes: [ ]
+toc_footers: []
+includes: []
 search: true
 code_clipboard: true
 highlight_theme: darkula
 headingLevel: 2
 generator: "@tarslib/widdershins v4.0.30"
-
 ---
 
 # 默认模块
 
 Base URLs:
 
-* <a href="http://127.0.0.1:8099/talk2me">开发环境: http://127.0.0.1:8099/talk2me</a>
+- <a href="http://127.0.0.1:8099/talk2me">开发环境: http://127.0.0.1:8099/talk2me</a>
 
 # Authentication
 
@@ -51,9 +50,9 @@ POST /api/v1/auth/login
 
 ### 请求参数
 
-| 名称   | 位置   | 类型                          | 必选 | 说明   |
-|------|------|-----------------------------|----|------|
-| body | body | [LoginDto](#schemalogindto) | 否  | none |
+| 名称 | 位置 | 类型                        | 必选 | 说明 |
+| ---- | ---- | --------------------------- | ---- | ---- |
+| body | body | [LoginDto](#schemalogindto) | 否   | none |
 
 > 返回示例
 
@@ -68,18 +67,18 @@ POST /api/v1/auth/login
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
 状态码 **200**
 
-| 名称              | 类型     | 必选   | 约束   | 中文名 | 说明   |
-|-----------------|--------|------|------|-----|------|
-| » access_token  | string | true | none |     | none |
-| » refresh_token | string | true | none |     | none |
+| 名称            | 类型   | 必选 | 约束 | 中文名 | 说明 |
+| --------------- | ------ | ---- | ---- | ------ | ---- |
+| » access_token  | string | true | none |        | none |
+| » refresh_token | string | true | none |        | none |
 
 ## POST 注册
 
@@ -98,9 +97,9 @@ POST /api/v1/auth/register
 
 ### 请求参数
 
-| 名称   | 位置   | 类型                          | 必选 | 说明   |
-|------|------|-----------------------------|----|------|
-| body | body | [LoginDto](#schemalogindto) | 否  | none |
+| 名称 | 位置 | 类型                        | 必选 | 说明 |
+| ---- | ---- | --------------------------- | ---- | ---- |
+| body | body | [LoginDto](#schemalogindto) | 否   | none |
 
 > 返回示例
 
@@ -114,17 +113,17 @@ POST /api/v1/auth/register
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
 状态码 **200**
 
-| 名称        | 类型     | 必选   | 约束   | 中文名 | 说明   |
-|-----------|--------|------|------|-----|------|
-| » message | string | true | none |     | none |
+| 名称      | 类型   | 必选 | 约束 | 中文名 | 说明 |
+| --------- | ------ | ---- | ---- | ------ | ---- |
+| » message | string | true | none |        | none |
 
 ## POST 刷新Token
 
@@ -142,10 +141,10 @@ POST /api/v1/auth/refresh
 
 ### 请求参数
 
-| 名称              | 位置   | 类型     | 必选 | 说明   |
-|-----------------|------|--------|----|------|
-| body            | body | object | 否  | none |
-| » refresh_token | body | string | 是  | none |
+| 名称            | 位置 | 类型   | 必选 | 说明 |
+| --------------- | ---- | ------ | ---- | ---- |
+| body            | body | object | 否   | none |
+| » refresh_token | body | string | 是   | none |
 
 > 返回示例
 
@@ -157,17 +156,17 @@ POST /api/v1/auth/refresh
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
 状态码 **200**
 
-| 名称        | 类型     | 必选   | 约束   | 中文名 | 说明   |
-|-----------|--------|------|------|-----|------|
-| » message | string | true | none |     | none |
+| 名称      | 类型   | 必选 | 约束 | 中文名 | 说明 |
+| --------- | ------ | ---- | ---- | ------ | ---- |
+| » message | string | true | none |        | none |
 
 ## POST 验证鉴权
 
@@ -187,17 +186,17 @@ POST /api/v1/auth/verification
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
 状态码 **200**
 
-| 名称        | 类型     | 必选   | 约束   | 中文名 | 说明   |
-|-----------|--------|------|------|-----|------|
-| » message | string | true | none |     | none |
+| 名称      | 类型   | 必选 | 约束 | 中文名 | 说明 |
+| --------- | ------ | ---- | ---- | ------ | ---- |
+| » message | string | true | none |        | none |
 
 # 聊天
 
@@ -224,32 +223,32 @@ GET /api/v1/house/list
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
 状态码 **200**
 
-| 名称           | 类型                      | 必选   | 约束   | 中文名 | 说明   |
-|--------------|-------------------------|------|------|-----|------|
-| » house_list | [[House](#schemahouse)] | true | none |     | none |
-| »» id        | integer                 | true | none |     | none |
-| »» name      | string                  | true | none |     | none |
+| 名称         | 类型                    | 必选 | 约束 | 中文名 | 说明 |
+| ------------ | ----------------------- | ---- | ---- | ------ | ---- |
+| » house_list | [[House](#schemahouse)] | true | none |        | none |
+| »» id        | integer                 | true | none |        | none |
+| »» name      | string                  | true | none |        | none |
 
 ## GET 获取屋子内的房间
 
 GET /api/v1/room/list
 
 获取一个屋子里的所有房间，返回一个列表。
-*（默认方式按最新排序）*
+_（默认方式按最新排序）_
 
 ### 请求参数
 
-| 名称       | 位置    | 类型      | 必选 | 说明   |
-|----------|-------|---------|----|------|
-| house_id | query | integer | 否  | none |
+| 名称     | 位置  | 类型    | 必选 | 说明 |
+| -------- | ----- | ------- | ---- | ---- |
+| house_id | query | integer | 否   | none |
 
 > 返回示例
 
@@ -257,38 +256,36 @@ GET /api/v1/room/list
 
 ```json
 {
-  "room_list": [
-    "string"
-  ]
+  "room_list": ["string"]
 }
 ```
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
 状态码 **200**
 
-| 名称          | 类型       | 必选   | 约束   | 中文名 | 说明   |
-|-------------|----------|------|------|-----|------|
-| » room_list | [string] | true | none |     | none |
+| 名称        | 类型     | 必选 | 约束 | 中文名 | 说明 |
+| ----------- | -------- | ---- | ---- | ------ | ---- |
+| » room_list | [string] | true | none |        | none |
 
 ## GET 获取房间内的谈话
 
 GET /api/v1/talk/list
 
 获取一个房间内的所有谈话，返回一个列表。
-*（默认方式按最旧）*
+_（默认方式按最旧）_
 
 ### 请求参数
 
-| 名称   | 位置    | 类型      | 必选 | 说明   |
-|------|-------|---------|----|------|
-| room | query | integer | 否  | none |
+| 名称 | 位置  | 类型    | 必选 | 说明 |
+| ---- | ----- | ------- | ---- | ---- |
+| room | query | integer | 否   | none |
 
 > 返回示例
 
@@ -300,9 +297,9 @@ GET /api/v1/talk/list
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
@@ -323,11 +320,11 @@ POST /api/v1/room/new
 
 ### 请求参数
 
-| 名称           | 位置   | 类型      | 必选 | 说明   |
-|--------------|------|---------|----|------|
-| body         | body | object  | 否  | none |
-| » house_id   | body | integer | 是  | none |
-| » room_title | body | string  | 是  | none |
+| 名称         | 位置 | 类型    | 必选 | 说明 |
+| ------------ | ---- | ------- | ---- | ---- |
+| body         | body | object  | 否   | none |
+| » house_id   | body | integer | 是   | none |
+| » room_title | body | string  | 是   | none |
 
 > 返回示例
 
@@ -339,9 +336,9 @@ POST /api/v1/room/new
 
 ### 返回结果
 
-| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
-|-----|---------------------------------------------------------|------|--------|
-| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+| 状态码 | 状态码含义                                              | 说明 | 数据模型 |
+| ------ | ------------------------------------------------------- | ---- | -------- |
+| 200    | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline   |
 
 ### 返回数据结构
 
@@ -359,15 +356,14 @@ POST /api/v1/room/new
   "username": "string",
   "password": "string"
 }
-
 ```
 
 ### 属性
 
-| 名称       | 类型     | 必选   | 约束   | 中文名 | 说明   |
-|----------|--------|------|------|-----|------|
-| username | string | true | none |     | none |
-| password | string | true | none |     | none |
+| 名称     | 类型   | 必选 | 约束 | 中文名 | 说明 |
+| -------- | ------ | ---- | ---- | ------ | ---- |
+| username | string | true | none |        | none |
+| password | string | true | none |        | none |
 
 <h2 id="tocS_House">House</h2>
 
@@ -381,15 +377,14 @@ POST /api/v1/room/new
   "id": 0,
   "name": "string"
 }
-
 ```
 
 ### 属性
 
-| 名称   | 类型      | 必选   | 约束   | 中文名 | 说明   |
-|------|---------|------|------|-----|------|
-| id   | integer | true | none |     | none |
-| name | string  | true | none |     | none |
+| 名称 | 类型    | 必选 | 约束 | 中文名 | 说明 |
+| ---- | ------- | ---- | ---- | ------ | ---- |
+| id   | integer | true | none |        | none |
+| name | string  | true | none |        | none |
 
 <h2 id="tocS_User">User</h2>
 
@@ -402,14 +397,13 @@ POST /api/v1/room/new
 {
   "username": "string"
 }
-
 ```
 
 ### 属性
 
-| 名称       | 类型     | 必选   | 约束   | 中文名 | 说明   |
-|----------|--------|------|------|-----|------|
-| username | string | true | none |     | none |
+| 名称     | 类型   | 必选 | 约束 | 中文名 | 说明 |
+| -------- | ------ | ---- | ---- | ------ | ---- |
+| username | string | true | none |        | none |
 
 <h2 id="tocS_Room">Room</h2>
 
@@ -425,17 +419,16 @@ POST /api/v1/room/new
   "creator_id": 0,
   "create_time": "string"
 }
-
 ```
 
 ### 属性
 
-| 名称          | 类型      | 必选   | 约束   | 中文名 | 说明   |
-|-------------|---------|------|------|-----|------|
-| id          | integer | true | none |     | none |
-| title       | string  | true | none |     | none |
-| creator_id  | integer | true | none |     | none |
-| create_time | string  | true | none |     | none |
+| 名称        | 类型    | 必选 | 约束 | 中文名 | 说明 |
+| ----------- | ------- | ---- | ---- | ------ | ---- |
+| id          | integer | true | none |        | none |
+| title       | string  | true | none |        | none |
+| creator_id  | integer | true | none |        | none |
+| create_time | string  | true | none |        | none |
 
 <h2 id="tocS_Talk">Talk</h2>
 
@@ -451,14 +444,13 @@ POST /api/v1/room/new
   "creator_id": 0,
   "create_time": "string"
 }
-
 ```
 
 ### 属性
 
-| 名称          | 类型      | 必选   | 约束   | 中文名 | 说明   |
-|-------------|---------|------|------|-----|------|
-| id          | integer | true | none |     | none |
-| content     | string  | true | none |     | none |
-| creator_id  | integer | true | none |     | none |
-| create_time | string  | true | none |     | none |
+| 名称        | 类型    | 必选 | 约束 | 中文名 | 说明 |
+| ----------- | ------- | ---- | ---- | ------ | ---- |
+| id          | integer | true | none |        | none |
+| content     | string  | true | none |        | none |
+| creator_id  | integer | true | none |        | none |
+| create_time | string  | true | none |        | none |

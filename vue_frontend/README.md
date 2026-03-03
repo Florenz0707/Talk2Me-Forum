@@ -85,16 +85,16 @@ API请求封装在`src/utils/api.js`中，提供了以下功能：
 项目使用Vite作为构建工具，并在`vite.config.js`文件中固定了开发服务器端口为3000：
 
 ```javascript
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
   server: {
-    port: 8900 // 固定端口为3000
-  }
-})
+    port: 8900, // 固定端口为3000
+  },
+});
 ```
 
 ### 路由配置
