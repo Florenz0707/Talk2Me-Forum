@@ -1,7 +1,8 @@
 package com.example.springboot_backend.core.security;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.springboot_backend.talk2me.model.domain.UserDO;
-import com.example.springboot_backend.talk2me.repository.UserRepository;
+import com.example.springboot_backend.talk2me.repository.UserMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,26 +18,29 @@ import java.util.List;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserDetailsServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserDetailsServiceImpl(UserMapper userMapper) {
+        this.userMapper = userMapper;
     }
 
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserDO user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
+        UserDO user = userMapper.selectOne(new LambdaQueryWrapper<UserDO>()
+                .eq(UserDO::getUsername, username));
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found with username: " + username);
+        }
         return UserPrincipal.create(user);
     }
 
     @Transactional
     public UserDetails loadUserById(Long id) {
-        UserDO user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
-
+        UserDO user = userMapper.selectById(id);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found with id: " + id);
+        }
         return UserPrincipal.create(user);
     }
 

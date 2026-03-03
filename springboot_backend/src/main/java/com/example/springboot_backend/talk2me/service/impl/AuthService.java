@@ -1,10 +1,11 @@
 package com.example.springboot_backend.talk2me.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.springboot_backend.core.security.JwtTokenProvider;
 import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
 import com.example.springboot_backend.talk2me.model.domain.UserDO;
 import com.example.springboot_backend.talk2me.model.vo.*;
-import com.example.springboot_backend.talk2me.repository.UserRepository;
+import com.example.springboot_backend.talk2me.repository.UserMapper;
 import com.example.springboot_backend.talk2me.service.IAuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,20 +15,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 public class AuthService implements IAuthService {
-    private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserRepository userRepository,
+    public AuthService(UserMapper userMapper,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider tokenProvider,
                        AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
+        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
@@ -36,7 +35,9 @@ public class AuthService implements IAuthService {
     @Override
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
-        if (userRepository.existsByUsername(registerRequest.getUsername())) {
+        Long count = userMapper.selectCount(new LambdaQueryWrapper<UserDO>()
+                .eq(UserDO::getUsername, registerRequest.getUsername()));
+        if (count > 0) {
             throw new RuntimeException("Username is already taken!");
         }
 
@@ -44,10 +45,8 @@ public class AuthService implements IAuthService {
         user.setUsername(registerRequest.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setEnabled(true);
-        user.setCreateTime(LocalDateTime.now());
-        user.setUpdateTime(LocalDateTime.now());
 
-        userRepository.save(user);
+        userMapper.insert(user);
 
         return new RegisterResponse("User registered successfully");
     }

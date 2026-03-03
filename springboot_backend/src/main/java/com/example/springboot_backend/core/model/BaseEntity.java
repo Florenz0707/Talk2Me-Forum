@@ -1,20 +1,20 @@
 package com.example.springboot_backend.core.model;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 
 import java.time.LocalDateTime;
 
-@MappedSuperclass
 public class BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "create_time", nullable = false)
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    @Column(name = "update_time", nullable = false)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
     public void setId(Long id) {
