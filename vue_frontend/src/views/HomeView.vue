@@ -162,12 +162,11 @@
         <p>© 2024 Talk2Me论坛 - 技术支持：Vue 3 + Spring Boot</p>
       </div>
     </footer>
-
-    <!-- 固定定位的发帖按钮 -->
+  </div>
+  <!-- 固定定位的发帖按钮 -->
     <router-link to="/create-thread" class="fixed-create-thread-btn">
       <i class="fas fa-pen"></i>
     </router-link>
-  </div>
 </template>
 
 <script setup>
@@ -466,7 +465,7 @@ onBeforeUnmount(() => {
   background-color: #2c3e50;
   border-bottom: 1px solid #e5e5e5;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  padding: 15px 0;
+  padding: 10px 0;
   position: sticky;
   top: 0;
   z-index: 1000;

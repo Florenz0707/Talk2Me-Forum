@@ -56,10 +56,6 @@
         <!-- 左侧导航栏 -->
         <div class="left-sidebar">
           <div class="nav-menu">
-            <router-link to="/" class="nav-item">
-              <i class="fas fa-home"></i>
-              <span>回到主页</span>
-            </router-link>
             <div
               class="nav-item"
               :class="{ 'active': activeNavItem === 'messages' }"
@@ -91,6 +87,17 @@
             >
               <i class="fas fa-cog"></i>
               <span>设置</span>
+            </div>
+            <router-link to="/" class="nav-item">
+              <i class="fas fa-home"></i>
+              <span>回到主页</span>
+            </router-link>
+            <div
+              class="nav-item logout-item"
+              @click="handleLogout"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              <span>退出登录</span>
             </div>
           </div>
         </div>
@@ -463,9 +470,8 @@ export default {
 /* 头像展示栏 */
 .avatar-header {
   background-color: #2c3e50;
-  height: 20vh;
-  min-height: 150px;
-  display: flex;
+  height: 10vh;
+  min-height: 100px;
   align-items: center;
   color: white;
 }
@@ -474,7 +480,7 @@ export default {
   max-width: 1500px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 0px;
   display: flex;
   align-items: center;
   gap: 30px;
@@ -805,6 +811,27 @@ export default {
 
 .nav-item.router-link-active i {
   color: var(--primary-color);
+}
+
+/* 退出登录项样式 */
+.logout-item {
+  margin-top: 20px;
+  color: #e74c3c !important;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 15px;
+}
+
+.logout-item:hover {
+  background-color: #fef2f2 !important;
+  color: #c0392b !important;
+}
+
+.logout-item i {
+  color: #e74c3c !important;
+}
+
+.logout-item:hover i {
+  color: #c0392b !important;
 }
 
 /* 确保router-link的文本颜色与其他菜单项一致 */
