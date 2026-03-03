@@ -1,28 +1,76 @@
 <template>
-  <div class="home-page">
-    <!-- 页面头部 -->
-    <header class="page-header">
+  <div
+    class="home-page"
+    :class="{ 'fade-leave-active': isLeaving, 'fade-enter-active': isEntering }"
+  >
+    <!-- 导航栏 -->
+    <div class="bili-header-bar">
       <div class="container">
-        <h1 class="page-title">论坛首页</h1>
-        <div class="user-actions">
-          <router-link
-            v-if="showAuthButtons"
-            to="/login"
-            class="btn btn-primary"
-            >登录</router-link
-          >
-          <router-link
-            v-if="showAuthButtons"
-            to="/register"
-            class="btn btn-secondary"
-            >注册</router-link
-          >
-          <router-link v-else to="/user" class="btn btn-primary"
-            >用户中心</router-link
-          >
+        <div class="left-entry">
+          <div class="forum-logo">论坛首页</div>
+        </div>
+
+        <div class="center-search-container offset-center-search">
+          <div id="nav-search-bar">
+            <form class="center-search" action="" style="border-radius: 8px">
+              <div class="nav-search-content">
+                <div>
+                  <input
+                    class="nav-search-input"
+                    type="text"
+                    autocomplete="off"
+                    accesskey="s"
+                    maxlength="100"
+                    x-webkit-speech
+                    x-webkit-grammar="builtin:translate"
+                    v-model="searchQuery"
+                    placeholder="搜索帖子、用户或话题..."
+                    @keyup.enter="handleSearch"
+                  />
+                </div>
+                <button @click="handleSearch" class="nav-search-btn">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="right-entry">
+          <ul class="flex">
+            <li class="nav-item">
+              <template v-if="!isLoggedIn">
+                <router-link to="/login" class="nav-link">登录</router-link>
+              </template>
+              <template v-else>
+                <div
+                  class="user-avatar-container"
+                  @mouseenter="showUserMenu = true"
+                  @mouseleave="showUserMenu = false"
+                >
+                  <router-link to="/user" class="nav-link user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                  </router-link>
+                  <div
+                    class="user-dropdown-menu"
+                    :class="{ show: showUserMenu }"
+                  >
+                    <div class="dropdown-item">
+                      <i class="fas fa-envelope"></i>
+                      <span>新消息</span>
+                    </div>
+                    <div class="dropdown-item">
+                      <i class="fas fa-palette"></i>
+                      <span>主题颜色</span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </li>
+          </ul>
         </div>
       </div>
-    </header>
+    </div>
 
     <!-- 主内容区域 -->
     <main class="main-content">
@@ -50,14 +98,6 @@
               <option value="views">浏览最多</option>
             </select>
           </div>
-          <div class="filter-options">
-            <label for="filter">筛选：</label>
-            <select v-model="filterBy" id="filter" @change="handleFilterChange">
-              <option value="all">全部</option>
-              <option value="hot">热门</option>
-              <option value="recommended">推荐</option>
-            </select>
-          </div>
         </div>
 
         <!-- 帖子列表 -->
@@ -70,7 +110,6 @@
                 <th class="thread-time">发布时间</th>
                 <th class="thread-replies">回复</th>
                 <th class="thread-views">浏览</th>
-                <th class="thread-last">最后回复</th>
               </tr>
             </thead>
             <tbody>
@@ -98,16 +137,6 @@
                 <td class="thread-time">{{ formatTime(thread.createdAt) }}</td>
                 <td class="thread-replies">{{ thread.replies }}</td>
                 <td class="thread-views">{{ thread.views }}</td>
-                <td class="thread-last">
-                  <div class="last-reply">
-                    <span class="last-author">{{
-                      thread.lastReplyAuthor
-                    }}</span>
-                    <span class="last-time">{{
-                      formatTime(thread.lastReplyTime)
-                    }}</span>
-                  </div>
-                </td>
               </tr>
             </tbody>
           </table>
@@ -158,13 +187,29 @@
       </div>
     </footer>
   </div>
+  <!-- 固定定位的发帖按钮 -->
+  <router-link to="/create-thread" class="fixed-create-thread-btn">
+    <i class="fas fa-pen"></i>
+  </router-link>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, inject } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import Header from "../components/Header.vue";
 
 const router = useRouter();
+const route = useRoute();
+
+// 离开页面动画控制
+const isLeaving = ref(false);
+let navigationGuard = null;
+
+// 进入页面动画控制
+const isEntering = ref(true);
+
+// 用户菜单控制
+const showUserMenu = ref(false);
 
 // 从全局注入获取登录状态
 const isLoggedIn = inject("isLoggedIn");
@@ -178,9 +223,20 @@ const currentPage = ref(1);
 const totalPages = ref(10);
 const jumpPage = ref(1);
 
-// 排序和筛选
+// 排序
 const sortBy = ref("latest");
-const filterBy = ref("all");
+
+// 搜索功能
+const searchQuery = ref("");
+
+// 处理搜索
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    console.log("搜索内容:", searchQuery.value);
+    // 这里可以添加搜索逻辑，例如调用API或过滤本地数据
+    // 暂时只打印搜索内容
+  }
+};
 
 // 计算是否显示登录/注册按钮
 const showAuthButtons = computed(() => !isLoggedIn.value);
@@ -344,13 +400,6 @@ const handleSortChange = () => {
   loadThreads();
 };
 
-// 处理筛选变化
-const handleFilterChange = () => {
-  console.log("筛选条件变更为:", filterBy.value);
-  // 这里可以添加筛选逻辑
-  loadThreads();
-};
-
 // 处理分页变化
 const handlePageChange = (page) => {
   if (page >= 1 && page <= totalPages.value) {
@@ -375,6 +424,28 @@ const handlePageJump = () => {
 onMounted(() => {
   checkLoginStatus();
   loadThreads();
+
+  // 设置导航守卫
+  navigationGuard = router.beforeEach((to, from, next) => {
+    if (from.path === route.path) {
+      // 从当前页面离开，触发动画
+      isLeaving.value = true;
+
+      // 等待动画完成后再导航
+      setTimeout(() => {
+        next();
+      }, 500); // 0.5秒动画时间
+    } else {
+      next();
+    }
+  });
+});
+
+// 组件卸载时清除导航守卫
+onBeforeUnmount(() => {
+  if (navigationGuard) {
+    navigationGuard(); // 调用返回的函数移除守卫
+  }
 });
 </script>
 
@@ -384,46 +455,321 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   background-color: #f5f7fa;
+  opacity: 0;
+  filter: blur(20px);
+  transform: scale(0.95);
+  transition: all 0.5s ease-in-out;
 }
 
-/* 页面头部 */
-.page-header {
+/* 页面进入时的淡入动画 */
+.home-page.fade-enter-active {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+  transition: all 0.5s ease-in-out;
+}
+
+/* 页面离开时的淡出动画 */
+.home-page.fade-leave-active {
+  opacity: 0;
+  filter: blur(20px);
+  transform: scale(0.95);
+  transition: all 0.5s ease-in-out;
+}
+
+/* 确保所有子元素都继承过渡效果 */
+.home-page * {
+  transition: all 0.5s ease-in-out;
+}
+
+/* 导航栏样式 */
+.bili-header-bar {
   background-color: #2c3e50;
-  color: white;
-  padding: 20px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e5e5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 10px 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 75px;
+  box-sizing: border-box;
 }
 
-.page-header .container {
+/* 论坛logo样式 */
+.forum-logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin-right: 40px;
+  cursor: pointer;
+  transition: none !important;
+}
+
+.forum-logo:hover {
+  color: var(--quinary-color);
+}
+
+.bili-header-bar .container {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
+  justify-content: space-between;
+  max-width: 1800px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
-.page-title {
+.left-entry,
+.right-entry {
+  flex: 1;
+}
+
+.left-entry {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.right-entry {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flex {
+  display: flex;
+  list-style: none;
   margin: 0;
-  font-size: 28px;
+  padding: 0;
+}
+
+.nav-item {
+  margin-right: 15px;
+}
+
+/* 右侧元素紧凑排列 */
+.right-entry .flex {
+  align-items: center;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 0;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #e0e0e0;
+}
+
+.nav-link.active {
+  color: #e0e0e0;
   font-weight: 600;
 }
 
-.user-actions {
+/* 搜索栏样式 */
+.center-search-container {
+  flex: 2;
   display: flex;
-  gap: 12px;
+  justify-content: center;
+}
+
+.offset-center-search {
+  margin-left: -50px;
+}
+
+.nav-search-content {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.nav-search-input {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  background-color: transparent;
+  font-size: 16px;
+  outline: none;
+}
+
+.nav-search-btn {
+  padding: 10px 20px;
+  border: none;
+  background-color: transparent;
+  color: #666666;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  font-size: 16px;
+}
+
+.nav-search-btn:hover {
+  color: var(--primary-color);
+}
+
+/* 用户头像容器 */
+.user-avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* 用户头像样式 */
+.user-avatar {
+  font-size: 30px;
+  display: block;
+}
+
+/* 用户下拉菜单 */
+.user-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 10px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+/* 下拉菜单显示状态 */
+.user-dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* 下拉菜单项 */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f7fa;
+}
+
+.dropdown-item i {
+  margin-right: 10px;
+  color: #666;
+  font-size: 16px;
+}
+
+.dropdown-item span {
+  color: #333;
+  font-size: 14px;
+}
+
+/* 发帖按钮样式 */
+.create-thread-btn {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.create-thread-btn:hover {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+/* 固定定位的发帖按钮 */
+.fixed-create-thread-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.fixed-create-thread-btn:hover {
+  background-color: var(--secondary-color);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 移动端适配 */
+@media (max-width: 1024px) {
+  .nav-item:not(:first-child):not(:last-child) {
+    display: none;
+  }
+
+  .center-search-container {
+    flex: 1;
+  }
+
+  .offset-center-search {
+    margin-left: 0;
+  }
+
+  .fixed-create-thread-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .bili-header-bar .container {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .left-entry,
+  .right-entry {
+    justify-content: center;
+  }
+
+  .nav-item {
+    margin: 0 10px;
+  }
+
+  .nav-search-content {
+    max-width: 100%;
+  }
+
+  .fixed-create-thread-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+    bottom: 15px;
+    right: 15px;
+  }
 }
 
 /* 主内容区域 */
 .main-content {
   flex: 1;
-  padding: 30px 0;
-}
-
-.main-content .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
 }
 
 /* 面包屑导航 */
@@ -466,21 +812,18 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.sort-options,
-.filter-options {
+.sort-options {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.sort-options label,
-.filter-options label {
+.sort-options label {
   font-size: 14px;
   color: #666;
 }
 
-.sort-options select,
-.filter-options select {
+.sort-options select {
   padding: 6px 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -573,26 +916,6 @@ onMounted(() => {
   text-align: center;
 }
 
-.thread-last {
-  width: 15%;
-  color: #666;
-}
-
-.last-reply {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.last-author {
-  font-weight: 500;
-}
-
-.last-time {
-  font-size: 12px;
-  color: #999;
-}
-
 /* 分页控件 */
 .pagination {
   display: flex;
@@ -667,42 +990,29 @@ onMounted(() => {
   padding: 0 20px;
 }
 
-/* 按钮样式 */
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #3498db;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #2980b9;
-}
-
-.btn-secondary {
-  background-color: #95a5a6;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #7f8c8d;
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .page-header .container {
-    flex-direction: column;
-    gap: 15px;
+  /* 搜索栏 */
+  .search-bar {
+    padding: 10px 0;
+  }
+
+  .search-form {
+    gap: 8px;
+  }
+
+  .search-input {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .search-button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .search-button span {
+    display: none;
   }
 
   .action-bar {
@@ -711,8 +1021,7 @@ onMounted(() => {
     align-items: stretch;
   }
 
-  .sort-options,
-  .filter-options {
+  .sort-options {
     justify-content: space-between;
   }
 
