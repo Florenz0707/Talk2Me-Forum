@@ -93,47 +93,21 @@ async function request(endpoint, method, data = null, useAuth = true) {
   }
 }
 
-// 认证相关API
+// ==================== 一、auth-controller (认证授权控制器) ====================
 export const authApi = {
-  // 登录
-  async login(username, password) {
+  // 1. 获取身份验证码 - POST /api/v1/auth/verification
+  // 用于注册、登录、找回密码等场景
+  async getVerification(data) {
     try {
-      const response = await request(
-        "/auth/login",
-        "POST",
-        { username, password },
-        false,
-      );
-
-      // 存储令牌和用户信息
-      if (response.access_token) {
-        localStorage.setItem(TOKEN_KEY, response.access_token);
-      }
-      if (response.refresh_token) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
-      }
-      // 检查是否有用户信息，如果有则存储
-      if (response.user) {
-        localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
-      } else if (response.username) {
-        // 兼容可能的不同返回格式
-        localStorage.setItem(
-          USER_INFO_KEY,
-          JSON.stringify({ username: response.username }),
-        );
-      }
-
-      // 触发登录事件
-      this._emitAuthChangeEvent(true);
-
+      const response = await request("/auth/verification", "POST", data, false);
       return response;
     } catch (error) {
-      console.error("登录失败:", error);
+      console.error("获取验证码失败:", error);
       throw error;
     }
   },
 
-  // 注册
+  // 2. 用户账号注册 - POST /api/v1/auth/register
   async register(registrationData) {
     try {
       return await request("/auth/register", "POST", registrationData, false);
@@ -143,7 +117,7 @@ export const authApi = {
     }
   },
 
-  // 刷新令牌
+  // 3. 刷新用户身份凭证 - POST /api/v1/auth/refresh
   async refreshToken() {
     try {
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -152,7 +126,6 @@ export const authApi = {
         throw new ApiError("没有刷新令牌", null, "NO_REFRESH_TOKEN");
       }
 
-      // 严格按照API文档规范，使用refresh_token作为参数名
       const response = await request(
         "/auth/refresh",
         "POST",
@@ -171,32 +144,50 @@ export const authApi = {
       return response;
     } catch (error) {
       console.error("令牌刷新失败:", error);
-      // 刷新失败，清除令牌
       this.logout();
       throw error;
     }
   },
 
-  // 验证身份
-  async verifyAuth() {
+  // 4. 用户登录接口 - POST /api/v1/auth/login
+  async login(username, password) {
     try {
-      // 严格按照API文档规范，使用POST方法和/verification端点
-      const response = await request("/auth/verification", "POST", null, true);
+      const response = await request(
+        "/auth/login",
+        "POST",
+        { username, password },
+        false,
+      );
 
+      // 存储令牌和用户信息
+      if (response.access_token) {
+        localStorage.setItem(TOKEN_KEY, response.access_token);
+      }
+      if (response.refresh_token) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
+      }
+      if (response.user) {
+        localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
+      } else if (response.username) {
+        localStorage.setItem(
+          USER_INFO_KEY,
+          JSON.stringify({ username: response.username }),
+        );
+      }
+
+      this._emitAuthChangeEvent(true);
       return response;
     } catch (error) {
-      console.error("身份验证失败:", error);
+      console.error("登录失败:", error);
       throw error;
     }
   },
 
-  // 登出
+  // 5. 登出
   logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_INFO_KEY);
-
-    // 触发登出事件
     this._emitAuthChangeEvent(false);
   },
 
@@ -245,6 +236,154 @@ export const authApi = {
   },
 };
 
+// ==================== 二、post-controller (帖子管理控制器) ====================
+export const postApi = {
+  // 1. 查询获取单条帖子的详细信息 - GET /api/v1/posts/{id}
+  async getPostById(id) {
+    try {
+      const response = await request(`/posts/${id}`, "GET", null, true);
+      return response;
+    } catch (error) {
+      console.error("获取帖子详情失败:", error);
+      throw error;
+    }
+  },
+
+  // 2. 全量更新/修改对应帖子的内容 - PUT /api/v1/posts/{id}
+  async updatePost(id, postData) {
+    try {
+      const response = await request(`/posts/${id}`, "PUT", postData, true);
+      return response;
+    } catch (error) {
+      console.error("更新帖子失败:", error);
+      throw error;
+    }
+  },
+
+  // 3. 删除对应的帖子资源 - DELETE /api/v1/posts/{id}
+  async deletePost(id) {
+    try {
+      const response = await request(`/posts/${id}`, "DELETE", null, true);
+      return response;
+    } catch (error) {
+      console.error("删除帖子失败:", error);
+      throw error;
+    }
+  },
+
+  // 4. 批量查询帖子列表 - GET /api/v1/posts
+  async getPosts(params = {}) {
+    try {
+      // 构建查询参数
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append("page", params.page);
+      if (params.size) queryParams.append("size", params.size);
+      if (params.sort) queryParams.append("sort", params.sort);
+      if (params.sectionId) queryParams.append("sectionId", params.sectionId);
+      if (params.keyword) queryParams.append("keyword", params.keyword);
+
+      const endpoint = queryParams.toString()
+        ? `/posts?${queryParams.toString()}`
+        : "/posts";
+
+      const response = await request(endpoint, "GET", null, true);
+      return response;
+    } catch (error) {
+      console.error("获取帖子列表失败:", error);
+      throw error;
+    }
+  },
+
+  // 5. 创建/发布新帖子 - POST /api/v1/posts
+  async createPost(postData) {
+    try {
+      const response = await request("/posts", "POST", postData, true);
+      return response;
+    } catch (error) {
+      console.error("创建帖子失败:", error);
+      throw error;
+    }
+  },
+};
+
+// ==================== 三、reply-controller (回复/评论控制器) ====================
+export const replyApi = {
+  // 1. 查询该帖子下的全部回复/评论列表 - GET /api/v1/posts/{postId}/replies
+  async getRepliesByPostId(postId, params = {}) {
+    try {
+      // 构建查询参数
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append("page", params.page);
+      if (params.size) queryParams.append("size", params.size);
+
+      const endpoint = queryParams.toString()
+        ? `/posts/${postId}/replies?${queryParams.toString()}`
+        : `/posts/${postId}/replies`;
+
+      const response = await request(endpoint, "GET", null, true);
+      return response;
+    } catch (error) {
+      console.error("获取回复列表失败:", error);
+      throw error;
+    }
+  },
+
+  // 2. 发布新的评论/回复 - POST /api/v1/posts/{postId}/replies
+  async createReply(postId, replyData) {
+    try {
+      const response = await request(
+        `/posts/${postId}/replies`,
+        "POST",
+        replyData,
+        true,
+      );
+      return response;
+    } catch (error) {
+      console.error("创建回复失败:", error);
+      throw error;
+    }
+  },
+
+  // 3. 删除对应的评论/回复内容 - DELETE /api/v1/replies/{id}
+  async deleteReply(id) {
+    try {
+      const response = await request(`/replies/${id}`, "DELETE", null, true);
+      return response;
+    } catch (error) {
+      console.error("删除回复失败:", error);
+      throw error;
+    }
+  },
+};
+
+// ==================== 四、section-controller (板块/分区控制器) ====================
+export const sectionApi = {
+  // 1. 获取全部分区/板块的列表 - GET /api/v1/sections
+  async getAllSections() {
+    try {
+      const response = await request("/sections", "GET", null, false);
+      return response;
+    } catch (error) {
+      console.error("获取板块列表失败:", error);
+      throw error;
+    }
+  },
+
+  // 2. 获取单个板块的详细信息 - GET /api/v1/sections/{id}
+  async getSectionById(id) {
+    try {
+      const response = await request(`/sections/${id}`, "GET", null, false);
+      return response;
+    } catch (error) {
+      console.error("获取板块详情失败:", error);
+      throw error;
+    }
+  },
+};
+
+// ==================== 五、like-controller (点赞控制器) - 保持原样 ====================
+// 注意：根据要求，like-controller保持原样，不做任何修改
+
 // 自动刷新令牌 - 可以根据需要使用
 let refreshTimeout;
 
@@ -275,3 +414,11 @@ export function cancelAutoRefresh() {
     refreshTimeout = null;
   }
 }
+
+// 默认导出所有API
+export default {
+  auth: authApi,
+  post: postApi,
+  reply: replyApi,
+  section: sectionApi,
+};

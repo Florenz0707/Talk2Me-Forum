@@ -9,8 +9,29 @@
     <!-- 头像展示栏 -->
     <div class="avatar-header">
       <div class="avatar-header-content">
-        <div class="user-avatar-large">
-          <i class="fas fa-user-circle"></i>
+        <div
+          class="avatar-wrapper"
+          @mouseenter="showAvatarOverlay = true"
+          @mouseleave="showAvatarOverlay = false"
+        >
+          <div class="user-avatar-large">
+            <i v-if="!userAvatar" class="fas fa-user-circle"></i>
+            <img v-else :src="userAvatar" alt="用户头像" class="avatar-image" />
+          </div>
+          <div
+            class="avatar-overlay"
+            :class="{ show: showAvatarOverlay }"
+            @click="triggerFileInput"
+          >
+            <span class="change-avatar-text">更换头像</span>
+          </div>
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            style="display: none"
+            @change="handleAvatarChange"
+          />
         </div>
         <div class="user-info">
           <div class="username-large">{{ username }}</div>
@@ -266,6 +287,11 @@ export default {
     const searchQuery = ref("");
     const showUserMenu = ref(false);
 
+    // 头像相关
+    const userAvatar = ref("");
+    const showAvatarOverlay = ref(false);
+    const fileInput = ref(null);
+
     // 收藏的帖子数据
     const favoriteThreads = ref([
       {
@@ -337,6 +363,56 @@ export default {
         console.error("保存个人资料失败:", error);
         // 显示保存失败提示
         alert("保存失败，请稍后重试");
+      }
+    };
+
+    // 触发文件选择
+    const triggerFileInput = () => {
+      fileInput.value.click();
+    };
+
+    // 处理头像更换
+    const handleAvatarChange = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // 验证文件类型
+      if (!file.type.startsWith("image/")) {
+        alert("请选择图片文件");
+        return;
+      }
+
+      // 验证文件大小（限制为5MB）
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert("图片大小不能超过5MB");
+        return;
+      }
+
+      // 读取文件并预览
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        userAvatar.value = e.target.result;
+        // 这里可以添加上传到服务器的逻辑
+        // uploadAvatar(file);
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // 上传头像到服务器（预留）
+    const uploadAvatar = async (file) => {
+      try {
+        const formData = new FormData();
+        formData.append("avatar", file);
+
+        // 调用上传API
+        // const response = await userApi.uploadAvatar(formData);
+        // userAvatar.value = response.avatarUrl;
+
+        console.log("头像上传成功");
+      } catch (error) {
+        console.error("头像上传失败:", error);
+        alert("头像上传失败，请重试");
       }
     };
 
@@ -476,6 +552,11 @@ export default {
       editUsername,
       editBio,
       handleSaveProfile,
+      userAvatar,
+      showAvatarOverlay,
+      fileInput,
+      triggerFileInput,
+      handleAvatarChange,
     };
   },
 };
@@ -510,9 +591,77 @@ export default {
 }
 
 .user-avatar-large {
-  font-size: 120px;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
+  font-size: 120px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+}
+
+/* 头像包装器 */
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  width: 120px;
+  height: 120px;
   margin-left: -20px;
+}
+
+/* 头像图片 */
+.avatar-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* 头像悬停遮罩层 */
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.avatar-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 更换头像文字 */
+.change-avatar-text {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  user-select: none;
+}
+
+/* 头像悬停效果 */
+.avatar-wrapper:hover .user-avatar-large {
+  filter: brightness(0.8);
+}
+
+.avatar-wrapper:hover .avatar-image {
+  filter: brightness(0.8);
 }
 
 .user-info {

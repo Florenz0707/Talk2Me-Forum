@@ -30,17 +30,83 @@
 
             <!-- 工具栏 -->
             <div class="editor-toolbar">
-              <button @click="handleFormatting('bold')" class="toolbar-btn" title="粗体 (Ctrl+B)">B</button>
-              <button @click="handleFormatting('italic')" class="toolbar-btn" title="斜体 (Ctrl+I)">I</button>
-              <button @click="handleFormatting('underline')" class="toolbar-btn" title="下划线 (Ctrl+U)">U</button>
-              <button @click="handleFormatting('header1')" class="toolbar-btn" title="标题1">H1</button>
-              <button @click="handleFormatting('header2')" class="toolbar-btn" title="标题2">H2</button>
-              <button @click="handleFormatting('list')" class="toolbar-btn" title="列表">• 列表</button>
-              <button @click="handleFormatting('link')" class="toolbar-btn" title="链接">🔗</button>
-              <button @click="handleFormatting('image')" class="toolbar-btn" title="图片">🖼️</button>
-              <button @click="handleFormatting('quote')" class="toolbar-btn" title="引用">💬</button>
-              <button @click="handleFormatting('code')" class="toolbar-btn" title="代码">📄</button>
-              <button @click="handleFormatting('clear')" class="toolbar-btn" title="清除格式">⌫</button>
+              <button
+                @click="handleFormatting('bold')"
+                class="toolbar-btn"
+                title="粗体 (Ctrl+B)"
+              >
+                B
+              </button>
+              <button
+                @click="handleFormatting('italic')"
+                class="toolbar-btn"
+                title="斜体 (Ctrl+I)"
+              >
+                I
+              </button>
+              <button
+                @click="handleFormatting('underline')"
+                class="toolbar-btn"
+                title="下划线 (Ctrl+U)"
+              >
+                U
+              </button>
+              <button
+                @click="handleFormatting('header1')"
+                class="toolbar-btn"
+                title="标题1"
+              >
+                H1
+              </button>
+              <button
+                @click="handleFormatting('header2')"
+                class="toolbar-btn"
+                title="标题2"
+              >
+                H2
+              </button>
+              <button
+                @click="handleFormatting('list')"
+                class="toolbar-btn"
+                title="列表"
+              >
+                • 列表
+              </button>
+              <button
+                @click="handleFormatting('link')"
+                class="toolbar-btn"
+                title="链接"
+              >
+                🔗
+              </button>
+              <button
+                @click="handleFormatting('image')"
+                class="toolbar-btn"
+                title="图片"
+              >
+                🖼️
+              </button>
+              <button
+                @click="handleFormatting('quote')"
+                class="toolbar-btn"
+                title="引用"
+              >
+                💬
+              </button>
+              <button
+                @click="handleFormatting('code')"
+                class="toolbar-btn"
+                title="代码"
+              >
+                📄
+              </button>
+              <button
+                @click="handleFormatting('clear')"
+                class="toolbar-btn"
+                title="清除格式"
+              >
+                ⌫
+              </button>
             </div>
 
             <!-- 文本输入区域 -->
@@ -77,14 +143,19 @@
             </div>
 
             <!-- 图片预览 -->
-            <div v-if="uploadedImages.length > 0" class="image-preview-container">
+            <div
+              v-if="uploadedImages.length > 0"
+              class="image-preview-container"
+            >
               <div
                 v-for="(image, index) in uploadedImages"
                 :key="index"
                 class="image-preview-item"
               >
                 <img :src="image.url" alt="预览图片" class="preview-image" />
-                <button @click="removeImage(index)" class="remove-image-btn">×</button>
+                <button @click="removeImage(index)" class="remove-image-btn">
+                  ×
+                </button>
               </div>
             </div>
           </div>
@@ -93,9 +164,11 @@
           <div class="form-section">
             <h2 class="section-title">草稿管理</h2>
             <div class="draft-actions">
-              <button @click="saveDraft" class="btn btn-secondary">保存草稿</button>
+              <button @click="saveDraft" class="btn btn-secondary">
+                保存草稿
+              </button>
               <button @click="toggleDrafts" class="btn btn-secondary">
-                {{ showDrafts ? '收起草稿' : '查看草稿' }}
+                {{ showDrafts ? "收起草稿" : "查看草稿" }}
               </button>
             </div>
 
@@ -112,12 +185,26 @@
                   class="draft-item"
                 >
                   <div class="draft-info">
-                    <div class="draft-title">{{ draft.title || '无标题草稿' }}</div>
-                    <div class="draft-time">{{ formatTime(draft.savedAt) }}</div>
+                    <div class="draft-title">
+                      {{ draft.title || "无标题草稿" }}
+                    </div>
+                    <div class="draft-time">
+                      {{ formatTime(draft.savedAt) }}
+                    </div>
                   </div>
                   <div class="draft-buttons">
-                    <button @click="loadDraft(index)" class="btn btn-small btn-primary">加载</button>
-                    <button @click="deleteDraft(index)" class="btn btn-small btn-danger">删除</button>
+                    <button
+                      @click="loadDraft(index)"
+                      class="btn btn-small btn-primary"
+                    >
+                      加载
+                    </button>
+                    <button
+                      @click="deleteDraft(index)"
+                      class="btn btn-small btn-danger"
+                    >
+                      删除
+                    </button>
                   </div>
                 </li>
               </ul>
@@ -127,8 +214,12 @@
           <!-- 提交区域 -->
           <div class="form-section">
             <div class="submit-actions">
-              <button @click="submitThread" class="btn btn-primary btn-large">发布帖子</button>
-              <router-link to="/home" class="btn btn-secondary btn-large">取消</router-link>
+              <button @click="submitThread" class="btn btn-primary btn-large">
+                发布帖子
+              </button>
+              <router-link to="/home" class="btn btn-secondary btn-large"
+                >取消</router-link
+              >
             </div>
           </div>
         </div>
@@ -157,380 +248,399 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import Header from '../components/Header.vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import Header from "../components/Header.vue";
+import { postApi } from "../utils/api";
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
 // 离开页面动画控制
-const isLeaving = ref(false)
-let navigationGuard = null
+const isLeaving = ref(false);
+let navigationGuard = null;
 
 // 回到顶部按钮控制
-const showBackToTop = ref(false)
+const showBackToTop = ref(false);
 
 // 表单数据
 const formData = ref({
-  title: '',
-  content: '',
-  images: []
-})
+  title: "",
+  content: "",
+  images: [],
+});
 
 // 上传的图片
-const uploadedImages = ref([])
+const uploadedImages = ref([]);
 
 // 预览内容
 const previewContent = computed(() => {
-  return formatContentForPreview(formData.value.content)
-})
+  return formatContentForPreview(formData.value.content);
+});
 
 // 草稿管理
-const savedDrafts = ref([])
-const showDrafts = ref(false)
+const savedDrafts = ref([]);
+const showDrafts = ref(false);
 
 // 状态提示
 const toast = ref({
   show: false,
-  message: '',
-  type: 'success' // success, error, warning
-})
+  message: "",
+  type: "success", // success, error, warning
+});
 
 // 格式化内容预览
 const formatContentForPreview = (content) => {
-  if (!content) return ''
+  if (!content) return "";
 
-  let formatted = content
+  let formatted = content;
 
   // 基本格式化处理
-  formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // 粗体
-  formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>') // 斜体
-  formatted = formatted.replace(/__(.*?)__/g, '<u>$1</u>') // 下划线
-  formatted = formatted.replace(/^# (.*$)/gm, '<h1>$1</h1>') // 标题1
-  formatted = formatted.replace(/^## (.*$)/gm, '<h2>$1</h2>') // 标题2
-  formatted = formatted.replace(/^- (.*$)/gm, '<li>$1</li>') // 无序列表
-  formatted = formatted.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>') // 链接
-  formatted = formatted.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1" />') // 图片
-  formatted = formatted.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>') // 引用
-  formatted = formatted.replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>') // 代码块
-  formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>') // 行内代码
-  formatted = formatted.replace(/\n/g, '<br>') // 换行
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"); // 粗体
+  formatted = formatted.replace(/\*(.*?)\*/g, "<em>$1</em>"); // 斜体
+  formatted = formatted.replace(/__(.*?)__/g, "<u>$1</u>"); // 下划线
+  formatted = formatted.replace(/^# (.*$)/gm, "<h1>$1</h1>"); // 标题1
+  formatted = formatted.replace(/^## (.*$)/gm, "<h2>$1</h2>"); // 标题2
+  formatted = formatted.replace(/^- (.*$)/gm, "<li>$1</li>"); // 无序列表
+  formatted = formatted.replace(
+    /\[([^\]]+)\]\(([^\)]+)\)/g,
+    '<a href="$2" target="_blank">$1</a>',
+  ); // 链接
+  formatted = formatted.replace(
+    /!\[([^\]]*)\]\(([^\)]+)\)/g,
+    '<img src="$2" alt="$1" />',
+  ); // 图片
+  formatted = formatted.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>"); // 引用
+  formatted = formatted.replace(/```([^`]+)```/g, "<pre><code>$1</code></pre>"); // 代码块
+  formatted = formatted.replace(/`([^`]+)`/g, "<code>$1</code>"); // 行内代码
+  formatted = formatted.replace(/\n/g, "<br>"); // 换行
 
-  return formatted
-}
+  return formatted;
+};
 
 // 处理格式化操作
 const handleFormatting = (formatType) => {
-  const textarea = document.querySelector('.editor-textarea')
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const selectedText = textarea.value.substring(start, end)
+  const textarea = document.querySelector(".editor-textarea");
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = textarea.value.substring(start, end);
 
-  let newText = ''
-  let newCursorPos = start
+  let newText = "";
+  let newCursorPos = start;
 
   switch (formatType) {
-    case 'bold':
-      newText = `**${selectedText}**`
-      newCursorPos = start + 2
-      break
-    case 'italic':
-      newText = `*${selectedText}*`
-      newCursorPos = start + 1
-      break
-    case 'underline':
-      newText = `__${selectedText}__`
-      newCursorPos = start + 2
-      break
-    case 'header1':
-      newText = `# ${selectedText}`
-      newCursorPos = start + 2
-      break
-    case 'header2':
-      newText = `## ${selectedText}`
-      newCursorPos = start + 3
-      break
-    case 'list':
-      newText = `- ${selectedText}`
-      newCursorPos = start + 2
-      break
-    case 'link':
+    case "bold":
+      newText = `**${selectedText}**`;
+      newCursorPos = start + 2;
+      break;
+    case "italic":
+      newText = `*${selectedText}*`;
+      newCursorPos = start + 1;
+      break;
+    case "underline":
+      newText = `__${selectedText}__`;
+      newCursorPos = start + 2;
+      break;
+    case "header1":
+      newText = `# ${selectedText}`;
+      newCursorPos = start + 2;
+      break;
+    case "header2":
+      newText = `## ${selectedText}`;
+      newCursorPos = start + 3;
+      break;
+    case "list":
+      newText = `- ${selectedText}`;
+      newCursorPos = start + 2;
+      break;
+    case "link":
       if (selectedText) {
-        newText = `[${selectedText}](url)`
-        newCursorPos = start + selectedText.length + 3
+        newText = `[${selectedText}](url)`;
+        newCursorPos = start + selectedText.length + 3;
       } else {
-        newText = `[链接文本](url)`
-        newCursorPos = start + 5
+        newText = `[链接文本](url)`;
+        newCursorPos = start + 5;
       }
-      break
-    case 'image':
+      break;
+    case "image":
       if (selectedText) {
-        newText = `![${selectedText}](图片地址)`
-        newCursorPos = start + selectedText.length + 4
+        newText = `![${selectedText}](图片地址)`;
+        newCursorPos = start + selectedText.length + 4;
       } else {
-        newText = `![图片描述](图片地址)`
-        newCursorPos = start + 7
+        newText = `![图片描述](图片地址)`;
+        newCursorPos = start + 7;
       }
-      break
-    case 'quote':
-      newText = `> ${selectedText}`
-      newCursorPos = start + 2
-      break
-    case 'code':
+      break;
+    case "quote":
+      newText = `> ${selectedText}`;
+      newCursorPos = start + 2;
+      break;
+    case "code":
       if (selectedText) {
-        newText = `\`${selectedText}\``
-        newCursorPos = start + 1
+        newText = `\`${selectedText}\``;
+        newCursorPos = start + 1;
       } else {
-        newText = `\`代码\``
-        newCursorPos = start + 1
+        newText = `\`代码\``;
+        newCursorPos = start + 1;
       }
-      break
-    case 'clear':
-      newText = selectedText.replace(/[*_`>#-]/g, '')
-      newCursorPos = start
-      break
+      break;
+    case "clear":
+      newText = selectedText.replace(/[*_`>#-]/g, "");
+      newCursorPos = start;
+      break;
     default:
-      return
+      return;
   }
 
   // 插入格式化文本
   formData.value.content =
     textarea.value.substring(0, start) +
     newText +
-    textarea.value.substring(end)
+    textarea.value.substring(end);
 
   // 重新聚焦并设置光标位置
   setTimeout(() => {
-    textarea.focus()
-    const endPos = newCursorPos + (newText.length - selectedText.length)
-    textarea.setSelectionRange(newCursorPos, endPos)
-  }, 0)
-}
+    textarea.focus();
+    const endPos = newCursorPos + (newText.length - selectedText.length);
+    textarea.setSelectionRange(newCursorPos, endPos);
+  }, 0);
+};
 
 // 处理图片上传
 const handleImageUpload = (event) => {
-  const files = event.target.files
+  const files = event.target.files;
 
   for (let i = 0; i < files.length; i++) {
-    const file = files[i]
+    const file = files[i];
 
     // 检查文件类型
-    if (!file.type.startsWith('image/')) {
-      showToast('请选择有效的图片文件', 'error')
-      continue
+    if (!file.type.startsWith("image/")) {
+      showToast("请选择有效的图片文件", "error");
+      continue;
     }
 
     // 检查文件大小（限制为5MB）
     if (file.size > 5 * 1024 * 1024) {
-      showToast('图片大小不能超过5MB', 'error')
-      continue
+      showToast("图片大小不能超过5MB", "error");
+      continue;
     }
 
     // 创建预览URL
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
       uploadedImages.value.push({
         file: file,
-        url: e.target.result
-      })
-    }
-    reader.readAsDataURL(file)
+        url: e.target.result,
+      });
+    };
+    reader.readAsDataURL(file);
   }
 
   // 清空文件输入，以便可以再次选择相同的文件
-  event.target.value = ''
-}
+  event.target.value = "";
+};
 
 // 移除图片
 const removeImage = (index) => {
-  uploadedImages.value.splice(index, 1)
-  showToast('图片已移除', 'success')
-}
+  uploadedImages.value.splice(index, 1);
+  showToast("图片已移除", "success");
+};
 
 // 保存草稿
 const saveDraft = () => {
   const draft = {
     ...formData.value,
     savedAt: new Date().toISOString(),
-    images: uploadedImages.value.map(img => ({
-      url: img.url
-    }))
-  }
+    images: uploadedImages.value.map((img) => ({
+      url: img.url,
+    })),
+  };
 
-  savedDrafts.value.unshift(draft)
+  savedDrafts.value.unshift(draft);
 
   // 限制最多保存10个草稿
   if (savedDrafts.value.length > 10) {
-    savedDrafts.value.pop()
+    savedDrafts.value.pop();
   }
 
   // 保存到localStorage
-  localStorage.setItem('threadDrafts', JSON.stringify(savedDrafts.value))
+  localStorage.setItem("threadDrafts", JSON.stringify(savedDrafts.value));
 
-  showToast('草稿已保存', 'success')
-}
+  showToast("草稿已保存", "success");
+};
 
 // 加载草稿
 const loadDraft = (index) => {
-  const draft = savedDrafts.value[index]
+  const draft = savedDrafts.value[index];
   formData.value = {
-    title: draft.title || '',
-    content: draft.content || '',
-    images: []
-  }
+    title: draft.title || "",
+    content: draft.content || "",
+    images: [],
+  };
 
-  uploadedImages.value = draft.images || []
+  uploadedImages.value = draft.images || [];
 
-  showDrafts.value = false
-  showToast('草稿已加载', 'success')
-}
+  showDrafts.value = false;
+  showToast("草稿已加载", "success");
+};
 
 // 删除草稿
 const deleteDraft = (index) => {
-  savedDrafts.value.splice(index, 1)
-  localStorage.setItem('threadDrafts', JSON.stringify(savedDrafts.value))
-  showToast('草稿已删除', 'success')
-}
+  savedDrafts.value.splice(index, 1);
+  localStorage.setItem("threadDrafts", JSON.stringify(savedDrafts.value));
+  showToast("草稿已删除", "success");
+};
 
 // 切换草稿显示
 const toggleDrafts = () => {
-  showDrafts.value = !showDrafts.value
-}
+  showDrafts.value = !showDrafts.value;
+};
 
 // 表单验证
 const validateForm = () => {
   if (!formData.value.title.trim()) {
-    showToast('请输入帖子标题', 'error')
-    return false
+    showToast("请输入帖子标题", "error");
+    return false;
   }
 
   if (formData.value.title.length > 100) {
-    showToast('帖子标题不能超过100个字符', 'error')
-    return false
+    showToast("帖子标题不能超过100个字符", "error");
+    return false;
   }
 
   if (!formData.value.content.trim()) {
-    showToast('请输入帖子内容', 'error')
-    return false
+    showToast("请输入帖子内容", "error");
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 // 提交帖子
-const submitThread = () => {
-  if (!validateForm()) return
+const submitThread = async () => {
+  if (!validateForm()) return;
 
-  // 模拟提交
-  showToast('帖子发布成功！', 'success')
+  try {
+    // 构建帖子数据
+    const postData = {
+      title: formData.value.title,
+      content: formData.value.content,
+      // 如果有图片，可以在这里添加图片URL
+      images: uploadedImages.value.map((img) => img.url),
+    };
 
-  // 清除表单数据
-  formData.value = {
-    title: '',
-    content: '',
-    images: []
+    // 调用API创建帖子
+    const response = await postApi.createPost(postData);
+
+    showToast("帖子发布成功！", "success");
+
+    // 清除表单数据
+    formData.value = {
+      title: "",
+      content: "",
+      images: [],
+    };
+    uploadedImages.value = [];
+
+    // 3秒后跳转到首页
+    setTimeout(() => {
+      router.push("/home");
+    }, 3000);
+  } catch (error) {
+    console.error("发布帖子失败:", error);
+    showToast(error.message || "发布失败，请重试", "error");
   }
-  uploadedImages.value = []
-
-  // 3秒后跳转到首页
-  setTimeout(() => {
-    router.push('/home')
-  }, 3000)
-}
+};
 
 // 显示提示
-const showToast = (message, type = 'success') => {
+const showToast = (message, type = "success") => {
   toast.value = {
     show: true,
     message,
-    type
-  }
+    type,
+  };
 
   // 3秒后自动隐藏
   setTimeout(() => {
-    toast.value.show = false
-  }, 3000)
-}
+    toast.value.show = false;
+  }, 3000);
+};
 
 // 格式化时间
 const formatTime = (timeString) => {
-  const date = new Date(timeString)
-  const now = new Date()
-  const diff = now - date
+  const date = new Date(timeString);
+  const now = new Date();
+  const diff = now - date;
 
-  const minutes = Math.floor(diff / (1000 * 60))
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   if (minutes < 60) {
-    return `${minutes}分钟前`
+    return `${minutes}分钟前`;
   } else if (hours < 24) {
-    return `${hours}小时前`
+    return `${hours}小时前`;
   } else if (days < 30) {
-    return `${days}天前`
+    return `${days}天前`;
   } else {
-    return date.toLocaleDateString()
+    return date.toLocaleDateString();
   }
-}
+};
 
 // 回到顶部函数
 const scrollToTop = () => {
   window.scrollTo({
     top: 0,
-    behavior: 'smooth'
-  })
-}
+    behavior: "smooth",
+  });
+};
 
 // 处理滚动事件
 const handleScroll = () => {
   // 当滚动距离超过300px时显示回到顶部按钮
-  showBackToTop.value = window.scrollY > 300
-}
+  showBackToTop.value = window.scrollY > 300;
+};
 
 // 页面加载时初始化
 onMounted(() => {
   // 加载保存的草稿
-  const saved = localStorage.getItem('threadDrafts')
+  const saved = localStorage.getItem("threadDrafts");
   if (saved) {
-    savedDrafts.value = JSON.parse(saved)
+    savedDrafts.value = JSON.parse(saved);
   }
 
   // 添加滚动事件监听器
-  window.addEventListener('scroll', handleScroll)
+  window.addEventListener("scroll", handleScroll);
 
   // 设置导航守卫
   navigationGuard = router.beforeEach((to, from, next) => {
     if (from.path === route.path) {
       // 从当前页面离开，触发动画
-      isLeaving.value = true
+      isLeaving.value = true;
 
       // 等待动画完成后再导航
       setTimeout(() => {
-        next()
-      }, 500) // 0.5秒动画时间
+        next();
+      }, 500); // 0.5秒动画时间
     } else {
-      next()
+      next();
     }
-  })
-})
+  });
+});
 
 // 组件卸载时清除导航守卫和滚动事件监听器
 onBeforeUnmount(() => {
   if (navigationGuard) {
-    navigationGuard() // 调用返回的函数移除守卫
+    navigationGuard(); // 调用返回的函数移除守卫
   }
   // 移除滚动事件监听器
-  window.removeEventListener('scroll', handleScroll)
-})
+  window.removeEventListener("scroll", handleScroll);
+});
 
 // 监听表单数据变化
-watch(
-  [() => formData.value.title, () => formData.value.content],
-  () => {
-    // 可以在这里添加防抖逻辑
-  }
-)
+watch([() => formData.value.title, () => formData.value.content], () => {
+  // 可以在这里添加防抖逻辑
+});
 </script>
 
 <style scoped>
@@ -598,8 +708,6 @@ watch(
   border-color: #3498db;
   outline: none;
 }
-
-
 
 /* 编辑器 */
 .editor-toolbar {
@@ -868,7 +976,9 @@ watch(
 /* 动画 */
 .toast-enter-active,
 .toast-leave-active {
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 
 .toast-enter-from,
