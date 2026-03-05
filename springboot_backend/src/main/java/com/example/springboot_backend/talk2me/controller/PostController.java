@@ -1,6 +1,7 @@
 package com.example.springboot_backend.talk2me.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.springboot_backend.core.model.PageResult;
 import com.example.springboot_backend.core.model.Result;
 import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
 import com.example.springboot_backend.talk2me.model.domain.PostDO;
@@ -49,10 +50,10 @@ public class PostController {
     }
 
     @GetMapping
-    public Result<Page<PostDO>> listPosts(
+    public Result<PageResult<PostDO>> listPosts(
             @RequestParam(required = false) Long sectionId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
-        return Result.success(postService.listPosts(sectionId, page, size));
+        return Result.success(PageResult.of(postService.listPosts(sectionId, page, size)));
     }
 }

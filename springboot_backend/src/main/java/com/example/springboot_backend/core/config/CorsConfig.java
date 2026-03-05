@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -176,6 +177,9 @@ public class CorsConfig {
                             .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh").permitAll()
                             // Swagger文档允许访问
                             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                            // GET请求允许访问
+                            .requestMatchers(HttpMethod.GET, "/api/v1/sections", "/api/v1/sections/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/posts", "/api/v1/posts/**").permitAll()
                             // 其他认证相关端点需要认证
                             .requestMatchers("/api/v1/auth/**").authenticated()
                             // 其他所有请求需要认证

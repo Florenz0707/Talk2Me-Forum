@@ -65,4 +65,7 @@ CREATE INDEX IF NOT EXISTS idx_target ON likes(target_type, target_id);
 INSERT INTO sections (name, description, create_time, update_time) VALUES
 ('技术讨论', '技术相关话题', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('生活分享', '日常生活分享', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('问答求助', '提问和求助', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+('问答求助', '提问和求助', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('新手入门', '新手指南和入门教程', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('资源分享', '学习资源和工具分享', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('闲聊灌水', '轻松闲聊交流', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
