@@ -13,6 +13,25 @@
 
         <!-- 发帖表单 -->
         <div class="create-thread-form">
+          <!-- 板块选择 -->
+          <div class="form-section">
+            <h2 class="section-title">选择板块</h2>
+            <select
+              v-model="formData.sectionId"
+              class="form-select"
+              :disabled="loadingSections"
+            >
+              <option value="" disabled>请选择板块</option>
+              <option
+                v-for="section in sections"
+                :key="section.id"
+                :value="section.id"
+              >
+                {{ section.name }}
+              </option>
+            </select>
+          </div>
+
           <div class="form-section">
             <h2 class="section-title">帖子标题</h2>
             <input
@@ -251,7 +270,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "../components/Header.vue";
-import { postApi } from "../utils/api";
+import { postApi, sectionApi } from "../utils/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -267,8 +286,13 @@ const showBackToTop = ref(false);
 const formData = ref({
   title: "",
   content: "",
+  sectionId: null,
   images: [],
 });
+
+// 板块列表
+const sections = ref([]);
+const loadingSections = ref(false);
 
 // 上传的图片
 const uploadedImages = ref([]);
@@ -498,6 +522,11 @@ const toggleDrafts = () => {
 
 // 表单验证
 const validateForm = () => {
+  if (!formData.value.sectionId) {
+    showToast("请选择板块", "error");
+    return false;
+  }
+
   if (!formData.value.title.trim()) {
     showToast("请输入帖子标题", "error");
     return false;
@@ -523,10 +552,9 @@ const submitThread = async () => {
   try {
     // 构建帖子数据
     const postData = {
+      sectionId: parseInt(formData.value.sectionId),
       title: formData.value.title,
       content: formData.value.content,
-      // 如果有图片，可以在这里添加图片URL
-      images: uploadedImages.value.map((img) => img.url),
     };
 
     // 调用API创建帖子
@@ -601,8 +629,67 @@ const handleScroll = () => {
   showBackToTop.value = window.scrollY > 300;
 };
 
+// 获取板块列表
+const fetchSections = async () => {
+  loadingSections.value = true;
+  try {
+    const response = await sectionApi.getAllSections();
+    // 根据后端返回的数据结构获取板块列表
+    if (response.data && Array.isArray(response.data)) {
+      sections.value = response.data;
+    } else if (response.data && response.data.records) {
+      sections.value = response.data.records;
+    } else {
+      // 使用默认板块数据
+      sections.value = [
+        { id: 1, name: "软件开发与工程" },
+        { id: 2, name: "硬件组件与架构" },
+        { id: 3, name: "编程语言与框架" },
+        { id: 4, name: "数据库与存储" },
+        { id: 5, name: "网络与安全" },
+        { id: 6, name: "人工智能与机器学习" },
+        { id: 7, name: "云计算与大数据" },
+        { id: 8, name: "移动开发" },
+        { id: 9, name: "前端开发" },
+        { id: 10, name: "后端开发" },
+        { id: 11, name: "新兴技术" },
+        { id: 12, name: "计算机科学理论" },
+      ];
+    }
+  } catch (error) {
+    console.error("获取板块列表失败:", error);
+    // 使用默认板块数据
+    sections.value = [
+      { id: 1, name: "软件开发与工程" },
+      { id: 2, name: "硬件组件与架构" },
+      { id: 3, name: "编程语言与框架" },
+      { id: 4, name: "数据库与存储" },
+      { id: 5, name: "网络与安全" },
+      { id: 6, name: "人工智能与机器学习" },
+      { id: 7, name: "云计算与大数据" },
+      { id: 8, name: "移动开发" },
+      { id: 9, name: "前端开发" },
+      { id: 10, name: "后端开发" },
+      { id: 11, name: "新兴技术" },
+      { id: 12, name: "计算机科学理论" },
+    ];
+  } finally {
+    loadingSections.value = false;
+  }
+};
+
 // 页面加载时初始化
 onMounted(() => {
+  // 检查token是否存在
+  const token = localStorage.getItem("auth_token");
+  console.log("CreateThreadView onMounted - token:", token ? "存在" : "不存在");
+  if (token) {
+    console.log("Token值:", token.substring(0, 30) + "...");
+  }
+
+  // 获取板块列表
+  fetchSections();
+
   // 加载保存的草稿
   const saved = localStorage.getItem("threadDrafts");
   if (saved) {
@@ -695,16 +782,19 @@ watch([() => formData.value.title, () => formData.value.content], () => {
   margin-bottom: 15px;
 }
 
-.form-input {
+.form-input,
+.form-select {
   width: 100%;
   padding: 12px 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 16px;
   transition: border-color 0.2s;
+  background-color: white;
 }
 
-.form-input:focus {
+.form-input:focus,
+.form-select:focus {
   border-color: #3498db;
   outline: none;
 }
