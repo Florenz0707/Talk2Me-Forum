@@ -8,6 +8,20 @@
           <router-link to="/sections" class="nav-button">板块</router-link>
         </div>
       </div>
+      <div class="header-center">
+        <div class="search-box">
+          <input
+            type="text"
+            v-model="searchKeyword"
+            placeholder="搜索帖子..."
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
+          <button class="search-btn" @click="handleSearch">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
       <div class="user-actions">
         <router-link v-if="showAuthButtons" to="/login" class="btn btn-primary"
           >登录</router-link
@@ -66,6 +80,19 @@ const showAuthButtons = computed(() => !isLoggedIn.value);
 
 // 用户菜单控制
 const showUserMenu = ref(false);
+
+// 搜索关键词
+const searchKeyword = ref("");
+
+// 搜索处理函数
+const handleSearch = () => {
+  if (searchKeyword.value.trim()) {
+    router.push({
+      path: "/search",
+      query: { keyword: searchKeyword.value.trim() },
+    });
+  }
+};
 </script>
 
 <style scoped>
@@ -121,6 +148,55 @@ const showUserMenu = ref(false);
   display: flex;
   gap: var(--spacing-md);
   align-items: center;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 30px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-btn {
+  border: none;
+  background: #e3e5e7;
+  color: #505050;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-btn:hover {
+  background: #dcdfe6;
 }
 
 .user-avatar-container {
