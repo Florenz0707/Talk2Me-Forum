@@ -41,6 +41,27 @@ const routes = [
     name: "Home",
     component: () => import("../views/HomeView.vue"),
   },
+  {
+    path: "/create-thread",
+    name: "CreateThread",
+    component: () => import("../views/CreateThreadView.vue"),
+    meta: { requiresAuth: true }, // 添加路由元信息，表示需要认证
+  },
+  {
+    path: "/thread/:id",
+    name: "ThreadDetail",
+    component: () => import("../views/ThreadDetailView.vue"),
+  },
+  {
+    path: "/sections",
+    name: "Sections",
+    component: () => import("../views/SectionsView.vue"),
+  },
+  {
+    path: "/section/:id",
+    name: "Section",
+    component: () => import("../views/SectionView.vue"),
+  },
 ];
 
 const router = createRouter({

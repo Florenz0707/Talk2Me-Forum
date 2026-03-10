@@ -1,0 +1,263 @@
+<template>
+  <header class="page-header">
+    <div class="container">
+      <div class="header-left">
+        <h1 class="page-title">{{ title }}</h1>
+        <div class="nav-buttons">
+          <router-link to="/home" class="nav-button">首页</router-link>
+          <router-link to="/sections" class="nav-button">板块</router-link>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="search-box">
+          <input
+            type="text"
+            v-model="searchKeyword"
+            placeholder="搜索帖子..."
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
+          <button class="search-btn" @click="handleSearch">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+      <div class="user-actions">
+        <router-link v-if="showAuthButtons" to="/login" class="btn btn-primary"
+          >登录</router-link
+        >
+        <router-link
+          v-if="showAuthButtons"
+          to="/register"
+          class="btn btn-secondary"
+          >注册</router-link
+        >
+        <template v-else>
+          <div
+            class="user-avatar-container"
+            @mouseenter="showUserMenu = true"
+            @mouseleave="showUserMenu = false"
+          >
+            <router-link to="/user" class="nav-link user-avatar">
+              <i class="fas fa-user-circle"></i>
+            </router-link>
+            <div class="user-dropdown-menu" :class="{ show: showUserMenu }">
+              <div class="dropdown-item">
+                <i class="fas fa-envelope"></i>
+                <span>新消息</span>
+              </div>
+              <div class="dropdown-item">
+                <i class="fas fa-palette"></i>
+                <span>主题颜色</span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </header>
+</template>
+
+<script setup>
+import { computed, inject, ref } from "vue";
+import { useRouter } from "vue-router";
+
+// 接收props
+const props = defineProps({
+  title: {
+    type: String,
+    default: "论坛首页",
+  },
+});
+
+const router = useRouter();
+
+// 从全局注入获取登录状态
+const isLoggedIn = inject("isLoggedIn");
+
+// 计算是否显示登录/注册按钮
+const showAuthButtons = computed(() => !isLoggedIn.value);
+
+// 用户菜单控制
+const showUserMenu = ref(false);
+
+// 搜索关键词
+const searchKeyword = ref("");
+
+// 搜索处理函数
+const handleSearch = () => {
+  if (searchKeyword.value.trim()) {
+    router.push({
+      path: "/search",
+      query: { keyword: searchKeyword.value.trim() },
+    });
+  }
+};
+</script>
+
+<style scoped>
+.page-header {
+  background-color: var(--forum-dark-color);
+  color: white;
+  padding: var(--header-padding);
+  box-shadow: var(--shadow-medium);
+}
+
+.page-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: var(--container-padding);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: var(--page-title-size);
+  font-weight: 600;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-button {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.user-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 30px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-btn {
+  border: none;
+  background: #e3e5e7;
+  color: #505050;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-btn:hover {
+  background: #dcdfe6;
+}
+
+.user-avatar-container {
+  position: relative;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.user-avatar {
+  font-size: 24px;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  min-width: 150px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 200;
+  margin-top: 8px;
+}
+
+.user-dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  color: #333;
+  font-size: 14px;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f7fa;
+}
+
+.dropdown-item i {
+  font-size: 16px;
+  color: #666;
+}
+</style>

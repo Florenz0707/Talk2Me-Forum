@@ -200,12 +200,15 @@ export default {
 
         // 确认token已正确存储
         const token = localStorage.getItem("auth_token");
+        console.log("登录后检查token:", token ? "存在" : "不存在");
         if (token) {
+          console.log("Token值:", token.substring(0, 30) + "...");
           // 更新全局登录状态
           updateLoginStatus(true);
 
           // 获取重定向路径，如果没有则默认跳转到主页
           const redirectPath = route.query.redirect || "/home";
+          console.log("准备跳转到:", redirectPath);
           // 跳转到重定向路径或主页
           router.push(redirectPath);
         } else {
