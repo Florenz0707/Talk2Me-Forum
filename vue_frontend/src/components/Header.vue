@@ -215,7 +215,7 @@ const handleSearch = () => {
 }
 
 .user-avatar {
-  font-size: 24px;
+  font-size: 30px;
 }
 
 .user-dropdown-menu {

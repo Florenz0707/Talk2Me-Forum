@@ -36,7 +36,20 @@
 
         <!-- 帖子列表 -->
         <div class="thread-list">
-          <table class="thread-table">
+          <!-- 加载状态 -->
+          <div v-if="loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+          </div>
+
+          <!-- 错误提示 -->
+          <div v-else-if="error" class="error-container">
+            <p class="error-message">{{ error }}</p>
+            <button class="btn btn-primary" @click="loadThreads">重试</button>
+          </div>
+
+          <!-- 帖子列表 -->
+          <table v-else class="thread-table">
             <thead>
               <tr>
                 <th class="thread-info">主题</th>
@@ -73,6 +86,10 @@
                 <td class="thread-time">{{ formatTime(thread.createdAt) }}</td>
                 <td class="thread-replies">{{ thread.replies }}</td>
                 <td class="thread-views">{{ thread.views }}</td>
+              </tr>
+              <!-- 空数据提示 -->
+              <tr v-if="threads.length === 0">
+                <td colspan="5" class="empty-message">暂无帖子</td>
               </tr>
             </tbody>
           </table>
@@ -153,135 +170,16 @@ const threads = ref([]);
 
 // 分页相关数据
 const currentPage = ref(1);
-const totalPages = ref(10);
+const totalPages = ref(1);
 const jumpPage = ref(1);
+const totalPosts = ref(0);
 
 // 排序
 const sortBy = ref("latest");
 
-// 模拟帖子数据
-const mockThreads = [
-  {
-    id: 1,
-    title: "Vue 3 Composition API 最佳实践分享",
-    author: "前端小能手",
-    createdAt: "2024-01-15T10:30:00",
-    replies: 45,
-    views: 1234,
-    lastReplyAuthor: "技术爱好者",
-    lastReplyTime: "2024-01-16T14:20:00",
-    isHot: true,
-    isRecommended: true,
-  },
-  {
-    id: 2,
-    title: "Spring Boot 3.0 新特性解析",
-    author: "后端架构师",
-    createdAt: "2024-01-14T16:45:00",
-    replies: 32,
-    views: 890,
-    lastReplyAuthor: "Java开发者",
-    lastReplyTime: "2024-01-15T11:15:00",
-    isHot: true,
-    isRecommended: false,
-  },
-  {
-    id: 3,
-    title: "前端性能优化实战指南",
-    author: "性能优化专家",
-    createdAt: "2024-01-13T09:20:00",
-    replies: 28,
-    views: 765,
-    lastReplyAuthor: "前端开发者",
-    lastReplyTime: "2024-01-14T15:30:00",
-    isHot: false,
-    isRecommended: true,
-  },
-  {
-    id: 4,
-    title: "微服务架构设计模式探讨",
-    author: "系统架构师",
-    createdAt: "2024-01-12T14:10:00",
-    replies: 56,
-    views: 1456,
-    lastReplyAuthor: "架构学习者",
-    lastReplyTime: "2024-01-16T09:45:00",
-    isHot: true,
-    isRecommended: true,
-  },
-  {
-    id: 5,
-    title: "TypeScript 高级类型应用",
-    author: "TS爱好者",
-    createdAt: "2024-01-11T11:30:00",
-    replies: 42,
-    views: 987,
-    lastReplyAuthor: "TypeScript开发者",
-    lastReplyTime: "2024-01-13T16:20:00",
-    isHot: false,
-    isRecommended: false,
-  },
-  {
-    id: 6,
-    title: "数据库性能调优技巧",
-    author: "DBA专家",
-    createdAt: "2024-01-10T15:45:00",
-    replies: 38,
-    views: 1123,
-    lastReplyAuthor: "数据库开发者",
-    lastReplyTime: "2024-01-15T13:10:00",
-    isHot: true,
-    isRecommended: false,
-  },
-  {
-    id: 7,
-    title: "React 18 新特性深入分析",
-    author: "React开发者",
-    createdAt: "2024-01-09T10:20:00",
-    replies: 25,
-    views: 876,
-    lastReplyAuthor: "前端学习者",
-    lastReplyTime: "2024-01-12T14:50:00",
-    isHot: false,
-    isRecommended: false,
-  },
-  {
-    id: 8,
-    title: "Docker 容器化部署实践",
-    author: "DevOps工程师",
-    createdAt: "2024-01-08T16:15:00",
-    replies: 40,
-    views: 1345,
-    lastReplyAuthor: "运维工程师",
-    lastReplyTime: "2024-01-14T10:30:00",
-    isHot: true,
-    isRecommended: true,
-  },
-  {
-    id: 9,
-    title: "前端工程化最佳实践",
-    author: "工程化专家",
-    createdAt: "2024-01-07T09:40:00",
-    replies: 35,
-    views: 1098,
-    lastReplyAuthor: "前端架构师",
-    lastReplyTime: "2024-01-13T15:20:00",
-    isHot: false,
-    isRecommended: true,
-  },
-  {
-    id: 10,
-    title: "RESTful API 设计规范",
-    author: "API设计师",
-    createdAt: "2024-01-06T14:25:00",
-    replies: 22,
-    views: 765,
-    lastReplyAuthor: "后端开发者",
-    lastReplyTime: "2024-01-11T16:40:00",
-    isHot: false,
-    isRecommended: false,
-  },
-];
+// 加载状态和错误处理
+const loading = ref(false);
+const error = ref(null);
 
 // 格式化时间
 const formatTime = (timeString) => {
@@ -306,15 +204,59 @@ const formatTime = (timeString) => {
 };
 
 // 加载帖子数据
-const loadThreads = () => {
-  // 这里可以替换为真实的API调用
-  threads.value = mockThreads;
+const loadThreads = async () => {
+  loading.value = true;
+  error.value = null;
+
+  try {
+    // 构建请求URL
+    const url = new URL("http://localhost:8099/talk2me/api/v1/posts");
+    url.searchParams.append("page", currentPage.value);
+    url.searchParams.append("size", 20);
+
+    // 发送请求
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("请求失败");
+    }
+
+    const data = await response.json();
+
+    // 处理响应数据
+    if (data.code === 200 && data.data) {
+      // 转换API返回的数据结构为前端需要的格式
+      threads.value = data.data.records.map((post) => ({
+        id: post.id,
+        title: post.title,
+        author: post.userId, // 这里需要根据实际情况调整，可能需要从用户服务获取用户名
+        createdAt: post.createTime,
+        replies: post.replyCount,
+        views: post.viewCount,
+        isHot: post.replyCount > 30, // 根据回复数判断是否热门
+        isRecommended: post.likeCount > 20, // 根据点赞数判断是否推荐
+      }));
+
+      // 更新分页信息
+      totalPages.value = data.data.pages;
+      totalPosts.value = data.data.total;
+      jumpPage.value = currentPage.value;
+    } else {
+      throw new Error(data.message || "获取帖子列表失败");
+    }
+  } catch (err) {
+    error.value = err.message;
+    console.error("加载帖子失败:", err);
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 处理排序变化
 const handleSortChange = () => {
   console.log("排序方式变更为:", sortBy.value);
-  // 这里可以添加排序逻辑
+  // 重置页码
+  currentPage.value = 1;
+  jumpPage.value = 1;
   loadThreads();
 };
 
@@ -515,6 +457,59 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 错误提示 */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.error-message {
+  color: #dc3545;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+/* 空数据提示 */
+.empty-message {
+  text-align: center;
+  padding: 60px 0;
+  color: #666;
+  font-size: 16px;
 }
 
 .thread-table {

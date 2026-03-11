@@ -40,22 +40,22 @@
       </div>
     </div>
 
-    <!-- 顶部导航栏 -->
-    <div class="bili-header-bar">
-      <div class="container">
-        <div class="left-entry"></div>
+    <!--    &lt;!&ndash; 顶部导航栏 &ndash;&gt;-->
+    <!--    <div class="bili-header-bar">-->
+    <!--      <div class="container">-->
+    <!--        <div class="left-entry"></div>-->
 
-        <div class="right-entry">
-          <ul class="flex">
-            <li class="nav-item">
-              <template v-if="!isLoggedIn">
-                <router-link to="/login" class="nav-link">登录</router-link>
-              </template>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <!--        <div class="right-entry">-->
+    <!--          <ul class="flex">-->
+    <!--            <li class="nav-item">-->
+    <!--              <template v-if="!isLoggedIn">-->
+    <!--                <router-link to="/login" class="nav-link">登录</router-link>-->
+    <!--              </template>-->
+    <!--            </li>-->
+    <!--          </ul>-->
+    <!--        </div>-->
+    <!--      </div>-->
+    <!--    </div>-->
 
     <!-- 数据指标行 -->
     <div class="stats-container">
@@ -574,8 +574,10 @@ export default {
 /* 头像展示栏 */
 .avatar-header {
   background-color: #2c3e50;
-  height: 10vh;
+  height: 20vh;
   min-height: 100px;
+  display: flex;
+  flex-direction: row;
   align-items: center;
   color: white;
 }
