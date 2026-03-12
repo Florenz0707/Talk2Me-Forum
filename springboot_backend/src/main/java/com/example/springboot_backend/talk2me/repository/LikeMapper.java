@@ -5,5 +5,4 @@ import com.example.springboot_backend.talk2me.model.domain.LikeDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface LikeMapper extends BaseMapper<LikeDO> {
-}
+public interface LikeMapper extends BaseMapper<LikeDO> {}

@@ -5,5 +5,4 @@ import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PostMapper extends BaseMapper<PostDO> {
-}
+public interface PostMapper extends BaseMapper<PostDO> {}

@@ -7,9 +7,6 @@ echo $env:ANTHROPIC_BASE_URL echo $env:ANTHROPIC_BASE_URL
 
 <script setup>
 import { ref, onMounted, provide } from "vue";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
 
 // 全局登录状态
 const isLoggedIn = ref(false);
