@@ -265,10 +265,10 @@ onMounted(() => {
     }
   });
 
-  // 进入动画
+  // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
   setTimeout(() => {
     isEntering.value = false;
-  }, 100);
+  }, 600);
 
   // 获取板块名称和帖子列表
   fetchSectionName();
@@ -285,10 +285,6 @@ onUnmounted(() => {
 .section-page {
   min-height: 100vh;
   background-color: var(--background-color);
-}
-
-.section-page * {
-  transition: all 0.5s ease-in-out;
 }
 
 .main-content {
@@ -473,31 +469,38 @@ onUnmounted(() => {
 }
 
 /* 动画效果 */
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 0.3s,
-    transform 0.3s;
+.section-page.fade-enter-active {
+  animation: sectionPageEnter 0.5s ease-out;
 }
 
-.fade-enter-active {
-  opacity: 0;
-  transform: translateY(20px);
+@keyframes sectionPageEnter {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
 }
 
-.fade-enter-active.fade-enter-active {
-  opacity: 1;
-  transform: translateY(0);
+.section-page.fade-leave-active {
+  animation: sectionPageLeave 0.3s ease-in forwards;
 }
 
-.fade-leave-active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.fade-leave-active.fade-leave-active {
-  opacity: 0;
-  transform: translateY(-20px);
+@keyframes sectionPageLeave {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(-20px);
+  }
 }
 
 /* 响应式设计 */

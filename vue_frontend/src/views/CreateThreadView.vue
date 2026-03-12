@@ -1,5 +1,8 @@
 <template>
-  <div class="create-thread-page" :class="{ 'fade-leave-active': isLeaving }">
+  <div
+    class="create-thread-page"
+    :class="{ 'fade-leave-active': isLeaving, 'fade-enter-active': isEntering }"
+  >
     <!-- 页面头部 -->
     <Header title="发布新帖子" :showCreateThreadBtn="false" />
 
@@ -277,6 +280,7 @@ const route = useRoute();
 
 // 离开页面动画控制
 const isLeaving = ref(false);
+const isEntering = ref(true);
 let navigationGuard = null;
 
 // 回到顶部按钮控制
@@ -680,6 +684,11 @@ const fetchSections = async () => {
 
 // 页面加载时初始化
 onMounted(() => {
+  // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
+  setTimeout(() => {
+    isEntering.value = false;
+  }, 600);
+
   // 检查token是否存在
   const token = localStorage.getItem("auth_token");
   console.log("CreateThreadView onMounted - token:", token ? "存在" : "不存在");
@@ -736,7 +745,24 @@ watch([() => formData.value.title, () => formData.value.content], () => {
   display: flex;
   flex-direction: column;
   background-color: #f5f7fa;
-  transition: all 2s ease-in-out;
+}
+
+/* 页面进入时的渐入动画 */
+.create-thread-page.fade-enter-active {
+  animation: createPageEnter 0.5s ease-out;
+}
+
+@keyframes createPageEnter {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
 }
 
 /* 页面离开时的淡出动画 */
@@ -744,6 +770,7 @@ watch([() => formData.value.title, () => formData.value.content], () => {
   opacity: 0;
   filter: blur(20px);
   transform: scale(0.95);
+  transition: all 0.5s ease-in-out;
 }
 
 /* 确保所有子元素都继承过渡效果 */

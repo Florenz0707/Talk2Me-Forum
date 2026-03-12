@@ -285,6 +285,11 @@ onMounted(() => {
   checkLoginStatus();
   loadThreads();
 
+  // 进入动画：组件挂载后延迟清除 isEntering，让 keyframe 动画完整播放
+  setTimeout(() => {
+    isEntering.value = false;
+  }, 600);
+
   // 设置导航守卫
   navigationGuard = router.beforeEach((to, from, next) => {
     if (from.path === route.path) {
@@ -315,31 +320,42 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   background-color: #f5f7fa;
-  opacity: 0;
-  filter: blur(20px);
-  transform: scale(0.95);
-  transition: all 0.5s ease-in-out;
 }
 
-/* 页面进入时的淡入动画 */
+/* 页面进入时的渐入动画 */
 .home-page.fade-enter-active {
-  opacity: 1;
-  filter: blur(0);
-  transform: scale(1);
-  transition: all 0.5s ease-in-out;
+  animation: homePageEnter 0.5s ease-out;
+}
+
+@keyframes homePageEnter {
+  from {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
 }
 
 /* 页面离开时的淡出动画 */
 .home-page.fade-leave-active {
-  opacity: 0;
-  filter: blur(20px);
-  transform: scale(0.95);
-  transition: all 0.5s ease-in-out;
+  animation: homePageLeave 0.5s ease-in-out forwards;
 }
 
-/* 确保所有子元素都继承过渡效果 */
-.home-page * {
-  transition: all 0.5s ease-in-out;
+@keyframes homePageLeave {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(0.95);
+  }
 }
 
 /* 固定定位的发帖按钮 */
@@ -647,6 +663,16 @@ onBeforeUnmount(() => {
 .btn-small {
   padding: 4px 8px;
   font-size: 12px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border: 1px solid var(--forum-border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-small:hover {
+  opacity: 0.85;
 }
 
 /* 页脚 */

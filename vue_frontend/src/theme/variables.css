@@ -1,3 +1,38 @@
+/* ===== 深色模式变量覆盖 ===== */
+html.dark {
+  /* 论坛主题颜色 */
+  --forum-primary-color: #5dade2;
+  --forum-primary-hover-color: #3498db;
+  --forum-dark-color: #0d1117;
+  --forum-light-color: #2d2d2d;
+  --forum-light-hover-color: #3a3a3a;
+  --forum-border-color: #444;
+  --forum-background-color: #121212;
+  --forum-text-color: #e0e0e0;
+  --forum-light-text-color: #aaa;
+  --forum-error-color: #e74c3c;
+  --forum-error-hover-color: #c0392b;
+
+  /* 主色调 */
+  --primary-color: #7c93ee;
+  --secondary-color: #9b6fc0;
+
+  /* 文本颜色 */
+  --text-color: #e0e0e0;
+  --light-text-color: #aaa;
+
+  /* 背景颜色 */
+  --background-color: #121212;
+  --dark-background-color: #2d2d2d;
+  --card-background-color: #1e1e1e;
+  --light-background-color: #1a1a1a;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-dark: 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+
 :root {
   /* 论坛主题颜色 */
   --forum-primary-color: #3498db;

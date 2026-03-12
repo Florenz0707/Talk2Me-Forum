@@ -23,15 +23,11 @@
         </div>
       </div>
       <div class="user-actions">
-        <router-link v-if="showAuthButtons" to="/login" class="btn btn-primary"
-          >登录</router-link
-        >
-        <router-link
-          v-if="showAuthButtons"
-          to="/register"
-          class="btn btn-secondary"
-          >注册</router-link
-        >
+        <template v-if="showAuthButtons">
+          <button class="auth-circle-btn" @click="openModal('login')">
+            登录
+          </button>
+        </template>
         <template v-else>
           <div
             class="user-avatar-container"
@@ -56,11 +52,18 @@
       </div>
     </div>
   </header>
+
+  <AuthModal
+    :visible="showAuthModal"
+    :initial-tab="authModalTab"
+    @close="showAuthModal = false"
+  />
 </template>
 
 <script setup>
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
+import AuthModal from "./AuthModal.vue";
 
 // 接收props
 const props = defineProps({
@@ -80,6 +83,15 @@ const showAuthButtons = computed(() => !isLoggedIn.value);
 
 // 用户菜单控制
 const showUserMenu = ref(false);
+
+// Auth modal state
+const showAuthModal = ref(false);
+const authModalTab = ref("login");
+
+const openModal = (tab) => {
+  authModalTab.value = tab;
+  showAuthModal.value = true;
+};
 
 // 搜索关键词
 const searchKeyword = ref("");
@@ -259,5 +271,29 @@ const handleSearch = () => {
 .dropdown-item i {
   font-size: 16px;
   color: #666;
+}
+
+.auth-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  flex-shrink: 0;
+}
+
+.auth-circle-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
 }
 </style>

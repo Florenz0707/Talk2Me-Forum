@@ -4,6 +4,7 @@
     :class="{
       'bg-gradient-complete': bgGradientComplete,
       'bg-fade-leave-active': isLeaving,
+      'fade-enter-active': isEntering,
     }"
   >
     <!-- 头像展示栏 -->
@@ -251,7 +252,11 @@
                 <div class="setting-item">
                   <span>深色模式</span>
                   <label class="switch">
-                    <input type="checkbox" />
+                    <input
+                      type="checkbox"
+                      :checked="isDarkMode"
+                      @change="toggleDarkMode"
+                    />
                     <span class="slider"></span>
                   </label>
                 </div>
@@ -265,20 +270,25 @@
 </template>
 
 <script>
-import { ref, onMounted, inject } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, onBeforeUnmount, inject } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { authApi } from "../utils/api";
 
 export default {
   name: "UserView",
   setup() {
     const router = useRouter();
+    const route = useRoute();
     const updateLoginStatus = inject("updateLoginStatus");
     const isLoggedIn = inject("isLoggedIn");
+    const isDarkMode = inject("isDarkMode");
+    const toggleDarkMode = inject("toggleDarkMode");
     const username = ref("");
     const isLoggingOut = ref(false);
     const bgGradientComplete = ref(false);
     const isLeaving = ref(false);
+    const isEntering = ref(true);
+    let navigationGuard = null;
 
     // 导航栏选中项
     const activeNavItem = ref("favorites");
@@ -459,13 +469,11 @@ export default {
         // 更新全局登录状态
         updateLoginStatus(false);
 
-        // 触发离开动画后跳转到登录页面
-        triggerLeaveAnimation(() => {
-          router.push("/login");
-        });
+        // 导航到主页（路由守卫会触发离开动画）
+        router.push("/");
       } catch (error) {
         console.error("退出登录失败:", error);
-        // 即使API调用失败，仍然清除本地存储并跳转到登录页面
+        // 即使API调用失败，仍然清除本地存储并跳转到主页
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("rememberedUsername");
@@ -474,10 +482,8 @@ export default {
         // 更新全局登录状态
         updateLoginStatus(false);
 
-        // 触发离开动画后跳转到登录页面
-        triggerLeaveAnimation(() => {
-          router.push("/login");
-        });
+        // 导航到主页（路由守卫会触发离开动画）
+        router.push("/");
       } finally {
         isLoggingOut.value = false;
       }
@@ -486,6 +492,11 @@ export default {
     // 页面挂载时获取用户信息
     onMounted(() => {
       fetchUserInfo();
+
+      // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
+      setTimeout(() => {
+        isEntering.value = false;
+      }, 600);
 
       // 触发背景渐变动画
       setTimeout(() => {
@@ -496,6 +507,25 @@ export default {
           showCardPopup.value = true;
         }, 300); // 0.3秒背景渐变时间
       }, 100); // 给DOM一点时间渲染
+
+      // 设置导航守卫
+      navigationGuard = router.beforeEach((to, from, next) => {
+        if (from.path === route.path) {
+          isLeaving.value = true;
+          setTimeout(() => {
+            next();
+          }, 500);
+        } else {
+          next();
+        }
+      });
+    });
+
+    // 组件卸载时清除导航守卫
+    onBeforeUnmount(() => {
+      if (navigationGuard) {
+        navigationGuard();
+      }
     });
 
     // 返回主页
@@ -542,8 +572,11 @@ export default {
       handleLogout,
       bgGradientComplete,
       isLeaving,
+      isEntering,
       activeNavItem,
       isLoggedIn,
+      isDarkMode,
+      toggleDarkMode,
       searchQuery,
       showUserMenu,
       handleSearch,
@@ -689,7 +722,36 @@ export default {
 
 /* 背景离开时的渐变动画 */
 .user-view-container.bg-fade-leave-active {
-  transition: background-color 0.3s ease-in-out;
+  animation: userPageLeave 0.5s ease-in-out forwards;
+}
+
+@keyframes userPageLeave {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(0.95);
+  }
+}
+
+/* 页面进入时的渐入动画 */
+.user-view-container.fade-enter-active {
+  animation: userPageEnter 0.5s ease-out;
+}
+
+@keyframes userPageEnter {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 /* 顶部导航栏 - 与HomeView一致 */
@@ -1028,6 +1090,7 @@ export default {
   min-width: 0;
   background-color: #f5f7fa;
   padding: 30px;
+  border-left: 1px solid #e8ecf0;
 }
 
 /* 内容卡片 */

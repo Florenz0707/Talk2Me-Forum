@@ -1,6 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import LoginView from "../views/LoginView.vue";
-import RegisterView from "../views/RegisterView.vue";
 import UserView from "../views/UserView.vue";
 import ColorTest from "../components/ColorTest.vue";
 
@@ -19,16 +17,6 @@ const routes = [
     path: "/color-test",
     name: "ColorTest",
     component: ColorTest,
-  },
-  {
-    path: "/login",
-    name: "Login",
-    component: LoginView,
-  },
-  {
-    path: "/register",
-    name: "Register",
-    component: RegisterView,
   },
   {
     path: "/user",
@@ -74,11 +62,8 @@ router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     // 检查是否已登录
     if (!isAuthenticated()) {
-      // 未登录，重定向到登录页面
-      next({
-        path: "/login",
-        query: { redirect: to.fullPath }, // 保存想要访问的页面，登录后可以跳转回该页面
-      });
+      // 未登录，重定向到首页（通过Header弹窗登录）
+      next({ path: "/home" });
     } else {
       // 已登录，继续访问
       next();

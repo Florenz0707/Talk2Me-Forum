@@ -151,10 +151,10 @@ onMounted(() => {
     }
   });
 
-  // 进入动画
+  // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
   setTimeout(() => {
     isEntering.value = false;
-  }, 100);
+  }, 600);
 });
 
 onUnmounted(() => {
@@ -167,10 +167,6 @@ onUnmounted(() => {
 .sections-page {
   min-height: 100vh;
   background-color: var(--background-color);
-}
-
-.sections-page * {
-  transition: all 0.5s ease-in-out;
 }
 
 .main-content {
@@ -257,31 +253,38 @@ onUnmounted(() => {
 }
 
 /* 动画效果 */
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 0.3s,
-    transform 0.3s;
+.sections-page.fade-enter-active {
+  animation: sectionsPageEnter 0.5s ease-out;
 }
 
-.fade-enter-active {
-  opacity: 0;
-  transform: translateY(20px);
+@keyframes sectionsPageEnter {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
 }
 
-.fade-enter-active.fade-enter-active {
-  opacity: 1;
-  transform: translateY(0);
+.sections-page.fade-leave-active {
+  animation: sectionsPageLeave 0.3s ease-in forwards;
 }
 
-.fade-leave-active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.fade-leave-active.fade-leave-active {
-  opacity: 0;
-  transform: translateY(-20px);
+@keyframes sectionsPageLeave {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(-20px);
+  }
 }
 
 /* 响应式设计 */
