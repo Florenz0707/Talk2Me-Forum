@@ -9,115 +9,29 @@
     <!-- 主内容区域 -->
     <main class="main-content">
       <div class="sections-container">
-        <div class="section-category">
-          <h2 class="category-title">综合讨论</h2>
+        <div v-if="loading" class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>加载中...</span>
+        </div>
+        <div v-else-if="error" class="error-state">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>{{ error }}</span>
+        </div>
+        <div v-else class="section-category">
+          <h2 class="category-title">全部板块</h2>
           <div class="sections-grid">
-            <router-link to="/section/1" class="section-card">
+            <router-link
+              v-for="section in sections"
+              :key="section.id"
+              :to="`/section/${section.id}`"
+              class="section-card"
+            >
               <div class="section-icon">
-                <i class="fas fa-code"></i>
+                <i class="fas fa-comments"></i>
               </div>
               <div class="section-info">
-                <h3 class="section-name">软件开发与工程</h3>
-                <p class="section-desc">软件设计、开发流程、工程实践</p>
-              </div>
-            </router-link>
-            <router-link to="/section/2" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-microchip"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">硬件组件与架构</h3>
-                <p class="section-desc">计算机硬件、芯片设计、系统架构</p>
-              </div>
-            </router-link>
-            <router-link to="/section/3" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-laptop-code"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">编程语言与框架</h3>
-                <p class="section-desc">Python、Java、C++等语言讨论</p>
-              </div>
-            </router-link>
-            <router-link to="/section/4" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-database"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">数据库与存储</h3>
-                <p class="section-desc">SQL、NoSQL、数据建模</p>
-              </div>
-            </router-link>
-            <router-link to="/section/5" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-network-wired"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">网络与安全</h3>
-                <p class="section-desc">网络协议、安全漏洞、防护措施</p>
-              </div>
-            </router-link>
-            <router-link to="/section/6" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-brain"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">人工智能与机器学习</h3>
-                <p class="section-desc">AI算法、深度学习、数据分析</p>
-              </div>
-            </router-link>
-            <router-link to="/section/7" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-cloud"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">云计算与大数据</h3>
-                <p class="section-desc">云服务、分布式系统、大数据处理</p>
-              </div>
-            </router-link>
-            <router-link to="/section/8" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-mobile-alt"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">移动开发</h3>
-                <p class="section-desc">iOS、Android、跨平台开发</p>
-              </div>
-            </router-link>
-            <router-link to="/section/9" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-desktop"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">前端开发</h3>
-                <p class="section-desc">HTML、CSS、JavaScript、框架</p>
-              </div>
-            </router-link>
-            <router-link to="/section/10" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-server"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">后端开发</h3>
-                <p class="section-desc">服务器端编程、API设计</p>
-              </div>
-            </router-link>
-            <router-link to="/section/11" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-robot"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">新兴技术</h3>
-                <p class="section-desc">区块链、元宇宙、量子计算</p>
-              </div>
-            </router-link>
-            <router-link to="/section/12" class="section-card">
-              <div class="section-icon">
-                <i class="fas fa-graduation-cap"></i>
-              </div>
-              <div class="section-info">
-                <h3 class="section-name">计算机科学理论</h3>
-                <p class="section-desc">算法、数据结构、计算理论</p>
+                <h3 class="section-name">{{ section.name }}</h3>
+                <p class="section-desc">{{ section.description }}</p>
               </div>
             </router-link>
           </div>
@@ -131,12 +45,33 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import Header from "../components/Header.vue";
+import { sectionApi } from "../utils/api.js";
 
 const router = useRouter();
 
 // 页面切换动画
 const isLeaving = ref(false);
 const isEntering = ref(true);
+
+// 板块数据
+const sections = ref([]);
+const loading = ref(false);
+const error = ref(null);
+
+// 获取所有板块
+const fetchSections = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const response = await sectionApi.getAllSections();
+    sections.value = response.data || [];
+  } catch (err) {
+    error.value = "加载板块失败，请稍后重试";
+    console.error("获取板块列表失败:", err);
+  } finally {
+    loading.value = false;
+  }
+};
 
 onMounted(() => {
   // 监听路由变化，添加离开动画
@@ -155,6 +90,8 @@ onMounted(() => {
   setTimeout(() => {
     isEntering.value = false;
   }, 600);
+
+  fetchSections();
 });
 
 onUnmounted(() => {
@@ -219,6 +156,31 @@ onUnmounted(() => {
   background-color: #f0f0f0;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.loading-state i,
+.error-state i {
+  font-size: 32px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.loading-state span,
+.error-state span {
+  font-size: 16px;
+  color: #999;
 }
 
 .section-icon {

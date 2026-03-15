@@ -130,7 +130,9 @@
                   <span class="input-tip">Ctrl + Enter 发送</span>
                   <button
                     class="submit-btn"
-                    :disabled="!isLoggedIn || isSubmitting"
+                    :disabled="
+                      !newComment.trim() || isSubmitting || !isLoggedIn
+                    "
                     @click="submitComment"
                   >
                     {{ isSubmitting ? "发送中..." : "发送" }}
@@ -183,28 +185,6 @@
                     <button class="action-btn" @click="replyToComment(comment)">
                       <i class="fas fa-comment"></i> 回复
                     </button>
-                    <div
-                      v-if="currentUserId === comment.authorId"
-                      class="comment-menu"
-                    >
-                      <button
-                        class="menu-btn"
-                        @click.stop="toggleDropdown(comment.id)"
-                      >
-                        <i class="fas fa-ellipsis-h"></i>
-                      </button>
-                      <div
-                        v-if="activeDropdown === comment.id"
-                        class="dropdown-menu"
-                      >
-                        <button
-                          class="dropdown-item"
-                          @click="deleteComment(comment.id)"
-                        >
-                          <i class="fas fa-trash"></i> 删除评论
-                        </button>
-                      </div>
-                    </div>
                   </div>
 
                   <!-- 回复列表 -->
@@ -402,8 +382,6 @@ export default {
     const replyingTo = ref(null);
     const replyContent = ref("");
     const isSubmittingReply = ref(false);
-    const activeDropdown = ref(null);
-    const currentUserId = ref(null);
 
     // 评论列表
     const comments = ref([
@@ -462,9 +440,7 @@ export default {
         result.sort((a, b) => b.likes - a.likes);
       } else {
         result.sort(
-          (a, b) =>
-            new Date(b.createTime || b.time).getTime() -
-            new Date(a.createTime || a.time).getTime(),
+          (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
         );
       }
       return result;
@@ -585,11 +561,7 @@ export default {
 
     // 提交评论
     const submitComment = async () => {
-      if (!newComment.value.trim()) {
-        alert("不可发送空白内容");
-        return;
-      }
-      if (isSubmitting.value) return;
+      if (!newComment.value.trim() || isSubmitting.value) return;
 
       isSubmitting.value = true;
       try {
@@ -598,15 +570,12 @@ export default {
         });
 
         if (response.code === 200 && response.data) {
-          const userInfo = authApi.getUserInfo();
           const comment = {
             id: response.data.id,
-            author: userInfo?.username || `用户${response.data.userId}`,
+            author: `用户${response.data.userId}`,
             authorId: response.data.userId,
-            authorAvatar: userInfo?.avatar || "",
             content: response.data.content,
             time: formatTime(response.data.createTime) || "刚刚",
-            createTime: response.data.createTime || new Date().toISOString(),
             likes: response.data.likeCount || 0,
             isLiked: false,
             isPinned: false,
@@ -720,27 +689,6 @@ export default {
       showBackToTop.value = window.scrollY > 300;
     };
 
-    // 删除评论
-    const deleteComment = async (commentId) => {
-      if (!confirm("确定要删除这条评论吗？")) return;
-
-      try {
-        await replyApi.deleteReply(commentId);
-        comments.value = comments.value.filter((c) => c.id !== commentId);
-        thread.value.replies--;
-        activeDropdown.value = null;
-      } catch (error) {
-        console.error("删除评论失败:", error);
-        alert("删除失败，请稍后重试");
-      }
-    };
-
-    // 切换下拉菜单
-    const toggleDropdown = (commentId) => {
-      activeDropdown.value =
-        activeDropdown.value === commentId ? null : commentId;
-    };
-
     // 获取帖子详情
     const fetchThreadDetail = async () => {
       const threadId = route.params.id;
@@ -833,34 +781,16 @@ export default {
       // 添加滚动监听
       window.addEventListener("scroll", handleScroll);
 
-      // 获取当前用户ID
-      const userInfo = authApi.getUserInfo();
-      if (userInfo) {
-        currentUserId.value = userInfo.id || userInfo.userId;
-      }
-
-      // 点击外部关闭下拉菜单
-      const handleClickOutside = (e) => {
-        if (!e.target.closest(".comment-menu")) {
-          activeDropdown.value = null;
-        }
-      };
-      document.addEventListener("click", handleClickOutside);
-
       // 获取帖子详情
       fetchThreadDetail();
 
       // 设置路由守卫
       navigationGuard = router.beforeEach((to, from, next) => {
-        if (
-          from.path === route.path &&
-          to.path !== route.path &&
-          !isLeaving.value
-        ) {
+        if (from.path.startsWith("/thread/")) {
           isLeaving.value = true;
           setTimeout(() => {
             next();
-          }, 400);
+          }, 500);
         } else {
           next();
         }
@@ -891,8 +821,6 @@ export default {
       comments,
       sortedComments,
       showBackToTop,
-      currentUserId,
-      activeDropdown,
       handleAvatarClick,
       goHome,
       goToUserProfile,
@@ -909,8 +837,6 @@ export default {
       scrollToComments,
       shareThread,
       scrollToTop,
-      deleteComment,
-      toggleDropdown,
     };
   },
 };
@@ -1413,7 +1339,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 16px;
-  position: relative;
 }
 
 .comment-time {
@@ -1442,70 +1367,6 @@ export default {
 
 .action-btn.active {
   color: var(--primary-color, #203060);
-}
-
-/* 评论菜单 */
-.comment-menu {
-  position: relative;
-  margin-left: auto;
-}
-
-.menu-btn {
-  background: none;
-  border: none;
-  color: #999;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  opacity: 0;
-  transition: all 0.3s;
-}
-
-.comment-item:hover .menu-btn {
-  opacity: 1;
-}
-
-.menu-btn:hover {
-  background-color: #f5f7fa;
-  color: #666;
-}
-
-.dropdown-menu {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  margin-top: 4px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 120px;
-  z-index: 10;
-  overflow: hidden;
-}
-
-.dropdown-item {
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: 14px;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: #f5f7fa;
-}
-
-.dropdown-item i {
-  font-size: 13px;
-  color: #666;
 }
 
 /* 回复列表 */

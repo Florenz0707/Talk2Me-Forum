@@ -62,15 +62,15 @@
     <div class="stats-container">
       <div class="stats-wrapper">
         <div class="stat-item">
-          <div class="stat-number">128</div>
+          <div class="stat-number">–</div>
           <div class="stat-label">获赞数</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">184</div>
+          <div class="stat-number">–</div>
           <div class="stat-label">关注数</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">15</div>
+          <div class="stat-number">–</div>
           <div class="stat-label">粉丝数</div>
         </div>
       </div>
@@ -133,34 +133,24 @@
             <!-- 新消息内容 -->
             <div v-if="activeNavItem === 'messages'">
               <h2>新消息</h2>
-              <div class="messages-list">
-                <div class="message-item">
-                  <div class="message-avatar">
-                    <i class="fas fa-user"></i>
-                  </div>
-                  <div class="message-content">
-                    <div class="message-sender">用户1</div>
-                    <div class="message-text">你好，最近怎么样？</div>
-                    <div class="message-time">10分钟前</div>
-                  </div>
-                </div>
-                <div class="message-item">
-                  <div class="message-avatar">
-                    <i class="fas fa-user"></i>
-                  </div>
-                  <div class="message-content">
-                    <div class="message-sender">用户2</div>
-                    <div class="message-text">谢谢你的点赞！</div>
-                    <div class="message-time">1小时前</div>
-                  </div>
-                </div>
+              <div class="empty-state">
+                <i class="fas fa-envelope-open"></i>
+                <p>暂无新消息</p>
               </div>
             </div>
 
             <!-- 收藏内容 -->
             <div v-else-if="activeNavItem === 'favorites'">
               <h2>默认收藏夹</h2>
-              <div class="thread-table-container">
+              <div v-if="favoritesLoading" class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>加载中...</p>
+              </div>
+              <div v-else-if="favoriteThreads.length === 0" class="empty-state">
+                <i class="fas fa-star"></i>
+                <p>暂无收藏</p>
+              </div>
+              <div v-else class="thread-table-container">
                 <table class="thread-table">
                   <thead>
                     <tr class="thread-header">
@@ -216,7 +206,7 @@
                   <label>邮箱</label>
                   <input
                     type="email"
-                    value="user@example.com"
+                    :value="userEmail"
                     disabled
                     class="form-input"
                   />
@@ -284,6 +274,7 @@ export default {
     const isDarkMode = inject("isDarkMode");
     const toggleDarkMode = inject("toggleDarkMode");
     const username = ref("");
+    const userEmail = ref("");
     const isLoggingOut = ref(false);
     const bgGradientComplete = ref(false);
     const isLeaving = ref(false);
@@ -302,39 +293,9 @@ export default {
     const showAvatarOverlay = ref(false);
     const fileInput = ref(null);
 
-    // 收藏的帖子数据
-    const favoriteThreads = ref([
-      {
-        id: 1,
-        title: "如何提高Vue项目的性能",
-        author: "技术专家",
-        createdAt: "2024-01-15T10:30:00",
-        replies: 23,
-        views: 156,
-        isHot: true,
-        isRecommended: false,
-      },
-      {
-        id: 2,
-        title: "TypeScript入门教程",
-        author: "编程爱好者",
-        createdAt: "2024-01-10T14:20:00",
-        replies: 15,
-        views: 98,
-        isHot: false,
-        isRecommended: true,
-      },
-      {
-        id: 3,
-        title: "前端工程化最佳实践",
-        author: "架构师",
-        createdAt: "2024-01-05T09:15:00",
-        replies: 31,
-        views: 210,
-        isHot: true,
-        isRecommended: true,
-      },
-    ]);
+    // 收藏的帖子数据（从后端拉取，暂无接口时为空）
+    const favoriteThreads = ref([]);
+    const favoritesLoading = ref(false);
 
     // 格式化时间函数
     const formatTime = (timeString) => {
@@ -355,23 +316,12 @@ export default {
     // 保存个人资料
     const handleSaveProfile = async () => {
       try {
-        console.log("保存个人资料:", {
-          username: editUsername.value,
-          bio: editBio.value,
-        });
-
-        // 预留向后端传输修改结果的接口位置
-        // 这里应该调用API更新用户资料
+        // TODO: 调用后端用户资料更新接口（后端尚未实现）
         // await userApi.updateProfile({ username: editUsername.value, bio: editBio.value })
-
-        // 假设更新成功，更新本地用户名
         username.value = editUsername.value;
-
-        // 显示保存成功提示
         alert("个人资料保存成功");
       } catch (error) {
         console.error("保存个人资料失败:", error);
-        // 显示保存失败提示
         alert("保存失败，请稍后重试");
       }
     };
@@ -410,29 +360,21 @@ export default {
     };
 
     // 获取当前登录用户信息
-    const fetchUserInfo = async () => {
-      try {
-        // 这里可以调用获取用户信息的API
-        // 暂时使用localStorage中的用户名
-        const rememberedUsername = localStorage.getItem("rememberedUsername");
-        if (rememberedUsername) {
-          username.value = rememberedUsername;
-          editUsername.value = rememberedUsername;
-        } else {
-          // 如果没有记住用户名，可以从登录响应中获取
-          // 或者使用一个默认值
-          username.value = "用户";
-          editUsername.value = "用户";
-        }
-
-        // 初始化个性签名
-        editBio.value = "这是一个个性签名，展示用户的个人简介";
-      } catch (error) {
-        console.error("获取用户信息失败:", error);
-        username.value = "用户";
-        editUsername.value = "用户";
-        editBio.value = "这是一个个性签名，展示用户的个人简介";
+    const fetchUserInfo = () => {
+      // 从 JWT token 解码用户名（token 由后端签发）
+      const nameFromToken = authApi.getUsernameFromToken();
+      if (nameFromToken) {
+        username.value = nameFromToken;
+        editUsername.value = nameFromToken;
+      } else {
+        // 降级：从 localStorage 中读取登录时保存的用户名
+        const remembered = localStorage.getItem("rememberedUsername");
+        username.value = remembered || "用户";
+        editUsername.value = username.value;
       }
+      // 邮箱、简介等字段需等后端提供用户详情接口
+      userEmail.value = "";
+      editBio.value = "";
     };
 
     // 退出登录
@@ -522,6 +464,7 @@ export default {
 
     return {
       username,
+      userEmail,
       isLoggingOut,
       handleLogout,
       bgGradientComplete,
@@ -535,6 +478,7 @@ export default {
       showUserMenu,
       handleSearch,
       favoriteThreads,
+      favoritesLoading,
       formatTime,
       editUsername,
       editBio,
@@ -1415,6 +1359,27 @@ input:checked + .slider:before {
     height: 40px;
     font-size: 16px;
   }
+}
+
+/* 空状态提示 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+  gap: 12px;
+}
+
+.empty-state i {
+  font-size: 40px;
+  color: #ccc;
+}
+
+.empty-state p {
+  font-size: 14px;
+  margin: 0;
 }
 
 /* 帖子表格样式 */

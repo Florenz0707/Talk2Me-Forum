@@ -3,6 +3,16 @@
 // API基础URL
 const API_BASE_URL = "http://127.0.0.1:8099/talk2me/api/v1";
 
+// 解码 JWT payload（不验签，仅用于读取 subject 等公开信息）
+function decodeJwtPayload(token) {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
+
 // 存储键名
 const TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
@@ -238,6 +248,14 @@ export const authApi = {
     return localStorage.getItem(TOKEN_KEY);
   },
 
+  // 从 JWT token 中解码用户名（token 由后端签发，sub 字段为 username）
+  getUsernameFromToken() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return null;
+    const payload = decodeJwtPayload(token);
+    return payload ? payload.sub : null;
+  },
+
   // 获取用户信息
   getUserInfo() {
     const userInfo = localStorage.getItem(USER_INFO_KEY);
@@ -323,6 +341,7 @@ export const postApi = {
       if (params.page) queryParams.append("page", params.page);
       if (params.size) queryParams.append("size", params.size);
       if (params.sectionId) queryParams.append("sectionId", params.sectionId);
+      if (params.sortBy) queryParams.append("sortBy", params.sortBy);
 
       const endpoint = queryParams.toString()
         ? `/posts?${queryParams.toString()}`

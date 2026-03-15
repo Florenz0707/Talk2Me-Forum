@@ -212,6 +212,7 @@ const loadThreads = async () => {
     const url = new URL("http://localhost:8099/talk2me/api/v1/posts");
     url.searchParams.append("page", currentPage.value);
     url.searchParams.append("size", 20);
+    url.searchParams.append("sortBy", sortBy.value);
 
     // 发送请求
     const response = await fetch(url);
