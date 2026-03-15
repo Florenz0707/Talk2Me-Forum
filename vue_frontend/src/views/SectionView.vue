@@ -87,6 +87,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "../components/Header.vue";
+import { postApi, sectionApi } from "../utils/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -107,55 +108,6 @@ const totalPages = ref(1);
 
 // 排序选项
 const sortBy = ref("latest"); // latest, popular, commented
-
-// 模拟数据 - 每个帖子都有对应的sectionId
-const mockThreads = [
-  {
-    id: 1,
-    title: "Vue 3 组合式 API 最佳实践",
-    author: "前端达人",
-    sectionId: 3,
-    created_at: new Date().toISOString(),
-    views: 1234,
-    replies: 56,
-  },
-  {
-    id: 2,
-    title: "TypeScript 高级类型技巧",
-    author: "TypeScript 专家",
-    sectionId: 3,
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-    views: 987,
-    replies: 34,
-  },
-  {
-    id: 3,
-    title: "Node.js 性能优化指南",
-    author: "后端工程师",
-    sectionId: 10,
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-    views: 765,
-    replies: 23,
-  },
-  {
-    id: 4,
-    title: "React 18 新特性详解",
-    author: "React 爱好者",
-    sectionId: 9,
-    created_at: new Date(Date.now() - 10800000).toISOString(),
-    views: 543,
-    replies: 12,
-  },
-  {
-    id: 5,
-    title: "GraphQL 入门教程",
-    author: "API 设计师",
-    sectionId: 10,
-    created_at: new Date(Date.now() - 14400000).toISOString(),
-    views: 321,
-    replies: 8,
-  },
-];
 
 // 格式化时间
 const formatTime = (dateString) => {
@@ -194,57 +146,46 @@ const navigateToThread = (threadId) => {
 };
 
 // 获取板块名称
-const fetchSectionName = () => {
-  // 这里应该调用后端API获取板块名称
-  // 模拟数据
-  const sectionNames = {
-    1: "软件开发与工程",
-    2: "硬件组件与架构",
-    3: "编程语言与框架",
-    4: "数据库与存储",
-    5: "网络与安全",
-    6: "人工智能与机器学习",
-    7: "云计算与大数据",
-    8: "移动开发",
-    9: "前端开发",
-    10: "后端开发",
-    11: "新兴技术",
-    12: "计算机科学理论",
-  };
-  sectionName.value = sectionNames[sectionId.value] || "未知板块";
+const fetchSectionName = async () => {
+  try {
+    const response = await sectionApi.getSectionById(sectionId.value);
+    if (response.code === 200 && response.data) {
+      sectionName.value = response.data.name || "未知板块";
+    }
+  } catch (error) {
+    console.error("获取板块信息失败:", error);
+    sectionName.value = "未知板块";
+  }
 };
 
 // 获取帖子列表
-const fetchThreads = () => {
+const fetchThreads = async () => {
   loading.value = true;
 
-  // 这里应该调用后端API获取帖子列表
-  // 模拟API请求延迟
-  setTimeout(() => {
-    // 根据当前板块ID过滤帖子
-    let filteredThreads = mockThreads.filter(
-      (thread) => thread.sectionId === parseInt(sectionId.value),
-    );
+  try {
+    const response = await postApi.getPosts({
+      sectionId: sectionId.value,
+      page: currentPage.value,
+      size: 20,
+      sortBy: sortBy.value,
+    });
 
-    // 模拟排序
-    switch (sortBy.value) {
-      case "latest":
-        filteredThreads.sort(
-          (a, b) => new Date(b.created_at) - new Date(a.created_at),
-        );
-        break;
-      case "views":
-        filteredThreads.sort((a, b) => b.views - a.views);
-        break;
-      case "replies":
-        filteredThreads.sort((a, b) => b.replies - a.replies);
-        break;
+    if (response.code === 200 && response.data) {
+      threads.value = response.data.records.map((post) => ({
+        id: post.id,
+        title: post.title,
+        author: post.username || `用户${post.userId}`,
+        created_at: post.createTime,
+        views: post.viewCount || 0,
+        replies: post.replyCount || 0,
+      }));
+      totalPages.value = response.data.pages || 1;
     }
-
-    threads.value = filteredThreads;
-    totalPages.value = 1; // 模拟只有1页
+  } catch (error) {
+    console.error("获取帖子列表失败:", error);
+  } finally {
     loading.value = false;
-  }, 500);
+  }
 };
 
 onMounted(() => {
