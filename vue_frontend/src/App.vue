@@ -490,6 +490,95 @@ html.dark .section-page .empty-state i {
   color: #555 !important;
 }
 
+/* ===== ThreadDetailView 深色模式适配 ===== */
+html.dark .thread-detail-page {
+  background-color: #121212 !important;
+}
+
+html.dark .thread-detail-card,
+html.dark .comments-section {
+  background-color: #1e1e1e !important;
+  box-shadow: none !important;
+  border: 1px solid #333 !important;
+}
+
+html.dark .thread-title,
+html.dark .comment-author,
+html.dark .reply-author {
+  color: #e0e0e0 !important;
+}
+
+html.dark .thread-content,
+html.dark .comment-text,
+html.dark .reply-text {
+  color: #ccc !important;
+}
+
+html.dark .thread-content :deep(h3) {
+  color: #e0e0e0 !important;
+}
+
+html.dark .section-tag {
+  background-color: #2d2d2d !important;
+  color: #aaa !important;
+}
+
+html.dark .section-tag:hover {
+  background-color: #3a3a3a !important;
+}
+
+html.dark .author-info,
+html.dark .thread-stats {
+  border-color: #444 !important;
+}
+
+html.dark .breadcrumb-current,
+html.dark .post-time,
+html.dark .stat-item,
+html.dark .comment-time,
+html.dark .reply-time,
+html.dark .input-tip {
+  color: #aaa !important;
+}
+
+html.dark .comment-item {
+  border-bottom-color: #333 !important;
+}
+
+html.dark .reply-item {
+  background-color: #252525 !important;
+}
+
+html.dark .input-area textarea,
+html.dark .reply-input-wrapper textarea {
+  background-color: #2d2d2d !important;
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+}
+
+html.dark .input-area textarea::placeholder,
+html.dark .reply-input-wrapper textarea::placeholder {
+  color: #777 !important;
+}
+
+html.dark .floating-btn,
+html.dark .back-to-top-btn {
+  background-color: #2d2d2d !important;
+  color: #ccc !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .floating-btn:hover,
+html.dark .back-to-top-btn:hover {
+  background-color: #3a3a3a !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7) !important;
+}
+
+html.dark .page-footer {
+  background-color: #1e1e1e !important;
+  color: #aaa !important;
+}
+
 /* 深色模式切换平滑过渡动画 */
 html.color-transitioning *,
 html.color-transitioning *::before,
