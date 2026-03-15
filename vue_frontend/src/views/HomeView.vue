@@ -147,7 +147,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
+import { ref, onMounted, onBeforeUnmount, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "../components/Header.vue";
 
@@ -162,7 +162,6 @@ let navigationGuard = null;
 const isEntering = ref(true);
 
 // 从全局注入获取登录状态
-const isLoggedIn = inject("isLoggedIn");
 const checkLoginStatus = inject("checkLoginStatus");
 
 // 帖子列表数据

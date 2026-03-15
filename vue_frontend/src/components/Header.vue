@@ -66,7 +66,7 @@ import { useRouter } from "vue-router";
 import AuthModal from "./AuthModal.vue";
 
 // 接收props
-const props = defineProps({
+defineProps({
   title: {
     type: String,
     default: "论坛首页",

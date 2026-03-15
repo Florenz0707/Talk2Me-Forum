@@ -130,7 +130,9 @@
                   <span class="input-tip">Ctrl + Enter 发送</span>
                   <button
                     class="submit-btn"
-                    :disabled="!isLoggedIn || isSubmitting"
+                    :disabled="
+                      !newComment.trim() || isSubmitting || !isLoggedIn
+                    "
                     @click="submitComment"
                   >
                     {{ isSubmitting ? "发送中..." : "发送" }}
@@ -183,34 +185,6 @@
                     <button class="action-btn" @click="replyToComment(comment)">
                       <i class="fas fa-comment"></i> 回复
                     </button>
-                  </div>
-
-                  <!-- 自己评论的操作菜单（右下角悬浮） -->
-                  <div
-                    v-if="currentUserId === comment.authorId"
-                    class="comment-corner-menu"
-                  >
-                    <button
-                      class="corner-menu-btn"
-                      @click.stop="toggleDropdown(comment.id)"
-                      :class="{ active: activeDropdown === comment.id }"
-                    >
-                      <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    <transition name="dropdown-fade">
-                      <div
-                        v-if="activeDropdown === comment.id"
-                        class="corner-dropdown-menu"
-                      >
-                        <button
-                          class="corner-dropdown-item danger"
-                          @click="deleteComment(comment.id)"
-                        >
-                          <i class="fas fa-trash-alt"></i>
-                          <span>删除评论</span>
-                        </button>
-                      </div>
-                    </transition>
                   </div>
 
                   <!-- 回复列表 -->
@@ -342,7 +316,7 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { postApi, likeApi, replyApi, authApi } from "../utils/api";
+import { likeApi, replyApi } from "../utils/api";
 import Header from "../components/Header.vue";
 
 export default {
@@ -374,18 +348,26 @@ export default {
 
     // 帖子数据
     const thread = ref({
-      id: null,
-      title: "",
-      author: "",
-      authorId: null,
+      id: 1,
+      title: "Vue 3 Composition API 最佳实践分享",
+      author: "前端小能手",
+      authorId: 101,
       authorAvatar: "",
-      sectionId: null,
-      sectionName: "",
-      content: "",
-      createdAt: "",
-      views: 0,
-      replies: 0,
-      likes: 0,
+      sectionId: 3,
+      sectionName: "编程语言与框架",
+      content: `
+        <p>Vue 3 的 Composition API 为我们带来了更加灵活和强大的组件逻辑组织方式。本文将分享一些在实际项目中总结的最佳实践。</p>
+        <h3>1. 合理使用 setup 函数</h3>
+        <p>setup 函数是 Composition API 的入口，我们应该在其中组织组件的所有逻辑。建议按照功能模块来组织代码，而不是按照选项类型。</p>
+        <h3>2. 善用响应式引用</h3>
+        <p>ref 和 reactive 是 Vue 3 中创建响应式数据的主要方式。ref 适用于基本类型，reactive 适用于对象。要注意它们的区别和使用场景。</p>
+        <h3>3. 逻辑复用与组合</h3>
+        <p>Composition API 的最大优势在于逻辑复用。我们可以将相关的逻辑抽离成可复用的组合式函数（Composables），提高代码的可维护性。</p>
+      `,
+      createdAt: "2024-01-15T10:30:00",
+      views: 1234,
+      replies: 45,
+      likes: 328,
       isLiked: false,
     });
 
@@ -400,11 +382,56 @@ export default {
     const replyingTo = ref(null);
     const replyContent = ref("");
     const isSubmittingReply = ref(false);
-    const activeDropdown = ref(null);
-    const currentUserId = ref(null);
 
     // 评论列表
-    const comments = ref([]);
+    const comments = ref([
+      {
+        id: 1,
+        author: "爱画几百遍",
+        authorId: 201,
+        authorAvatar: "",
+        content:
+          "链接复制到浏览器即可查看，这一套够用到封笔！整理出来了全部自学画画需要用到的练习素材，再也不用各种地方扒资料啦~希望能够帮助到大家！",
+        time: "2026-01-20 20:27",
+        likes: 374,
+        isLiked: false,
+        isPinned: true,
+        replies: [
+          {
+            id: 11,
+            author: "爱画几百遍",
+            authorId: 201,
+            content:
+              "都尽快保存一下了，以防丢失找不到，全部保存不下的，是因为整个文件容量太大了，可以打开文件夹到对应需要下载的部分内容里保存即可。",
+            time: "2026-01-27 22:09",
+            likes: 110,
+            isLiked: false,
+          },
+        ],
+      },
+      {
+        id: 2,
+        author: "极恶老大D4c",
+        authorId: 202,
+        content: "太有用了，收藏了！",
+        time: "2小时前",
+        likes: 25,
+        isLiked: false,
+        isPinned: false,
+        replies: [],
+      },
+      {
+        id: 3,
+        author: "我打菠萝",
+        authorId: 203,
+        content: "感谢分享，正在学习中",
+        time: "2小时前",
+        likes: 12,
+        isLiked: false,
+        isPinned: false,
+        replies: [],
+      },
+    ]);
 
     // 排序后的评论
     const sortedComments = computed(() => {
@@ -413,9 +440,7 @@ export default {
         result.sort((a, b) => b.likes - a.likes);
       } else {
         result.sort(
-          (a, b) =>
-            new Date(b.createTime || b.time).getTime() -
-            new Date(a.createTime || a.time).getTime(),
+          (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
         );
       }
       return result;
@@ -536,11 +561,7 @@ export default {
 
     // 提交评论
     const submitComment = async () => {
-      if (!newComment.value.trim()) {
-        alert("不可发送空白内容");
-        return;
-      }
-      if (isSubmitting.value) return;
+      if (!newComment.value.trim() || isSubmitting.value) return;
 
       isSubmitting.value = true;
       try {
@@ -549,15 +570,12 @@ export default {
         });
 
         if (response.code === 200 && response.data) {
-          const userInfo = authApi.getUserInfo();
           const comment = {
             id: response.data.id,
-            author: userInfo?.username || `用户${response.data.userId}`,
+            author: `用户${response.data.userId}`,
             authorId: response.data.userId,
-            authorAvatar: userInfo?.avatar || "",
             content: response.data.content,
             time: formatTime(response.data.createTime) || "刚刚",
-            createTime: response.data.createTime || new Date().toISOString(),
             likes: response.data.likeCount || 0,
             isLiked: false,
             isPinned: false,
@@ -671,89 +689,86 @@ export default {
       showBackToTop.value = window.scrollY > 300;
     };
 
-    // 删除评论
-    const deleteComment = async (commentId) => {
-      if (!confirm("确定要删除这条评论吗？")) return;
-
-      try {
-        await replyApi.deleteReply(commentId);
-        comments.value = comments.value.filter((c) => c.id !== commentId);
-        thread.value.replies--;
-        activeDropdown.value = null;
-      } catch (error) {
-        console.error("删除评论失败:", error);
-        alert("删除失败，请稍后重试");
-      }
-    };
-
-    // 切换下拉菜单
-    const toggleDropdown = (commentId) => {
-      activeDropdown.value =
-        activeDropdown.value === commentId ? null : commentId;
-    };
-
     // 获取帖子详情
     const fetchThreadDetail = async () => {
       const threadId = route.params.id;
       if (!threadId) return;
 
       try {
-        const response = await postApi.getPostById(threadId);
-        if (response.code === 200 && response.data) {
-          const post = response.data;
+        // 实际项目中调用API
+        // const response = await postApi.getPostById(threadId);
+        // thread.value = response;
+        console.log("获取帖子详情, ID:", threadId);
+        // 模拟根据ID获取不同帖子
+        if (threadId === "1") {
           thread.value = {
-            id: post.id,
-            title: post.title,
-            author: post.username || post.author || `用户${post.userId}`,
-            authorId: post.userId,
-            authorAvatar: post.userAvatar || post.authorAvatar || "",
-            sectionId: post.sectionId,
-            sectionName: post.sectionName || "未知板块",
-            content: post.content,
-            createdAt: post.createTime || post.createdAt,
-            views: post.viewCount || post.views || 0,
-            replies: post.replyCount || post.replies || 0,
-            likes: post.likeCount || post.likes || 0,
-            isLiked: post.isLiked || false,
+            id: 1,
+            title: "Vue 3 Composition API 最佳实践分享",
+            author: "前端小能手",
+            authorId: 101,
+            authorAvatar: "",
+            content: `
+              <p>Vue 3 的 Composition API 为我们带来了更加灵活和强大的组件逻辑组织方式。本文将分享一些在实际项目中总结的最佳实践。</p>
+              <h3>1. 合理使用 setup 函数</h3>
+              <p>setup 函数是 Composition API 的入口，我们应该在其中组织组件的所有逻辑。建议按照功能模块来组织代码，而不是按照选项类型。</p>
+              <h3>2. 善用响应式引用</h3>
+              <p>ref 和 reactive 是 Vue 3 中创建响应式数据的主要方式。ref 适用于基本类型，reactive 适用于对象。要注意它们的区别和使用场景。</p>
+              <h3>3. 逻辑复用与组合</h3>
+              <p>Composition API 的最大优势在于逻辑复用。我们可以将相关的逻辑抽离成可复用的组合式函数（Composables），提高代码的可维护性。</p>
+            `,
+            createdAt: "2024-01-15T10:30:00",
+            views: 1234,
+            replies: 45,
+            likes: 328,
+            isLiked: false,
+          };
+        } else if (threadId === "2") {
+          thread.value = {
+            id: 2,
+            title: "Spring Boot 3.0 新特性解析",
+            author: "后端架构师",
+            authorId: 102,
+            authorAvatar: "",
+            content: `
+              <p>Spring Boot 3.0 带来了许多令人兴奋的新特性，本文将详细解析这些变化。</p>
+              <h3>1. Java 17 作为最低版本要求</h3>
+              <p>Spring Boot 3.0 要求 Java 17 或更高版本，这意味着我们可以使用 Java 17 的所有新特性，如密封类、模式匹配等。</p>
+              <h3>2. 基于 GraalVM 的原生镜像支持</h3>
+              <p>Spring Boot 3.0 提供了更好的 GraalVM 原生镜像支持，大大提高了应用的启动速度和内存使用效率。</p>
+              <h3>3. Spring WebMVC 和 WebFlux 的改进</h3>
+              <p>框架在 Web 层也有许多改进，包括对 HTTP/2 和 HTTP/3 的更好支持。</p>
+            `,
+            createdAt: "2024-01-14T16:45:00",
+            views: 890,
+            replies: 32,
+            likes: 256,
+            isLiked: false,
+          };
+        } else if (threadId === "3") {
+          thread.value = {
+            id: 3,
+            title: "前端性能优化实战指南",
+            author: "性能优化专家",
+            authorId: 103,
+            authorAvatar: "",
+            content: `
+              <p>前端性能优化是一个永恒的话题，本文将分享一些实战中有效的优化策略。</p>
+              <h3>1. 资源加载优化</h3>
+              <p>包括图片懒加载、代码分割、资源压缩等技术，可以显著减少页面加载时间。</p>
+              <h3>2. 运行时性能优化</h3>
+              <p>通过减少 DOM 操作、优化事件处理、使用虚拟列表等技术，提高页面的响应速度。</p>
+              <h3>3. 性能监控与分析</h3>
+              <p>使用性能分析工具识别性能瓶颈，有针对性地进行优化。</p>
+            `,
+            createdAt: "2024-01-13T09:20:00",
+            views: 765,
+            replies: 28,
+            likes: 189,
+            isLiked: false,
           };
         }
       } catch (error) {
         console.error("获取帖子详情失败:", error);
-      }
-    };
-
-    // 获取评论列表
-    const fetchComments = async () => {
-      const threadId = route.params.id;
-      if (!threadId) return;
-
-      try {
-        const response = await replyApi.getRepliesByPostId(threadId, {
-          page: 1,
-          size: 50,
-        });
-        if (response.code === 200 && response.data) {
-          const records =
-            response.data.records ||
-            response.data.list ||
-            response.data.content ||
-            [];
-          comments.value = records.map((reply) => ({
-            id: reply.id,
-            author: reply.username || reply.author || `用户${reply.userId}`,
-            authorId: reply.userId,
-            authorAvatar: reply.userAvatar || reply.authorAvatar || "",
-            content: reply.content,
-            time: formatTime(reply.createTime) || "",
-            createTime: reply.createTime || "",
-            likes: reply.likeCount || 0,
-            isLiked: reply.isLiked || false,
-            isPinned: reply.isPinned || false,
-            replies: [],
-          }));
-        }
-      } catch (error) {
-        console.error("获取评论列表失败:", error);
       }
     };
 
@@ -766,35 +781,16 @@ export default {
       // 添加滚动监听
       window.addEventListener("scroll", handleScroll);
 
-      // 获取当前用户ID
-      const userInfo = authApi.getUserInfo();
-      if (userInfo) {
-        currentUserId.value = userInfo.id || userInfo.userId;
-      }
-
-      // 点击外部关闭下拉菜单
-      const handleClickOutside = (e) => {
-        if (!e.target.closest(".comment-menu")) {
-          activeDropdown.value = null;
-        }
-      };
-      document.addEventListener("click", handleClickOutside);
-
       // 获取帖子详情
       fetchThreadDetail();
-      fetchComments();
 
       // 设置路由守卫
       navigationGuard = router.beforeEach((to, from, next) => {
-        if (
-          from.path === route.path &&
-          to.path !== route.path &&
-          !isLeaving.value
-        ) {
+        if (from.path.startsWith("/thread/")) {
           isLeaving.value = true;
           setTimeout(() => {
             next();
-          }, 400);
+          }, 500);
         } else {
           next();
         }
@@ -825,8 +821,6 @@ export default {
       comments,
       sortedComments,
       showBackToTop,
-      currentUserId,
-      activeDropdown,
       handleAvatarClick,
       goHome,
       goToUserProfile,
@@ -843,8 +837,6 @@ export default {
       scrollToComments,
       shareThread,
       scrollToTop,
-      deleteComment,
-      toggleDropdown,
     };
   },
 };
@@ -1347,7 +1339,6 @@ export default {
   display: flex;
   align-items: center;
   gap: 16px;
-  position: relative;
 }
 
 .comment-time {
@@ -1376,119 +1367,6 @@ export default {
 
 .action-btn.active {
   color: var(--primary-color, #203060);
-}
-
-/* 评论右下角操作菜单 */
-.comment-corner-menu {
-  position: absolute;
-  bottom: 20px;
-  right: 0;
-  z-index: 10;
-}
-
-.corner-menu-btn {
-  background: none;
-  border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #bbb;
-  font-size: 14px;
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 0.2s ease,
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.comment-item:hover .corner-menu-btn {
-  opacity: 1;
-}
-
-.corner-menu-btn:hover,
-.corner-menu-btn.active {
-  background-color: #f0f0f0;
-  color: #555;
-}
-
-.corner-dropdown-menu {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 6px);
-  background: #fff;
-  border-radius: 8px;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.12),
-    0 1px 4px rgba(0, 0, 0, 0.08);
-  min-width: 130px;
-  overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.corner-dropdown-item {
-  width: 100%;
-  padding: 10px 14px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.15s ease;
-  color: #333;
-}
-
-.corner-dropdown-item:hover {
-  background-color: #f5f5f5;
-}
-
-.corner-dropdown-item.danger {
-  color: #e53e3e;
-}
-
-.corner-dropdown-item.danger i {
-  color: #e53e3e;
-  font-size: 12px;
-}
-
-.corner-dropdown-item.danger:hover {
-  background-color: #fff5f5;
-}
-
-/* 下拉菜单动画 */
-.dropdown-fade-enter-active {
-  animation: dropdownIn 0.15s ease-out;
-}
-.dropdown-fade-leave-active {
-  animation: dropdownOut 0.1s ease-in forwards;
-}
-
-@keyframes dropdownIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes dropdownOut {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(4px) scale(0.97);
-  }
 }
 
 /* 回复列表 */

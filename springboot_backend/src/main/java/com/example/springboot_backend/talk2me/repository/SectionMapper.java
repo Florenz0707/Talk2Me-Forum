@@ -5,5 +5,4 @@ import com.example.springboot_backend.talk2me.model.domain.SectionDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface SectionMapper extends BaseMapper<SectionDO> {
-}
+public interface SectionMapper extends BaseMapper<SectionDO> {}

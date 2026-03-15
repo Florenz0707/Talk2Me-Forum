@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 
 public class RefreshTokenRequest {
 
-    @NotBlank
-    @JsonProperty("refresh_token")
-    private String refreshToken;
+  @NotBlank
+  @JsonProperty("refresh_token")
+  private String refreshToken;
 
-    public String getRefreshToken() {
-        return refreshToken;
-    }
+  public String getRefreshToken() {
+    return refreshToken;
+  }
 }

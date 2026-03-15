@@ -13,62 +13,61 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReplyService implements IReplyService {
-    private final ReplyMapper replyMapper;
-    private final PostMapper postMapper;
+  private final ReplyMapper replyMapper;
+  private final PostMapper postMapper;
 
-    public ReplyService(ReplyMapper replyMapper, PostMapper postMapper) {
-        this.replyMapper = replyMapper;
-        this.postMapper = postMapper;
+  public ReplyService(ReplyMapper replyMapper, PostMapper postMapper) {
+    this.replyMapper = replyMapper;
+    this.postMapper = postMapper;
+  }
+
+  @Override
+  @Transactional
+  public ReplyDO createReply(Long postId, CreateReplyRequest request, Long userId) {
+    PostDO post = postMapper.selectById(postId);
+    if (post == null) {
+      throw new RuntimeException("Post not found");
     }
 
-    @Override
-    @Transactional
-    public ReplyDO createReply(Long postId, CreateReplyRequest request, Long userId) {
-        PostDO post = postMapper.selectById(postId);
-        if (post == null) {
-            throw new RuntimeException("Post not found");
-        }
+    LambdaQueryWrapper<ReplyDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper.eq(ReplyDO::getPostId, postId).orderByDesc(ReplyDO::getFloorNumber).last("LIMIT 1");
+    ReplyDO lastReply = replyMapper.selectOne(wrapper);
+    int floorNumber = lastReply == null ? 1 : lastReply.getFloorNumber() + 1;
 
-        LambdaQueryWrapper<ReplyDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ReplyDO::getPostId, postId)
-               .orderByDesc(ReplyDO::getFloorNumber)
-               .last("LIMIT 1");
-        ReplyDO lastReply = replyMapper.selectOne(wrapper);
-        int floorNumber = lastReply == null ? 1 : lastReply.getFloorNumber() + 1;
+    ReplyDO reply = new ReplyDO();
+    reply.setPostId(postId);
+    reply.setUserId(userId);
+    reply.setContent(request.getContent());
+    reply.setFloorNumber(floorNumber);
+    reply.setLikeCount(0);
+    reply.setStatus(0);
+    replyMapper.insert(reply);
 
-        ReplyDO reply = new ReplyDO();
-        reply.setPostId(postId);
-        reply.setUserId(userId);
-        reply.setContent(request.getContent());
-        reply.setFloorNumber(floorNumber);
-        reply.setLikeCount(0);
-        reply.setStatus(0);
-        replyMapper.insert(reply);
+    post.setReplyCount(post.getReplyCount() + 1);
+    postMapper.updateById(post);
 
-        post.setReplyCount(post.getReplyCount() + 1);
-        postMapper.updateById(post);
+    return reply;
+  }
 
-        return reply;
+  @Override
+  public Page<ReplyDO> listReplies(Long postId, Integer page, Integer size) {
+    Page<ReplyDO> pageParam = new Page<>(page, size);
+    LambdaQueryWrapper<ReplyDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper
+        .eq(ReplyDO::getPostId, postId)
+        .eq(ReplyDO::getStatus, 0)
+        .orderByAsc(ReplyDO::getFloorNumber);
+    return replyMapper.selectPage(pageParam, wrapper);
+  }
+
+  @Override
+  @Transactional
+  public void deleteReply(Long id, Long userId) {
+    ReplyDO reply = replyMapper.selectById(id);
+    if (reply == null || !reply.getUserId().equals(userId)) {
+      throw new RuntimeException("Reply not found or not authorized");
     }
-
-    @Override
-    public Page<ReplyDO> listReplies(Long postId, Integer page, Integer size) {
-        Page<ReplyDO> pageParam = new Page<>(page, size);
-        LambdaQueryWrapper<ReplyDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ReplyDO::getPostId, postId)
-               .eq(ReplyDO::getStatus, 0)
-               .orderByAsc(ReplyDO::getFloorNumber);
-        return replyMapper.selectPage(pageParam, wrapper);
-    }
-
-    @Override
-    @Transactional
-    public void deleteReply(Long id, Long userId) {
-        ReplyDO reply = replyMapper.selectById(id);
-        if (reply == null || !reply.getUserId().equals(userId)) {
-            throw new RuntimeException("Reply not found or not authorized");
-        }
-        reply.setStatus(1);
-        replyMapper.updateById(reply);
-    }
+    reply.setStatus(1);
+    replyMapper.updateById(reply);
+  }
 }

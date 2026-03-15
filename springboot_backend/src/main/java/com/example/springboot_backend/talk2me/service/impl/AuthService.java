@@ -17,80 +17,81 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService implements IAuthService {
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
-    private final AuthenticationManager authenticationManager;
+  private final UserMapper userMapper;
+  private final PasswordEncoder passwordEncoder;
+  private final JwtTokenProvider tokenProvider;
+  private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserMapper userMapper,
-                       PasswordEncoder passwordEncoder,
-                       JwtTokenProvider tokenProvider,
-                       AuthenticationManager authenticationManager) {
-        this.userMapper = userMapper;
-        this.passwordEncoder = passwordEncoder;
-        this.tokenProvider = tokenProvider;
-        this.authenticationManager = authenticationManager;
-    }
+  public AuthService(
+      UserMapper userMapper,
+      PasswordEncoder passwordEncoder,
+      JwtTokenProvider tokenProvider,
+      AuthenticationManager authenticationManager) {
+    this.userMapper = userMapper;
+    this.passwordEncoder = passwordEncoder;
+    this.tokenProvider = tokenProvider;
+    this.authenticationManager = authenticationManager;
+  }
 
-    @Override
-    @Transactional
-    public RegisterResponse register(RegisterRequest registerRequest) {
-        Long count = userMapper.selectCount(new LambdaQueryWrapper<UserDO>()
+  @Override
+  @Transactional
+  public RegisterResponse register(RegisterRequest registerRequest) {
+    Long count =
+        userMapper.selectCount(
+            new LambdaQueryWrapper<UserDO>()
                 .eq(UserDO::getUsername, registerRequest.getUsername()));
-        if (count > 0) {
-            throw new RuntimeException("Username is already taken!");
-        }
-
-        UserDO user = new UserDO();
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setEnabled(true);
-
-        userMapper.insert(user);
-
-        return new RegisterResponse("User registered successfully");
+    if (count > 0) {
+      throw new RuntimeException("Username is already taken!");
     }
 
-    @Override
-    @Transactional
-    public AuthResponse login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+    UserDO user = new UserDO();
+    user.setUsername(registerRequest.getUsername());
+    user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+    user.setEnabled(true);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String accessToken = tokenProvider.generateToken(authentication);
+    userMapper.insert(user);
 
-        UserDetailsServiceImpl.UserPrincipal userPrincipal =
-                (UserDetailsServiceImpl.UserPrincipal) authentication.getPrincipal();
+    return new RegisterResponse("User registered successfully");
+  }
 
-        String refreshToken = tokenProvider.generateRefreshToken(userPrincipal.getUsername());
+  @Override
+  @Transactional
+  public AuthResponse login(LoginRequest loginRequest) {
+    Authentication authentication =
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getUsername(), loginRequest.getPassword()));
 
-        return new AuthResponse(accessToken, refreshToken);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    String accessToken = tokenProvider.generateToken(authentication);
+
+    UserDetailsServiceImpl.UserPrincipal userPrincipal =
+        (UserDetailsServiceImpl.UserPrincipal) authentication.getPrincipal();
+
+    String refreshToken = tokenProvider.generateRefreshToken(userPrincipal.getUsername());
+
+    return new AuthResponse(accessToken, refreshToken);
+  }
+
+  @Override
+  @Transactional
+  public RefreshResponse refreshToken(String refreshToken) {
+    if (!tokenProvider.validateToken(refreshToken)) {
+      throw new RuntimeException("Invalid refresh token");
     }
 
-    @Override
-    @Transactional
-    public RefreshResponse refreshToken(String refreshToken) {
-        if (!tokenProvider.validateToken(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
-        }
-
-        if (!tokenProvider.isRefreshToken(refreshToken)) {
-            throw new RuntimeException("Token is not a refresh token");
-        }
-
-        // 返回成功消息
-        return new RefreshResponse("Token refreshed successfully");
+    if (!tokenProvider.isRefreshToken(refreshToken)) {
+      throw new RuntimeException("Token is not a refresh token");
     }
 
-    @Override
-    public VerificationResponse verification() {
-        // 验证access_token的正确性
-        // 如果请求能到达这里，说明JWT过滤器已经验证了token的有效性
-        return new VerificationResponse("Token is valid");
-    }
+    // 返回成功消息
+    return new RefreshResponse("Token refreshed successfully");
+  }
+
+  @Override
+  public VerificationResponse verification() {
+    // 验证access_token的正确性
+    // 如果请求能到达这里，说明JWT过滤器已经验证了token的有效性
+    return new VerificationResponse("Token is valid");
+  }
 }
