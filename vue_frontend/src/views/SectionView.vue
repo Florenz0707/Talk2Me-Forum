@@ -84,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "../components/Header.vue";
 
@@ -107,11 +107,6 @@ const totalPages = ref(1);
 
 // 排序选项
 const sortBy = ref("latest"); // latest, popular, commented
-const sortOptions = [
-  { label: "最新", value: "latest" },
-  { label: "最热", value: "popular" },
-  { label: "最多回复", value: "commented" },
-];
 
 // 模拟数据 - 每个帖子都有对应的sectionId
 const mockThreads = [

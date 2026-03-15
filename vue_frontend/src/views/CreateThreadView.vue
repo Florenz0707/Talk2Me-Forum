@@ -331,11 +331,11 @@ const formatContentForPreview = (content) => {
   formatted = formatted.replace(/^## (.*$)/gm, "<h2>$1</h2>"); // 标题2
   formatted = formatted.replace(/^- (.*$)/gm, "<li>$1</li>"); // 无序列表
   formatted = formatted.replace(
-    /\[([^\]]+)\]\(([^\)]+)\)/g,
+    /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" target="_blank">$1</a>',
   ); // 链接
   formatted = formatted.replace(
-    /!\[([^\]]*)\]\(([^\)]+)\)/g,
+    /!\[([^\]]*)\]\(([^)]+)\)/g,
     '<img src="$2" alt="$1" />',
   ); // 图片
   formatted = formatted.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>"); // 引用
@@ -562,7 +562,7 @@ const submitThread = async () => {
     };
 
     // 调用API创建帖子
-    const response = await postApi.createPost(postData);
+    await postApi.createPost(postData);
 
     showToast("帖子发布成功！", "success");
 

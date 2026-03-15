@@ -409,23 +409,6 @@ export default {
       reader.readAsDataURL(file);
     };
 
-    // 上传头像到服务器（预留）
-    const uploadAvatar = async (file) => {
-      try {
-        const formData = new FormData();
-        formData.append("avatar", file);
-
-        // 调用上传API
-        // const response = await userApi.uploadAvatar(formData);
-        // userAvatar.value = response.avatarUrl;
-
-        console.log("头像上传成功");
-      } catch (error) {
-        console.error("头像上传失败:", error);
-        alert("头像上传失败，请重试");
-      }
-    };
-
     // 获取当前登录用户信息
     const fetchUserInfo = async () => {
       try {
@@ -504,7 +487,7 @@ export default {
 
         // 背景渐变完成后触发卡片弹出动画
         setTimeout(() => {
-          showCardPopup.value = true;
+          // 动画完成
         }, 300); // 0.3秒背景渐变时间
       }, 100); // 给DOM一点时间渲染
 
@@ -527,35 +510,6 @@ export default {
         navigationGuard();
       }
     });
-
-    // 返回主页
-    const goToHome = () => {
-      triggerLeaveAnimation(() => {
-        router.push("/home");
-      });
-    };
-
-    // 导航到发布动态页面
-    const navigateToCreateThread = () => {
-      triggerLeaveAnimation(() => {
-        router.push("/create-thread");
-      });
-    };
-
-    // 触发离开动画
-    const triggerLeaveAnimation = (callback) => {
-      isLeaving.value = true;
-
-      // 卡片弹出动画完成后（0.3秒），启动背景渐变动画
-      setTimeout(() => {
-        bgGradientComplete.value = false;
-
-        // 背景渐变动画完成后（0.3秒），执行导航
-        setTimeout(() => {
-          callback();
-        }, 300); // 0.3秒背景渐变时间
-      }, 300); // 0.3秒卡片弹出动画时间
-    };
 
     // 处理搜索
     const handleSearch = () => {

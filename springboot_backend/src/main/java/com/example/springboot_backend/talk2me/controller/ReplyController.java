@@ -14,34 +14,36 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1")
 public class ReplyController {
-    private final IReplyService replyService;
+  private final IReplyService replyService;
 
-    public ReplyController(IReplyService replyService) {
-        this.replyService = replyService;
-    }
+  public ReplyController(IReplyService replyService) {
+    this.replyService = replyService;
+  }
 
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsServiceImpl.UserPrincipal principal = (UserDetailsServiceImpl.UserPrincipal) auth.getPrincipal();
-        return principal.getId();
-    }
+  private Long getCurrentUserId() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    UserDetailsServiceImpl.UserPrincipal principal =
+        (UserDetailsServiceImpl.UserPrincipal) auth.getPrincipal();
+    return principal.getId();
+  }
 
-    @PostMapping("/posts/{postId}/replies")
-    public Result<ReplyDO> createReply(@PathVariable Long postId, @Valid @RequestBody CreateReplyRequest request) {
-        return Result.success(replyService.createReply(postId, request, getCurrentUserId()));
-    }
+  @PostMapping("/posts/{postId}/replies")
+  public Result<ReplyDO> createReply(
+      @PathVariable Long postId, @Valid @RequestBody CreateReplyRequest request) {
+    return Result.success(replyService.createReply(postId, request, getCurrentUserId()));
+  }
 
-    @GetMapping("/posts/{postId}/replies")
-    public Result<Page<ReplyDO>> listReplies(
-            @PathVariable Long postId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer size) {
-        return Result.success(replyService.listReplies(postId, page, size));
-    }
+  @GetMapping("/posts/{postId}/replies")
+  public Result<Page<ReplyDO>> listReplies(
+      @PathVariable Long postId,
+      @RequestParam(defaultValue = "1") Integer page,
+      @RequestParam(defaultValue = "20") Integer size) {
+    return Result.success(replyService.listReplies(postId, page, size));
+  }
 
-    @DeleteMapping("/replies/{id}")
-    public Result<Void> deleteReply(@PathVariable Long id) {
-        replyService.deleteReply(id, getCurrentUserId());
-        return Result.success(null);
-    }
+  @DeleteMapping("/replies/{id}")
+  public Result<Void> deleteReply(@PathVariable Long id) {
+    replyService.deleteReply(id, getCurrentUserId());
+    return Result.success(null);
+  }
 }

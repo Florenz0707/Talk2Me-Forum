@@ -8,8 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @MapperScan("com.example.springboot_backend.**.repository")
 public class SpringbootBackendApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(SpringbootBackendApplication.class, args);
-    }
-
+  public static void main(String[] args) {
+    SpringApplication.run(SpringbootBackendApplication.class, args);
+  }
 }

@@ -12,27 +12,28 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/likes")
 public class LikeController {
-    private final ILikeService likeService;
+  private final ILikeService likeService;
 
-    public LikeController(ILikeService likeService) {
-        this.likeService = likeService;
-    }
+  public LikeController(ILikeService likeService) {
+    this.likeService = likeService;
+  }
 
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsServiceImpl.UserPrincipal principal = (UserDetailsServiceImpl.UserPrincipal) auth.getPrincipal();
-        return principal.getId();
-    }
+  private Long getCurrentUserId() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    UserDetailsServiceImpl.UserPrincipal principal =
+        (UserDetailsServiceImpl.UserPrincipal) auth.getPrincipal();
+    return principal.getId();
+  }
 
-    @PostMapping
-    public Result<Void> like(@Valid @RequestBody LikeRequest request) {
-        likeService.like(request.getTargetType(), request.getTargetId(), getCurrentUserId());
-        return Result.success(null);
-    }
+  @PostMapping
+  public Result<Void> like(@Valid @RequestBody LikeRequest request) {
+    likeService.like(request.getTargetType(), request.getTargetId(), getCurrentUserId());
+    return Result.success(null);
+  }
 
-    @DeleteMapping
-    public Result<Void> unlike(@RequestParam String targetType, @RequestParam Long targetId) {
-        likeService.unlike(targetType, targetId, getCurrentUserId());
-        return Result.success(null);
-    }
+  @DeleteMapping
+  public Result<Void> unlike(@RequestParam String targetType, @RequestParam Long targetId) {
+    likeService.unlike(targetType, targetId, getCurrentUserId());
+    return Result.success(null);
+  }
 }

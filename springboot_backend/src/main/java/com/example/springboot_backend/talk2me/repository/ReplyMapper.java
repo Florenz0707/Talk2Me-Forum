@@ -5,5 +5,4 @@ import com.example.springboot_backend.talk2me.model.domain.ReplyDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface ReplyMapper extends BaseMapper<ReplyDO> {
-}
+public interface ReplyMapper extends BaseMapper<ReplyDO> {}

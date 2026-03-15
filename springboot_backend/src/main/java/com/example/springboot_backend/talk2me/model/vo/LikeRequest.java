@@ -4,25 +4,23 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class LikeRequest {
-    @NotBlank
-    private String targetType;
+  @NotBlank private String targetType;
 
-    @NotNull
-    private Long targetId;
+  @NotNull private Long targetId;
 
-    public String getTargetType() {
-        return targetType;
-    }
+  public String getTargetType() {
+    return targetType;
+  }
 
-    public void setTargetType(String targetType) {
-        this.targetType = targetType;
-    }
+  public void setTargetType(String targetType) {
+    this.targetType = targetType;
+  }
 
-    public Long getTargetId() {
-        return targetId;
-    }
+  public Long getTargetId() {
+    return targetId;
+  }
 
-    public void setTargetId(Long targetId) {
-        this.targetId = targetId;
-    }
+  public void setTargetId(Long targetId) {
+    this.targetId = targetId;
+  }
 }

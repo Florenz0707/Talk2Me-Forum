@@ -336,7 +336,7 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { postApi, likeApi, replyApi } from "../utils/api";
+import { likeApi, replyApi } from "../utils/api";
 import Header from "../components/Header.vue";
 
 export default {
