@@ -316,7 +316,7 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { likeApi, replyApi } from "../utils/api";
+import { likeApi, replyApi, postApi } from "../utils/api";
 import Header from "../components/Header.vue";
 
 export default {
@@ -348,26 +348,18 @@ export default {
 
     // 帖子数据
     const thread = ref({
-      id: 1,
-      title: "Vue 3 Composition API 最佳实践分享",
-      author: "前端小能手",
-      authorId: 101,
+      id: null,
+      title: "",
+      author: "",
+      authorId: null,
       authorAvatar: "",
-      sectionId: 3,
-      sectionName: "编程语言与框架",
-      content: `
-        <p>Vue 3 的 Composition API 为我们带来了更加灵活和强大的组件逻辑组织方式。本文将分享一些在实际项目中总结的最佳实践。</p>
-        <h3>1. 合理使用 setup 函数</h3>
-        <p>setup 函数是 Composition API 的入口，我们应该在其中组织组件的所有逻辑。建议按照功能模块来组织代码，而不是按照选项类型。</p>
-        <h3>2. 善用响应式引用</h3>
-        <p>ref 和 reactive 是 Vue 3 中创建响应式数据的主要方式。ref 适用于基本类型，reactive 适用于对象。要注意它们的区别和使用场景。</p>
-        <h3>3. 逻辑复用与组合</h3>
-        <p>Composition API 的最大优势在于逻辑复用。我们可以将相关的逻辑抽离成可复用的组合式函数（Composables），提高代码的可维护性。</p>
-      `,
-      createdAt: "2024-01-15T10:30:00",
-      views: 1234,
-      replies: 45,
-      likes: 328,
+      sectionId: null,
+      sectionName: "",
+      content: "",
+      createdAt: "",
+      views: 0,
+      replies: 0,
+      likes: 0,
       isLiked: false,
     });
 
@@ -384,54 +376,7 @@ export default {
     const isSubmittingReply = ref(false);
 
     // 评论列表
-    const comments = ref([
-      {
-        id: 1,
-        author: "爱画几百遍",
-        authorId: 201,
-        authorAvatar: "",
-        content:
-          "链接复制到浏览器即可查看，这一套够用到封笔！整理出来了全部自学画画需要用到的练习素材，再也不用各种地方扒资料啦~希望能够帮助到大家！",
-        time: "2026-01-20 20:27",
-        likes: 374,
-        isLiked: false,
-        isPinned: true,
-        replies: [
-          {
-            id: 11,
-            author: "爱画几百遍",
-            authorId: 201,
-            content:
-              "都尽快保存一下了，以防丢失找不到，全部保存不下的，是因为整个文件容量太大了，可以打开文件夹到对应需要下载的部分内容里保存即可。",
-            time: "2026-01-27 22:09",
-            likes: 110,
-            isLiked: false,
-          },
-        ],
-      },
-      {
-        id: 2,
-        author: "极恶老大D4c",
-        authorId: 202,
-        content: "太有用了，收藏了！",
-        time: "2小时前",
-        likes: 25,
-        isLiked: false,
-        isPinned: false,
-        replies: [],
-      },
-      {
-        id: 3,
-        author: "我打菠萝",
-        authorId: 203,
-        content: "感谢分享，正在学习中",
-        time: "2小时前",
-        likes: 12,
-        isLiked: false,
-        isPinned: false,
-        replies: [],
-      },
-    ]);
+    const comments = ref([]);
 
     // 排序后的评论
     const sortedComments = computed(() => {
@@ -695,80 +640,56 @@ export default {
       if (!threadId) return;
 
       try {
-        // 实际项目中调用API
-        // const response = await postApi.getPostById(threadId);
-        // thread.value = response;
-        console.log("获取帖子详情, ID:", threadId);
-        // 模拟根据ID获取不同帖子
-        if (threadId === "1") {
+        const response = await postApi.getPostById(threadId);
+        if (response.code === 200 && response.data) {
+          const post = response.data;
           thread.value = {
-            id: 1,
-            title: "Vue 3 Composition API 最佳实践分享",
-            author: "前端小能手",
-            authorId: 101,
-            authorAvatar: "",
-            content: `
-              <p>Vue 3 的 Composition API 为我们带来了更加灵活和强大的组件逻辑组织方式。本文将分享一些在实际项目中总结的最佳实践。</p>
-              <h3>1. 合理使用 setup 函数</h3>
-              <p>setup 函数是 Composition API 的入口，我们应该在其中组织组件的所有逻辑。建议按照功能模块来组织代码，而不是按照选项类型。</p>
-              <h3>2. 善用响应式引用</h3>
-              <p>ref 和 reactive 是 Vue 3 中创建响应式数据的主要方式。ref 适用于基本类型，reactive 适用于对象。要注意它们的区别和使用场景。</p>
-              <h3>3. 逻辑复用与组合</h3>
-              <p>Composition API 的最大优势在于逻辑复用。我们可以将相关的逻辑抽离成可复用的组合式函数（Composables），提高代码的可维护性。</p>
-            `,
-            createdAt: "2024-01-15T10:30:00",
-            views: 1234,
-            replies: 45,
-            likes: 328,
-            isLiked: false,
-          };
-        } else if (threadId === "2") {
-          thread.value = {
-            id: 2,
-            title: "Spring Boot 3.0 新特性解析",
-            author: "后端架构师",
-            authorId: 102,
-            authorAvatar: "",
-            content: `
-              <p>Spring Boot 3.0 带来了许多令人兴奋的新特性，本文将详细解析这些变化。</p>
-              <h3>1. Java 17 作为最低版本要求</h3>
-              <p>Spring Boot 3.0 要求 Java 17 或更高版本，这意味着我们可以使用 Java 17 的所有新特性，如密封类、模式匹配等。</p>
-              <h3>2. 基于 GraalVM 的原生镜像支持</h3>
-              <p>Spring Boot 3.0 提供了更好的 GraalVM 原生镜像支持，大大提高了应用的启动速度和内存使用效率。</p>
-              <h3>3. Spring WebMVC 和 WebFlux 的改进</h3>
-              <p>框架在 Web 层也有许多改进，包括对 HTTP/2 和 HTTP/3 的更好支持。</p>
-            `,
-            createdAt: "2024-01-14T16:45:00",
-            views: 890,
-            replies: 32,
-            likes: 256,
-            isLiked: false,
-          };
-        } else if (threadId === "3") {
-          thread.value = {
-            id: 3,
-            title: "前端性能优化实战指南",
-            author: "性能优化专家",
-            authorId: 103,
-            authorAvatar: "",
-            content: `
-              <p>前端性能优化是一个永恒的话题，本文将分享一些实战中有效的优化策略。</p>
-              <h3>1. 资源加载优化</h3>
-              <p>包括图片懒加载、代码分割、资源压缩等技术，可以显著减少页面加载时间。</p>
-              <h3>2. 运行时性能优化</h3>
-              <p>通过减少 DOM 操作、优化事件处理、使用虚拟列表等技术，提高页面的响应速度。</p>
-              <h3>3. 性能监控与分析</h3>
-              <p>使用性能分析工具识别性能瓶颈，有针对性地进行优化。</p>
-            `,
-            createdAt: "2024-01-13T09:20:00",
-            views: 765,
-            replies: 28,
-            likes: 189,
-            isLiked: false,
+            id: post.id,
+            title: post.title,
+            author: post.username || `用户${post.userId}`,
+            authorId: post.userId,
+            authorAvatar: post.authorAvatar || "",
+            sectionId: post.sectionId,
+            sectionName: post.sectionName || "",
+            content: post.content,
+            createdAt: post.createTime,
+            views: post.viewCount || 0,
+            replies: post.replyCount || 0,
+            likes: post.likeCount || 0,
+            isLiked: post.isLiked || false,
           };
         }
       } catch (error) {
         console.error("获取帖子详情失败:", error);
+      }
+    };
+
+    // 获取评论列表
+    const fetchComments = async () => {
+      const threadId = route.params.id;
+      if (!threadId) return;
+
+      try {
+        const response = await replyApi.getRepliesByPostId(threadId, {
+          page: 1,
+          size: 50,
+        });
+        if (response.code === 200 && response.data) {
+          comments.value = response.data.records.map((reply) => ({
+            id: reply.id,
+            author: reply.username || `用户${reply.userId}`,
+            authorId: reply.userId,
+            authorAvatar: reply.authorAvatar || "",
+            content: reply.content,
+            time: formatTime(reply.createTime),
+            likes: reply.likeCount || 0,
+            isLiked: reply.isLiked || false,
+            isPinned: false,
+            replies: [],
+          }));
+        }
+      } catch (error) {
+        console.error("获取评论列表失败:", error);
       }
     };
 
@@ -783,6 +704,7 @@ export default {
 
       // 获取帖子详情
       fetchThreadDetail();
+      fetchComments();
 
       // 设置路由守卫
       navigationGuard = router.beforeEach((to, from, next) => {
