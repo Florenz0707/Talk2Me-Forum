@@ -4,9 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.springboot_backend.core.security.JwtTokenProvider;
 import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
 import com.example.springboot_backend.talk2me.model.domain.UserDO;
+import com.example.springboot_backend.talk2me.model.domain.UserStatsDO;
 import com.example.springboot_backend.talk2me.model.vo.*;
 import com.example.springboot_backend.talk2me.repository.UserMapper;
+import com.example.springboot_backend.talk2me.repository.UserStatsMapper;
 import com.example.springboot_backend.talk2me.service.IAuthService;
+import java.time.LocalDateTime;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,16 +21,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService implements IAuthService {
   private final UserMapper userMapper;
+  private final UserStatsMapper userStatsMapper;
   private final PasswordEncoder passwordEncoder;
   private final JwtTokenProvider tokenProvider;
   private final AuthenticationManager authenticationManager;
 
   public AuthService(
       UserMapper userMapper,
+      UserStatsMapper userStatsMapper,
       PasswordEncoder passwordEncoder,
       JwtTokenProvider tokenProvider,
       AuthenticationManager authenticationManager) {
     this.userMapper = userMapper;
+    this.userStatsMapper = userStatsMapper;
     this.passwordEncoder = passwordEncoder;
     this.tokenProvider = tokenProvider;
     this.authenticationManager = authenticationManager;
@@ -50,6 +56,15 @@ public class AuthService implements IAuthService {
     user.setEnabled(true);
 
     userMapper.insert(user);
+
+    UserStatsDO stats = new UserStatsDO();
+    stats.setUserId(user.getId());
+    stats.setLikeCount(0);
+    stats.setFollowerCount(0);
+    stats.setFollowingCount(0);
+    stats.setCreateTime(LocalDateTime.now());
+    stats.setUpdateTime(LocalDateTime.now());
+    userStatsMapper.insert(stats);
 
     return new RegisterResponse("User registered successfully");
   }

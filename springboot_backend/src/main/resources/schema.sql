@@ -4,8 +4,24 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    bio VARCHAR(500),
+    avatar VARCHAR(255),
+    birthday DATE,
+    gender VARCHAR(10),
+    occupation VARCHAR(100),
     create_time TIMESTAMP NOT NULL,
     update_time TIMESTAMP NOT NULL
+);
+
+-- 用户统计表
+CREATE TABLE IF NOT EXISTS user_stats (
+    user_id BIGINT PRIMARY KEY,
+    like_count INT NOT NULL DEFAULT 0,
+    follower_count INT NOT NULL DEFAULT 0,
+    following_count INT NOT NULL DEFAULT 0,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 分区表

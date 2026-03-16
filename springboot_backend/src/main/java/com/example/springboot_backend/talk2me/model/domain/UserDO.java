@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.springboot_backend.core.model.BaseEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 
 @TableName("users")
 public class UserDO extends BaseEntity {
@@ -17,6 +18,18 @@ public class UserDO extends BaseEntity {
   private String password;
 
   private Boolean enabled = true;
+
+  @Size(max = 500)
+  private String bio;
+
+  private String avatar;
+
+  private LocalDate birthday;
+
+  private String gender;
+
+  @Size(max = 100)
+  private String occupation;
 
   public String getUsername() {
     return username;
@@ -40,5 +53,45 @@ public class UserDO extends BaseEntity {
 
   public void setEnabled(Boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public String getBio() {
+    return bio;
+  }
+
+  public void setBio(String bio) {
+    this.bio = bio;
+  }
+
+  public String getAvatar() {
+    return avatar;
+  }
+
+  public void setAvatar(String avatar) {
+    this.avatar = avatar;
+  }
+
+  public LocalDate getBirthday() {
+    return birthday;
+  }
+
+  public void setBirthday(LocalDate birthday) {
+    this.birthday = birthday;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
+  public String getOccupation() {
+    return occupation;
+  }
+
+  public void setOccupation(String occupation) {
+    this.occupation = occupation;
   }
 }
