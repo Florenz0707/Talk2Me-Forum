@@ -1,5 +1,6 @@
 node_modules/
 .vite-cache/
 dist/
+.claude/
 
 package-lock.json
