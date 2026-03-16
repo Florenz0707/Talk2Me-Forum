@@ -25,6 +25,11 @@ const routes = [
     meta: { requiresAuth: true }, // 添加路由元信息，表示需要认证
   },
   {
+    path: "/user/:id",
+    name: "OtherUser",
+    component: () => import("../views/OtherUserView.vue"),
+  },
+  {
     path: "/home",
     name: "Home",
     component: () => import("../views/HomeView.vue"),

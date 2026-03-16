@@ -17,16 +17,6 @@ repos:
       - id: prettier
         files: \.(js|ts|vue|css|scss|json|md)$
 
-  # 前端 eslint
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.7.0
-    hooks:
-      - id: eslint
-        files: \.(js|ts|vue)$
-        additional_dependencies:
-          - eslint
-          - eslint-plugin-vue
-
   # Java 代码格式化（google-java-format）
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
     rev: v2.14.0
