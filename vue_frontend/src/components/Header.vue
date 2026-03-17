@@ -122,6 +122,7 @@ const handleSearch = () => {
   max-width: var(--container-max-width);
   margin: 0 auto;
   padding: var(--container-padding);
+  position: relative;
 }
 
 .header-left {
@@ -163,10 +164,9 @@ const handleSearch = () => {
 }
 
 .header-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  padding: 0 30px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .search-box {

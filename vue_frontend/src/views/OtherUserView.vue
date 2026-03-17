@@ -3,78 +3,46 @@
     class="other-user-view"
     :class="{ 'fade-leave-active': isLeaving, 'fade-enter-active': isEntering }"
   >
-    <!-- 头像展示栏 -->
-    <div class="avatar-header">
-      <div class="avatar-header-content">
-        <!-- 用户信息栏 -->
-        <div class="user">
+    <Header title="用户主页" />
+
+    <!-- 用户信息栏 -->
+    <div class="user-profile-section">
+      <div class="user-avatar-small">
+        <div class="user-info-container">
           <div class="user-avatar-large">
             <i v-if="!userAvatar" class="fas fa-user-circle"></i>
             <img v-else :src="userAvatar" alt="用户头像" class="avatar-image" />
           </div>
-          <div class="user-nav">
-            <div class="user-info">
-              <div class="username-large">{{ username }}</div>
-              <div class="user-bio">{{ userBio }}</div>
+          <div class="user-details">
+            <div class="username-large">{{ username }}</div>
+            <div class="user-bio">{{ userBio }}</div>
+          </div>
+        </div>
+
+        <div class="stats-and-actions">
+          <div class="stats-wrapper">
+            <div class="stat-item">
+              <div class="stat-number">–</div>
+              <div class="stat-label">获赞数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">–</div>
+              <div class="stat-label">关注数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">–</div>
+              <div class="stat-label">粉丝数</div>
             </div>
           </div>
-        </div>
-
-        <div class="user-nav-stats">
-          <!-- 首页板块 -->
-          <div class="nav-and-stats">
-            <router-link to="/home" class="nav-link">首页</router-link>
-            <router-link to="/sections" class="nav-link">板块</router-link>
-          </div>
-
-          <!-- 搜索框 -->
-          <div class="search-box-top">
-            <input
-              type="text"
-              v-model="searchKeyword"
-              placeholder="搜索帖子..."
-              class="search-input"
-              @keyup.enter="handleSearch"
-            />
-            <button class="search-btn" @click="handleSearch">
-              <i class="fas fa-search"></i>
+          <div class="action-buttons">
+            <button class="btn-follow" @click="handleFollow">
+              <i class="fas fa-user-plus"></i> 关注
+            </button>
+            <button class="btn-message" @click="handleMessage">
+              <i class="fas fa-comment"></i> 发消息
             </button>
           </div>
-
-          <div class="nav-and-stats">
-            <router-link to="/user" class="nav-link user-avatar-link">
-              <i class="fas fa-user-circle"></i>
-            </router-link>
-          </div>
         </div>
-
-        <div class="stats-wrapper">
-          <!-- 统计信息 -->
-          <div class="stat-item">
-            <div class="stat-number">–</div>
-            <div class="stat-label">获赞数</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number">–</div>
-            <div class="stat-label">关注数</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number">–</div>
-            <div class="stat-label">粉丝数</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 操作按钮 -->
-    <div class="action-buttons-wrapper">
-      <div class="action-buttons">
-        <button class="btn-follow" @click="handleFollow">
-          <i class="fas fa-user-plus"></i> 关注
-        </button>
-        <button class="btn-message" @click="handleMessage">
-          <i class="fas fa-comment"></i> 发消息
-        </button>
       </div>
     </div>
 
@@ -116,9 +84,13 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { postApi } from "../utils/api";
+import Header from "../components/Header.vue";
 
 export default {
   name: "OtherUserView",
+  components: {
+    Header,
+  },
   setup() {
     const router = useRouter();
     const route = useRoute();
@@ -129,7 +101,6 @@ export default {
     const userBio = ref("");
     const userPosts = ref([]);
     const loading = ref(true);
-    const searchKeyword = ref("");
     let navigationGuard = null;
 
     const formatTime = (timeString) => {
@@ -155,12 +126,6 @@ export default {
 
     const handleMessage = () => {
       console.log("发送消息");
-    };
-
-    const handleSearch = () => {
-      if (searchKeyword.value.trim()) {
-        router.push(`/search?q=${encodeURIComponent(searchKeyword.value)}`);
-      }
     };
 
     const fetchUserPosts = async () => {
@@ -223,12 +188,10 @@ export default {
       userBio,
       userPosts,
       loading,
-      searchKeyword,
       formatTime,
       goToThread,
       handleFollow,
       handleMessage,
-      handleSearch,
     };
   },
 };
@@ -270,163 +233,84 @@ export default {
   }
 }
 
-.avatar-header {
-  background-color: #2c3e50;
-  height: 18vh;
-  min-height: 100px;
+.user-profile-section {
+  background-color: #f5f7fa;
+  padding: 40px 10px 10px 10px;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: stretch;
-  color: white;
-  position: relative;
-  padding-top: 15px;
-}
-
-.search-box-top {
-  display: flex;
-  align-items: center;
-  background-color: white;
-  border-radius: 20px;
-  padding: 4px 8px;
-  width: 60%;
-  margin-bottom: 15px;
-  margin-left: 7%;
-}
-
-.search-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 8px 12px;
-  font-size: 14px;
-  background: transparent;
+  justify-content: center;
+  align-items: end;
   color: #333;
-}
-
-.search-input::placeholder {
-  color: #999;
-}
-
-.search-btn {
-  background: none;
-  border: none;
-  color: #667eea;
-  cursor: pointer;
-  padding: 8px 12px;
-  font-size: 16px;
-}
-
-.search-btn:hover {
-  color: #5568d3;
-}
-
-.avatar-header-content {
-  max-width: 1500px;
   width: 100%;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  justify-content: space-between;
+  height: 100%;
 }
 
-.user {
+.user-avatar-small {
+  width: 77%;
   display: flex;
   align-items: end;
-  justify-content: flex-start;
-  flex: 1;
-  width: 300px;
-  gap: 10px;
-  height: 120px;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.user-info-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .user-avatar-large {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: var(--forum-dark-color);
   color: white;
-  font-size: 60px;
+  font-size: 80px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .avatar-image {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
-.user-nav {
+.user-details {
   display: flex;
-  align-items: end;
-  height: 100%;
-}
-
-.user-info {
-  flex: 1;
-  max-width: 100px;
-  padding: 0 12px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .username-large {
-  width: 100px;
   font-size: 28px;
   font-weight: 700;
-  margin-bottom: 10px;
 }
 
 .user-bio {
   font-size: 16px;
-  color: #e0e0e0;
+  color: #666;
 }
 
-.user-nav-stats {
-  display: flex;
-  align-items: start;
-  justify-content: space-evenly;
-  height: 100%;
-  width: 80%;
-}
-
-.nav-and-stats {
+.stats-and-actions {
   display: flex;
   align-items: center;
-}
-
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-size: 16px;
-  padding: 8px 16px;
-  border-radius: 6px;
-  transition: background-color 0.3s;
-}
-
-.nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.user-avatar-link {
-  font-size: 28px;
-  padding: 4px 8px;
+  gap: 40px;
 }
 
 .stats-wrapper {
   display: flex;
   gap: 40px;
-  align-items: end;
-  height: 100%;
-  padding: 0 0 20px;
-  width: 300px;
+  color: #333;
+  background-color: transparent;
 }
 
 .stat-item {
   text-align: center;
-  color: white;
+  background: transparent;
 }
 
 .stat-number {
@@ -440,20 +324,8 @@ export default {
   opacity: 0.9;
 }
 
-.action-buttons-wrapper {
-  width: 100%;
-  margin-top: 20px;
-  padding: 0 20px;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: center;
-}
-
 .action-buttons {
-  width: 80%;
-  margin-bottom: 20px;
   display: flex;
-  justify-content: flex-end;
   gap: 15px;
 }
 
@@ -489,10 +361,6 @@ export default {
 .btn-message:hover {
   background-color: #f5f5f5;
   transform: translateY(-2px);
-}
-
-.stats-container {
-  display: none;
 }
 
 .main-content-container {

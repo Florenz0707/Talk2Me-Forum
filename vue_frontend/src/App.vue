@@ -105,8 +105,13 @@ html.dark .main-content-wrapper,
 html.dark .left-sidebar,
 html.dark .nav-menu,
 html.dark .right-content,
-html.dark .stats-wrapper {
+html.dark .user-profile-section {
   background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+html.dark .stats-wrapper {
+  background-color: #121212 !important;
   color: #e0e0e0 !important;
 }
 
@@ -143,9 +148,14 @@ html.dark .thread-item td {
   border-color: #333 !important;
 }
 
+html.dark .thread-item {
+  background-color: #2a2a2a !important;
+  border: none !important;
+}
+
 html.dark .thread-item:hover,
 html.dark .thread-table tbody tr:hover {
-  background-color: #2a2a2a !important;
+  background-color: #333 !important;
 }
 
 /* 标题文字 */
@@ -574,6 +584,76 @@ html.dark .back-to-top-btn:hover {
 html.dark .page-footer {
   background-color: #1e1e1e !important;
   color: #aaa !important;
+}
+
+/* ===== OtherUserView 深色模式适配 ===== */
+html.dark .other-user-view {
+  background-color: #121212 !important;
+}
+
+html.dark .user-profile-section {
+  background-color: #121212 !important;
+  color: #e0e0e0 !important;
+}
+
+html.dark .username-large {
+  color: #e0e0e0 !important;
+}
+
+html.dark .user-bio {
+  color: #aaa !important;
+}
+
+html.dark .stat-item {
+  color: #e0e0e0 !important;
+}
+
+html.dark .stat-label {
+  color: #aaa !important;
+}
+
+html.dark .btn-message {
+  background-color: #2d2d2d !important;
+  color: #e0e0e0 !important;
+  border-color: #444 !important;
+}
+
+html.dark .btn-message:hover {
+  background-color: #3a3a3a !important;
+}
+
+html.dark .content-card {
+  background-color: #1e1e1e !important;
+  box-shadow: none !important;
+  border: 1px solid #333 !important;
+}
+
+html.dark .content-card h2 {
+  color: #e0e0e0 !important;
+}
+
+html.dark .thread-item {
+  background-color: #252525 !important;
+}
+
+html.dark .thread-item:hover {
+  background-color: #2d2d2d !important;
+}
+
+html.dark .thread-title {
+  color: #e0e0e0 !important;
+}
+
+html.dark .thread-meta {
+  color: #aaa !important;
+}
+
+html.dark .empty-state {
+  color: #777 !important;
+}
+
+html.dark .empty-state i {
+  color: #555 !important;
 }
 
 /* 深色模式切换平滑过渡动画 */
