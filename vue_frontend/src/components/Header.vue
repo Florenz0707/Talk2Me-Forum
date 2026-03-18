@@ -35,16 +35,18 @@
             @mouseleave="showUserMenu = false"
           >
             <router-link to="/user" class="nav-link user-avatar">
-              <i class="fas fa-user-circle"></i>
+              <i v-if="!userAvatar" class="fas fa-user-circle"></i>
+              <img
+                v-else
+                :src="userAvatar"
+                alt="用户头像"
+                class="avatar-image"
+              />
             </router-link>
             <div class="user-dropdown-menu" :class="{ show: showUserMenu }">
-              <div class="dropdown-item">
+              <div class="dropdown-item" @click="goToMessages">
                 <i class="fas fa-envelope"></i>
-                <span>新消息</span>
-              </div>
-              <div class="dropdown-item">
-                <i class="fas fa-palette"></i>
-                <span>主题颜色</span>
+                <span>我的消息</span>
               </div>
             </div>
           </div>
@@ -61,7 +63,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import AuthModal from "./AuthModal.vue";
 
@@ -84,6 +86,9 @@ const showAuthButtons = computed(() => !isLoggedIn.value);
 // 用户菜单控制
 const showUserMenu = ref(false);
 
+// 用户头像
+const userAvatar = ref("");
+
 // Auth modal state
 const showAuthModal = ref(false);
 const authModalTab = ref("login");
@@ -105,6 +110,20 @@ const handleSearch = () => {
     });
   }
 };
+
+// 跳转到新消息
+const goToMessages = () => {
+  router.push({ path: "/user", query: { tab: "messages" } });
+  showUserMenu.value = false;
+};
+
+// 加载用户头像
+onMounted(() => {
+  const savedAvatar = localStorage.getItem("userAvatar");
+  if (savedAvatar) {
+    userAvatar.value = savedAvatar;
+  }
+});
 </script>
 
 <style scoped>
@@ -228,6 +247,16 @@ const handleSearch = () => {
 
 .user-avatar {
   font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-image {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .user-dropdown-menu {

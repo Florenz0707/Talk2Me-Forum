@@ -41,36 +41,27 @@
       </div>
     </div>
 
-    <!--    &lt;!&ndash; 顶部导航栏 &ndash;&gt;-->
-    <!--    <div class="bili-header-bar">-->
-    <!--      <div class="container">-->
-    <!--        <div class="left-entry"></div>-->
-
-    <!--        <div class="right-entry">-->
-    <!--          <ul class="flex">-->
-    <!--            <li class="nav-item">-->
-    <!--              <template v-if="!isLoggedIn">-->
-    <!--                <router-link to="/login" class="nav-link">登录</router-link>-->
-    <!--              </template>-->
-    <!--            </li>-->
-    <!--          </ul>-->
-    <!--        </div>-->
-    <!--      </div>-->
-    <!--    </div>-->
-
     <!-- 数据指标行 -->
     <div class="stats-container">
       <div class="stats-wrapper">
         <div class="stat-item">
-          <div class="stat-number">–</div>
+          <div class="stat-number">{{ likesCount }}</div>
           <div class="stat-label">获赞数</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-number">–</div>
+        <div
+          class="stat-item"
+          :class="{ 'stat-active': activeStatsTab === 'following' }"
+          @click="handleStatsClick('following')"
+        >
+          <div class="stat-number">{{ followingCount }}</div>
           <div class="stat-label">关注数</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-number">–</div>
+        <div
+          class="stat-item"
+          :class="{ 'stat-active': activeStatsTab === 'followers' }"
+          @click="handleStatsClick('followers')"
+        >
+          <div class="stat-number">{{ followersCount }}</div>
           <div class="stat-label">粉丝数</div>
         </div>
       </div>
@@ -86,15 +77,21 @@
             <div
               class="nav-item"
               :class="{ active: activeNavItem === 'messages' }"
-              @click="activeNavItem = 'messages'"
+              @click="
+                activeNavItem = 'messages';
+                activeStatsTab = null;
+              "
             >
               <i class="fas fa-envelope"></i>
-              <span>新消息</span>
+              <span>我的消息</span>
             </div>
             <div
               class="nav-item"
               :class="{ active: activeNavItem === 'favorites' }"
-              @click="activeNavItem = 'favorites'"
+              @click="
+                activeNavItem = 'favorites';
+                activeStatsTab = null;
+              "
             >
               <i class="fas fa-star"></i>
               <span>收藏</span>
@@ -102,7 +99,10 @@
             <div
               class="nav-item"
               :class="{ active: activeNavItem === 'profile' }"
-              @click="activeNavItem = 'profile'"
+              @click="
+                activeNavItem = 'profile';
+                activeStatsTab = null;
+              "
             >
               <i class="fas fa-user"></i>
               <span>个人资料</span>
@@ -110,7 +110,10 @@
             <div
               class="nav-item"
               :class="{ active: activeNavItem === 'settings' }"
-              @click="activeNavItem = 'settings'"
+              @click="
+                activeNavItem = 'settings';
+                activeStatsTab = null;
+              "
             >
               <i class="fas fa-cog"></i>
               <span>设置</span>
@@ -130,12 +133,132 @@
         <div class="right-content">
           <!-- 动态内容区域 -->
           <div class="content-card">
-            <!-- 新消息内容 -->
-            <div v-if="activeNavItem === 'messages'">
-              <h2>新消息</h2>
-              <div class="empty-state">
-                <i class="fas fa-envelope-open"></i>
-                <p>暂无新消息</p>
+            <!-- 关注列表 -->
+            <div
+              v-if="activeStatsTab === 'following'"
+              class="user-list-container"
+            >
+              <h2>我的关注</h2>
+              <div v-if="followingLoading" class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>加载中...</p>
+              </div>
+              <div v-else-if="followingList.length === 0" class="empty-state">
+                <i class="fas fa-user-friends"></i>
+                <p>暂无关注</p>
+              </div>
+              <div v-else class="user-list">
+                <div
+                  v-for="user in followingList"
+                  :key="user.id"
+                  class="user-item"
+                >
+                  <div class="user-item-avatar">
+                    <i class="fas fa-user-circle"></i>
+                  </div>
+                  <div class="user-item-info">
+                    <div class="user-item-name">{{ user.username }}</div>
+                    <div class="user-item-bio">
+                      {{ user.bio || "暂无简介" }}
+                    </div>
+                  </div>
+                  <button class="unfollow-btn" @click="handleUnfollow(user.id)">
+                    取消关注
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 粉丝列表 -->
+            <div
+              v-else-if="activeStatsTab === 'followers'"
+              class="user-list-container"
+            >
+              <h2>我的粉丝</h2>
+              <div v-if="followersLoading" class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>加载中...</p>
+              </div>
+              <div v-else-if="followersList.length === 0" class="empty-state">
+                <i class="fas fa-users"></i>
+                <p>暂无粉丝</p>
+              </div>
+              <div v-else class="user-list">
+                <div
+                  v-for="user in followersList"
+                  :key="user.id"
+                  class="user-item"
+                >
+                  <div class="user-item-avatar">
+                    <i class="fas fa-user-circle"></i>
+                  </div>
+                  <div class="user-item-info">
+                    <div class="user-item-name">{{ user.username }}</div>
+                    <div class="user-item-bio">
+                      {{ user.bio || "暂无简介" }}
+                    </div>
+                  </div>
+                  <button
+                    class="follow-back-btn"
+                    @click="handleFollowBack(user.id)"
+                  >
+                    回关
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 我的消息内容 -->
+            <div v-if="activeNavItem === 'messages'" class="messages-container">
+              <h2>我的消息</h2>
+              <div class="messages-layout">
+                <!-- 左侧联系人列表 -->
+                <div
+                  v-if="messageContacts.length > 0 || newMessageTarget"
+                  class="contacts-sidebar"
+                >
+                  <!-- 目标用户信息栏 -->
+                  <div v-if="newMessageTarget" class="target-user-card">
+                    <div class="target-user-avatar">
+                      <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="target-user-name">{{ newMessageTarget }}</div>
+                  </div>
+                  <div
+                    v-for="contact in messageContacts"
+                    :key="contact.id"
+                    class="contact-item"
+                    :class="{ active: selectedContact?.id === contact.id }"
+                    @click="selectContact(contact)"
+                  >
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ contact.name }}</span>
+                  </div>
+                </div>
+
+                <!-- 右侧消息输入区 -->
+                <div class="message-input-area">
+                  <div v-if="newMessageTarget" class="new-message-form">
+                    <h3>发送消息给 {{ newMessageTarget }}</h3>
+                    <textarea
+                      v-model="newMessageContent"
+                      class="message-textarea"
+                      placeholder="输入消息内容..."
+                    ></textarea>
+                    <div class="message-actions">
+                      <button class="send-btn" @click="handleSendMessage">
+                        发送
+                      </button>
+                      <button class="cancel-btn" @click="cancelNewMessage">
+                        取消
+                      </button>
+                    </div>
+                  </div>
+                  <div v-else class="empty-state">
+                    <i class="fas fa-envelope-open"></i>
+                    <p>暂无新消息</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -260,7 +383,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount, inject } from "vue";
+import { ref, onMounted, onBeforeUnmount, inject, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { authApi } from "../utils/api";
 
@@ -283,6 +406,27 @@ export default {
 
     // 导航栏选中项
     const activeNavItem = ref("favorites");
+
+    // 数据指标导航
+    const activeStatsTab = ref(null);
+    const likesCount = ref(0);
+    const followingCount = ref(0);
+    const followersCount = ref(0);
+
+    // 关注列表
+    const followingList = ref([]);
+    const followingLoading = ref(false);
+
+    // 粉丝列表
+    const followersList = ref([]);
+    const followersLoading = ref(false);
+
+    // 新消息相关
+    const newMessageTarget = ref("");
+    const newMessageTargetId = ref("");
+    const newMessageContent = ref("");
+    const messageContacts = ref([]);
+    const selectedContact = ref(null);
 
     // 搜索功能
     const searchQuery = ref("");
@@ -316,9 +460,18 @@ export default {
     // 保存个人资料
     const handleSaveProfile = async () => {
       try {
-        // TODO: 调用后端用户资料更新接口（后端尚未实现）
-        // await userApi.updateProfile({ username: editUsername.value, bio: editBio.value })
+        // 保存到本地
+        localStorage.setItem("username", editUsername.value);
+        localStorage.setItem("userBio", editBio.value);
+
         username.value = editUsername.value;
+
+        // TODO: 调用后端接口
+        // await userApi.updateProfile({
+        //   username: editUsername.value,
+        //   bio: editBio.value
+        // });
+
         alert("个人资料保存成功");
       } catch (error) {
         console.error("保存个人资料失败:", error);
@@ -336,45 +489,60 @@ export default {
       const file = event.target.files[0];
       if (!file) return;
 
-      // 验证文件类型
       if (!file.type.startsWith("image/")) {
         alert("请选择图片文件");
         return;
       }
 
-      // 验证文件大小（限制为5MB）
       const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         alert("图片大小不能超过5MB");
         return;
       }
 
-      // 读取文件并预览
       const reader = new FileReader();
       reader.onload = (e) => {
-        userAvatar.value = e.target.result;
-        // 这里可以添加上传到服务器的逻辑
-        // uploadAvatar(file);
+        const avatarData = e.target.result;
+        userAvatar.value = avatarData;
+        // 保存到本地
+        localStorage.setItem("userAvatar", avatarData);
+
+        // TODO: 上传到后端
+        // uploadAvatarToServer(file);
       };
       reader.readAsDataURL(file);
     };
 
     // 获取当前登录用户信息
     const fetchUserInfo = () => {
-      // 从 JWT token 解码用户名（token 由后端签发）
       const nameFromToken = authApi.getUsernameFromToken();
       if (nameFromToken) {
         username.value = nameFromToken;
         editUsername.value = nameFromToken;
       } else {
-        // 降级：从 localStorage 中读取登录时保存的用户名
         const remembered = localStorage.getItem("rememberedUsername");
         username.value = remembered || "用户";
         editUsername.value = username.value;
       }
-      // 邮箱、简介等字段需等后端提供用户详情接口
+
+      // 从本地读取头像和个性签名
+      const savedAvatar = localStorage.getItem("userAvatar");
+      if (savedAvatar) {
+        userAvatar.value = savedAvatar;
+      }
+
+      const savedBio = localStorage.getItem("userBio");
+      if (savedBio) {
+        editBio.value = savedBio;
+      }
+
+      // TODO: 从后端获取用户详情
+      // const userInfo = await userApi.getUserProfile();
+      // userAvatar.value = userInfo.avatar;
+      // editBio.value = userInfo.bio;
+      // userEmail.value = userInfo.email;
+
       userEmail.value = "";
-      editBio.value = "";
     };
 
     // 退出登录
@@ -414,9 +582,30 @@ export default {
       }
     };
 
+    // 监听 activeStatsTab 变化
+    watch(activeStatsTab, (newTab) => {
+      if (newTab === "following") {
+        fetchFollowing();
+      } else if (newTab === "followers") {
+        fetchFollowers();
+      }
+    });
+
     // 页面挂载时获取用户信息
     onMounted(() => {
+      if (route.query.tab) {
+        activeNavItem.value = route.query.tab;
+      }
+      if (route.query.targetUser) {
+        newMessageTarget.value = route.query.targetUser;
+        newMessageTargetId.value = route.query.targetUserId || "";
+        selectedContact.value = {
+          id: route.query.targetUserId || "",
+          name: route.query.targetUser,
+        };
+      }
       fetchUserInfo();
+      fetchStats();
 
       // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
       setTimeout(() => {
@@ -462,6 +651,101 @@ export default {
       }
     };
 
+    // 发送消息
+    const handleSendMessage = async () => {
+      if (!newMessageContent.value.trim()) {
+        alert("请输入消息内容");
+        return;
+      }
+      // TODO: 调用发送消息API
+      console.log(
+        "发送消息给:",
+        newMessageTarget.value,
+        newMessageContent.value,
+      );
+      alert("消息发送成功");
+      cancelNewMessage();
+    };
+
+    // 取消新消息
+    const cancelNewMessage = () => {
+      newMessageTarget.value = "";
+      newMessageTargetId.value = "";
+      newMessageContent.value = "";
+      selectedContact.value = null;
+      router.replace({ path: "/user", query: { tab: "messages" } });
+    };
+
+    // 选择联系人
+    const selectContact = (contact) => {
+      selectedContact.value = contact;
+      newMessageTarget.value = contact.name;
+      newMessageTargetId.value = contact.id;
+    };
+
+    // 获取统计数据
+    const fetchStats = async () => {
+      // TODO: 调用后端接口获取统计数据
+      // const stats = await userApi.getStats();
+      // likesCount.value = stats.likes;
+      // followingCount.value = stats.following;
+      // followersCount.value = stats.followers;
+    };
+
+    // 获取关注列表
+    const fetchFollowing = async () => {
+      followingLoading.value = true;
+      try {
+        // TODO: 调用后端接口
+        // const data = await userApi.getFollowing();
+        // followingList.value = data;
+        followingList.value = [];
+      } catch (error) {
+        console.error("获取关注列表失败:", error);
+      } finally {
+        followingLoading.value = false;
+      }
+    };
+
+    // 获取粉丝列表
+    const fetchFollowers = async () => {
+      followersLoading.value = true;
+      try {
+        // TODO: 调用后端接口
+        // const data = await userApi.getFollowers();
+        // followersList.value = data;
+        followersList.value = [];
+      } catch (error) {
+        console.error("获取粉丝列表失败:", error);
+      } finally {
+        followersLoading.value = false;
+      }
+    };
+
+    // 取消关注
+    const handleUnfollow = async (userId) => {
+      // TODO: 调用后端接口
+      // await userApi.unfollow(userId);
+      console.log("取消关注用户:", userId);
+      alert("取消关注成功");
+      fetchFollowing();
+    };
+
+    // 回关
+    const handleFollowBack = async (userId) => {
+      // TODO: 调用后端接口
+      // await userApi.follow(userId);
+      console.log("回关用户:", userId);
+      alert("关注成功");
+      fetchFollowers();
+    };
+
+    // 处理数据指标点击
+    const handleStatsClick = (tab) => {
+      activeStatsTab.value = tab;
+      activeNavItem.value = null;
+    };
+
     return {
       username,
       userEmail,
@@ -488,6 +772,25 @@ export default {
       fileInput,
       triggerFileInput,
       handleAvatarChange,
+      newMessageTarget,
+      newMessageTargetId,
+      newMessageContent,
+      messageContacts,
+      selectedContact,
+      selectContact,
+      handleSendMessage,
+      cancelNewMessage,
+      activeStatsTab,
+      likesCount,
+      followingCount,
+      followersCount,
+      followingList,
+      followingLoading,
+      followersList,
+      followersLoading,
+      handleUnfollow,
+      handleFollowBack,
+      handleStatsClick,
     };
   },
 };
@@ -861,6 +1164,24 @@ export default {
 
 .stat-item {
   text-align: center;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.stat-item:not(.disabled):hover {
+  background-color: #e8f4f8;
+}
+
+.stat-item.stat-active .stat-number,
+.stat-item.stat-active .stat-label {
+  color: #667eea;
+}
+
+.stat-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .stat-number {
@@ -966,6 +1287,38 @@ export default {
 
 .logout-item:hover i {
   color: #c0392b !important;
+}
+
+/* 目标用户信息卡片 */
+.target-user-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background-color: #e8f4f8;
+  border-radius: 8px;
+  border: 2px solid var(--primary-color);
+}
+
+.target-user-card .target-user-avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.target-user-card .target-user-avatar i {
+  font-size: 48px;
+  color: var(--primary-color);
+}
+
+.target-user-card .target-user-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  word-break: break-word;
 }
 
 /* 确保router-link的文本颜色与其他菜单项一致 */
@@ -1278,6 +1631,127 @@ input:checked + .slider:before {
   transform: translateX(24px);
 }
 
+/* 消息容器布局 */
+.messages-container h2 {
+  margin-bottom: 20px;
+}
+
+.messages-layout {
+  display: flex;
+  gap: 20px;
+  min-height: 400px;
+}
+
+/* 联系人侧边栏 */
+.contacts-sidebar {
+  width: 200px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 10px;
+  flex-shrink: 0;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.contact-item:hover {
+  background-color: #e8e8e8;
+}
+
+.contact-item.active {
+  background-color: #667eea;
+  color: white;
+}
+
+.contact-item i {
+  font-size: 20px;
+}
+
+/* 消息输入区域 */
+.message-input-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 新消息表单 */
+.new-message-form {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.new-message-form h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.message-textarea {
+  width: 100%;
+  flex: 1;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+  resize: vertical;
+  box-sizing: border-box;
+  background-color: white;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.message-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.send-btn,
+.cancel-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.send-btn {
+  background-color: #3498db;
+  color: white;
+}
+
+.send-btn:hover {
+  background-color: #2980b9;
+}
+
+.cancel-btn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #d0d0d0;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .main-content-wrapper {
@@ -1509,5 +1983,91 @@ input:checked + .slider:before {
   .thread-item td {
     padding: 10px;
   }
+}
+
+/* 用户列表容器 */
+.user-list-container h2 {
+  margin-bottom: 20px;
+}
+
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.user-item:hover {
+  background-color: #f0f0f0;
+}
+
+.user-item-avatar {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.user-item-avatar i {
+  font-size: 50px;
+  color: #999;
+}
+
+.user-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.user-item-bio {
+  font-size: 13px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unfollow-btn,
+.follow-back-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.unfollow-btn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.unfollow-btn:hover {
+  background-color: #d0d0d0;
+}
+
+.follow-back-btn {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.follow-back-btn:hover {
+  opacity: 0.9;
 }
 </style>

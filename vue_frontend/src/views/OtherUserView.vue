@@ -125,7 +125,14 @@ export default {
     };
 
     const handleMessage = () => {
-      console.log("发送消息");
+      router.push({
+        path: "/user",
+        query: {
+          tab: "messages",
+          targetUser: username.value,
+          targetUserId: route.params.id,
+        },
+      });
     };
 
     const fetchUserPosts = async () => {

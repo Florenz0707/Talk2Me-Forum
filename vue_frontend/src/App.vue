@@ -656,6 +656,127 @@ html.dark .empty-state i {
   color: #555 !important;
 }
 
+/* ===== UserView 新增功能深色模式适配 ===== */
+/* 统计数据hover效果 */
+html.dark .stat-item:not(.disabled):hover {
+  background-color: #2a2a2a !important;
+}
+
+html.dark .stat-item.stat-active .stat-number,
+html.dark .stat-item.stat-active .stat-label {
+  color: #7c93ee !important;
+}
+
+/* 用户列表 */
+html.dark .user-item {
+  background-color: #252525 !important;
+}
+
+html.dark .user-item:hover {
+  background-color: #2d2d2d !important;
+}
+
+html.dark .user-item-name {
+  color: #e0e0e0 !important;
+}
+
+html.dark .user-item-bio {
+  color: #aaa !important;
+}
+
+html.dark .user-item-avatar i {
+  color: #666 !important;
+}
+
+html.dark .unfollow-btn {
+  background-color: #2d2d2d !important;
+  color: #ccc !important;
+}
+
+html.dark .unfollow-btn:hover {
+  background-color: #3a3a3a !important;
+}
+
+html.dark .follow-back-btn {
+  background-color: #7c93ee !important;
+  color: #fff !important;
+}
+
+html.dark .follow-back-btn:hover {
+  opacity: 0.9;
+}
+
+/* 消息功能 */
+html.dark .messages-layout {
+  color: #e0e0e0 !important;
+}
+
+html.dark .contacts-sidebar {
+  background-color: #252525 !important;
+}
+
+html.dark .contact-item {
+  color: #ccc !important;
+}
+
+html.dark .contact-item:hover {
+  background-color: #2d2d2d !important;
+}
+
+html.dark .contact-item.active {
+  background-color: #7c93ee !important;
+  color: #fff !important;
+}
+
+html.dark .new-message-form {
+  background-color: #252525 !important;
+}
+
+html.dark .new-message-form h3 {
+  color: #e0e0e0 !important;
+}
+
+html.dark .message-textarea {
+  background-color: #2d2d2d !important;
+  border-color: #444 !important;
+  color: #e0e0e0 !important;
+}
+
+html.dark .message-textarea:focus {
+  border-color: #7c93ee !important;
+}
+
+html.dark .send-btn {
+  background-color: #7c93ee !important;
+  color: #fff !important;
+}
+
+html.dark .send-btn:hover {
+  background-color: #6a81dc !important;
+}
+
+html.dark .cancel-btn {
+  background-color: #2d2d2d !important;
+  color: #ccc !important;
+}
+
+html.dark .cancel-btn:hover {
+  background-color: #3a3a3a !important;
+}
+
+html.dark .target-user-card {
+  background-color: #1a2a3a !important;
+  border-color: #7c93ee !important;
+}
+
+html.dark .target-user-card .target-user-avatar i {
+  color: #7c93ee !important;
+}
+
+html.dark .target-user-card .target-user-name {
+  color: #e0e0e0 !important;
+}
+
 /* 深色模式切换平滑过渡动画 */
 html.color-transitioning *,
 html.color-transitioning *::before,
