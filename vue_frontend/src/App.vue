@@ -65,6 +65,11 @@ onMounted(() => {
       checkLoginStatus();
     }
   });
+
+  // 监听 authChange 事件（同 Tab 内 token 清除或登录成功时触发）
+  window.addEventListener("authChange", (event) => {
+    isLoggedIn.value = !!event.detail.isAuthenticated;
+  });
 });
 </script>
 

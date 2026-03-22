@@ -7,6 +7,12 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 8900, // 固定端口为8900
+    proxy: {
+      "/talk2me": {
+        target: "http://localhost:8099",
+        changeOrigin: true,
+      },
+    },
   },
   resolve: {
     alias: {

@@ -123,6 +123,9 @@ onMounted(() => {
   if (savedAvatar) {
     userAvatar.value = savedAvatar;
   }
+
+  // 监听需要打开登录弹窗的事件（如 token 过期、401 响应）
+  window.addEventListener("open-login-modal", () => openModal("login"));
 });
 </script>
 

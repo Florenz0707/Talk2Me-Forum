@@ -179,7 +179,7 @@ const fetchThreads = async () => {
         views: post.viewCount || 0,
         replies: post.replyCount || 0,
       }));
-      totalPages.value = response.data.pages || 1;
+      totalPages.value = response.data.total_pages || 1;
     }
   } catch (error) {
     console.error("获取帖子列表失败:", error);

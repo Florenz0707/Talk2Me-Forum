@@ -1,7 +1,7 @@
 // API服务层 - 处理与后端的所有HTTP请求
 
 // API基础URL
-const API_BASE_URL = "http://127.0.0.1:8099/talk2me/api/v1";
+const API_BASE_URL = "/talk2me/api/v1";
 
 // 解码 JWT payload（不验签，仅用于读取 subject 等公开信息）
 function decodeJwtPayload(token) {
@@ -38,11 +38,29 @@ async function request(endpoint, method, data = null, useAuth = true) {
   // 如果需要身份验证且有令牌，则添加Authorization头
   if (useAuth) {
     const token = localStorage.getItem(TOKEN_KEY);
-    console.log("Token from localStorage:", token ? "存在" : "不存在");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-      console.log("Authorization header:", headers["Authorization"]);
+    // 校验 token：不存在或不是合法 JWT（无法解析 payload）均视为无效
+    const payload = token ? decodeJwtPayload(token) : null;
+    if (!token || !payload) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.dispatchEvent(
+        new CustomEvent("authChange", { detail: { isAuthenticated: false } }),
+      );
+      window.dispatchEvent(new CustomEvent("open-login-modal"));
+      throw new ApiError("请先登录", 401, "NO_TOKEN");
     }
+    // 检查 token 是否已过期
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      console.warn("Token 已过期，自动登出");
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_INFO_KEY);
+      window.dispatchEvent(
+        new CustomEvent("authChange", { detail: { isAuthenticated: false } }),
+      );
+      window.dispatchEvent(new CustomEvent("open-login-modal"));
+      throw new ApiError("登录已过期，请重新登录", 401, "TOKEN_EXPIRED");
+    }
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const options = {
@@ -57,7 +75,6 @@ async function request(endpoint, method, data = null, useAuth = true) {
   }
 
   try {
-    console.log(url, method, data);
     const response = await fetch(url, options);
 
     let responseData;
@@ -77,12 +94,17 @@ async function request(endpoint, method, data = null, useAuth = true) {
 
       switch (response.status) {
         case 401:
-          // 未授权，清除令牌
-          console.log("收到401错误，清除token");
+          errorMessage = responseData.message || "未授权或登录已过期";
+          // 清除本地凭证并跳转登录页
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(REFRESH_TOKEN_KEY);
           localStorage.removeItem(USER_INFO_KEY);
-          errorMessage = responseData.message || "登录已过期，请重新登录";
+          window.dispatchEvent(
+            new CustomEvent("authChange", {
+              detail: { isAuthenticated: false },
+            }),
+          );
+          window.dispatchEvent(new CustomEvent("open-login-modal"));
           break;
         case 403:
           errorMessage = responseData.message || "没有权限执行此操作";
@@ -113,9 +135,9 @@ async function request(endpoint, method, data = null, useAuth = true) {
 export const authApi = {
   // 1. 获取身份验证码 - POST /api/v1/auth/verification
   // 用于注册、登录、找回密码等场景
-  async getVerification(data) {
+  async getVerification() {
     try {
-      const response = await request("/auth/verification", "POST", data, false);
+      const response = await request("/auth/verification", "POST", null, false);
       return response;
     } catch (error) {
       console.error("获取验证码失败:", error);
@@ -341,7 +363,6 @@ export const postApi = {
       if (params.page) queryParams.append("page", params.page);
       if (params.size) queryParams.append("size", params.size);
       if (params.sectionId) queryParams.append("sectionId", params.sectionId);
-      if (params.sortBy) queryParams.append("sortBy", params.sortBy);
 
       const endpoint = queryParams.toString()
         ? `/posts?${queryParams.toString()}`
@@ -442,7 +463,7 @@ export const sectionApi = {
   // 返回格式: { code, message, data: SectionDO }
   async getSectionById(id) {
     try {
-      const response = await request(`/sections/${id}`, "GET", null, false);
+      const response = await request(`/sections/${id}`, "GET", null, true);
       return response;
     } catch (error) {
       console.error("获取板块详情失败:", error);
@@ -451,7 +472,87 @@ export const sectionApi = {
   },
 };
 
-// ==================== 五、like-controller (点赞控制器) ====================
+// ==================== 五、user-controller (用户管理控制器) ====================
+export const userApi = {
+  // 1. 获取当前用户资料 - GET /api/v1/users/profile
+  async getCurrentProfile() {
+    try {
+      const response = await request("/users/profile", "GET", null, true);
+      return response;
+    } catch (error) {
+      console.error("获取当前用户资料失败:", error);
+      throw error;
+    }
+  },
+
+  // 2. 更新用户资料 - PUT /api/v1/users/profile
+  async updateProfile(profileData) {
+    try {
+      const response = await request(
+        "/users/profile",
+        "PUT",
+        profileData,
+        true,
+      );
+      return response;
+    } catch (error) {
+      console.error("更新用户资料失败:", error);
+      throw error;
+    }
+  },
+
+  // 3. 上传头像 - POST /api/v1/users/avatar
+  async uploadAvatar(file) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const url = `${API_BASE_URL}/users/avatar`;
+      const token = localStorage.getItem(TOKEN_KEY);
+      const headers = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: formData,
+        credentials: "include",
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new ApiError(
+          responseData.message || "上传头像失败",
+          response.status,
+        );
+      }
+      return responseData;
+    } catch (error) {
+      console.error("上传头像失败:", error);
+      throw error;
+    }
+  },
+
+  // 4. 获取指定用户资料 - GET /api/v1/users/{userId}/profile
+  async getUserProfile(userId) {
+    try {
+      const response = await request(
+        `/users/${userId}/profile`,
+        "GET",
+        null,
+        true,
+      );
+      return response;
+    } catch (error) {
+      console.error("获取用户资料失败:", error);
+      throw error;
+    }
+  },
+};
+
+// ==================== 六、like-controller (点赞控制器) ====================
 export const likeApi = {
   // 点赞 - POST /api/v1/likes
   // 请求体: { targetType, targetId }
@@ -521,5 +622,6 @@ export default {
   post: postApi,
   reply: replyApi,
   section: sectionApi,
+  user: userApi,
   like: likeApi,
 };

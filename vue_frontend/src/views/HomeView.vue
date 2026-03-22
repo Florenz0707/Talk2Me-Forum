@@ -150,6 +150,7 @@
 import { ref, onMounted, onBeforeUnmount, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "../components/Header.vue";
+import { postApi } from "../utils/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -208,19 +209,11 @@ const loadThreads = async () => {
   error.value = null;
 
   try {
-    // 构建请求URL
-    const url = new URL("http://localhost:8099/talk2me/api/v1/posts");
-    url.searchParams.append("page", currentPage.value);
-    url.searchParams.append("size", 20);
-    url.searchParams.append("sortBy", sortBy.value);
-
-    // 发送请求
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("请求失败");
-    }
-
-    const data = await response.json();
+    const data = await postApi.getPosts({
+      page: currentPage.value,
+      size: 20,
+      sortBy: sortBy.value,
+    });
 
     // 处理响应数据
     if (data.code === 200 && data.data) {
@@ -237,8 +230,8 @@ const loadThreads = async () => {
       }));
 
       // 更新分页信息
-      totalPages.value = data.data.pages;
-      totalPosts.value = data.data.total;
+      totalPages.value = data.data.total_pages;
+      totalPosts.value = data.data.total_num;
       jumpPage.value = currentPage.value;
     } else {
       throw new Error(data.message || "获取帖子列表失败");

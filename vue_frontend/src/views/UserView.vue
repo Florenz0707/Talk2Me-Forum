@@ -321,15 +321,7 @@
                   <label>用户名</label>
                   <input
                     type="text"
-                    v-model="editUsername"
-                    class="form-input"
-                  />
-                </div>
-                <div class="form-group">
-                  <label>邮箱</label>
-                  <input
-                    type="email"
-                    :value="userEmail"
+                    :value="editUsername"
                     disabled
                     class="form-input"
                   />
@@ -337,6 +329,32 @@
                 <div class="form-group">
                   <label>个性签名</label>
                   <textarea v-model="editBio" class="form-textarea"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>生日</label>
+                  <input
+                    type="date"
+                    v-model="editBirthday"
+                    class="form-input"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>性别</label>
+                  <select v-model="editGender" class="form-input">
+                    <option value="">请选择</option>
+                    <option value="MALE">男</option>
+                    <option value="FEMALE">女</option>
+                    <option value="OTHER">其他</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>职业</label>
+                  <input
+                    type="text"
+                    v-model="editOccupation"
+                    class="form-input"
+                    placeholder="请输入职业"
+                  />
                 </div>
                 <button class="save-btn" @click="handleSaveProfile">
                   保存修改
@@ -385,7 +403,7 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, inject, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { authApi } from "../utils/api";
+import { authApi, userApi } from "../utils/api";
 
 export default {
   name: "UserView",
@@ -456,22 +474,28 @@ export default {
     // 编辑个人资料
     const editUsername = ref("");
     const editBio = ref("");
+    const editBirthday = ref("");
+    const editGender = ref("");
+    const editOccupation = ref("");
 
     // 保存个人资料
     const handleSaveProfile = async () => {
       try {
-        // 保存到本地
-        localStorage.setItem("username", editUsername.value);
-        localStorage.setItem("userBio", editBio.value);
-
-        username.value = editUsername.value;
-
-        // TODO: 调用后端接口
-        // await userApi.updateProfile({
-        //   username: editUsername.value,
-        //   bio: editBio.value
-        // });
-
+        const profileData = {
+          bio: editBio.value,
+          birthday: editBirthday.value || null,
+          gender: editGender.value || null,
+          occupation: editOccupation.value || null,
+        };
+        const response = await userApi.updateProfile(profileData);
+        if (response.data) {
+          const p = response.data;
+          if (p.bio !== undefined) editBio.value = p.bio || "";
+          if (p.birthday !== undefined) editBirthday.value = p.birthday || "";
+          if (p.gender !== undefined) editGender.value = p.gender || "";
+          if (p.occupation !== undefined)
+            editOccupation.value = p.occupation || "";
+        }
         alert("个人资料保存成功");
       } catch (error) {
         console.error("保存个人资料失败:", error);
@@ -485,7 +509,7 @@ export default {
     };
 
     // 处理头像更换
-    const handleAvatarChange = (event) => {
+    const handleAvatarChange = async (event) => {
       const file = event.target.files[0];
       if (!file) return;
 
@@ -500,21 +524,22 @@ export default {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const avatarData = e.target.result;
-        userAvatar.value = avatarData;
-        // 保存到本地
-        localStorage.setItem("userAvatar", avatarData);
-
-        // TODO: 上传到后端
-        // uploadAvatarToServer(file);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const response = await userApi.uploadAvatar(file);
+        // API 返回 ResultString: { code, message, data: "url_string" }
+        if (response.data) {
+          userAvatar.value = response.data;
+          alert("头像上传成功");
+        }
+      } catch (error) {
+        console.error("上传头像失败:", error);
+        alert("上传失败，请稍后重试");
+      }
     };
 
-    // 获取当前登录用户信息
-    const fetchUserInfo = () => {
+    // 获取当前登录用户信息（含完整 profile）
+    const fetchUserInfo = async () => {
+      // 先从 token 取用户名作为初始值
       const nameFromToken = authApi.getUsernameFromToken();
       if (nameFromToken) {
         username.value = nameFromToken;
@@ -524,25 +549,27 @@ export default {
         username.value = remembered || "用户";
         editUsername.value = username.value;
       }
-
-      // 从本地读取头像和个性签名
-      const savedAvatar = localStorage.getItem("userAvatar");
-      if (savedAvatar) {
-        userAvatar.value = savedAvatar;
+      // 从后端拉取完整 profile
+      try {
+        const res = await userApi.getCurrentProfile();
+        if (res.data) {
+          const p = res.data;
+          if (p.username) {
+            username.value = p.username;
+            editUsername.value = p.username;
+          }
+          if (p.bio) editBio.value = p.bio;
+          if (p.avatar) userAvatar.value = p.avatar;
+          if (p.birthday) editBirthday.value = p.birthday;
+          if (p.gender) editGender.value = p.gender;
+          if (p.occupation) editOccupation.value = p.occupation;
+          likesCount.value = p.likeCount || 0;
+          followingCount.value = p.followingCount || 0;
+          followersCount.value = p.followerCount || 0;
+        }
+      } catch (error) {
+        console.error("获取用户资料失败:", error);
       }
-
-      const savedBio = localStorage.getItem("userBio");
-      if (savedBio) {
-        editBio.value = savedBio;
-      }
-
-      // TODO: 从后端获取用户详情
-      // const userInfo = await userApi.getUserProfile();
-      // userAvatar.value = userInfo.avatar;
-      // editBio.value = userInfo.bio;
-      // userEmail.value = userInfo.email;
-
-      userEmail.value = "";
     };
 
     // 退出登录
@@ -591,8 +618,22 @@ export default {
       }
     });
 
+    // 401 后用户重新登录时，自动重新加载用户信息
+    watch(isLoggedIn, (newValue, oldValue) => {
+      if (newValue && !oldValue) {
+        fetchUserInfo();
+      }
+    });
+
     // 页面挂载时获取用户信息
     onMounted(() => {
+      // 未登录则跳回主页并弹出登录框
+      if (!authApi.isAuthenticated()) {
+        window.dispatchEvent(new CustomEvent("open-login-modal"));
+        router.push("/");
+        return;
+      }
+
       if (route.query.tab) {
         activeNavItem.value = route.query.tab;
       }
@@ -683,14 +724,8 @@ export default {
       newMessageTargetId.value = contact.id;
     };
 
-    // 获取统计数据
-    const fetchStats = async () => {
-      // TODO: 调用后端接口获取统计数据
-      // const stats = await userApi.getStats();
-      // likesCount.value = stats.likes;
-      // followingCount.value = stats.following;
-      // followersCount.value = stats.followers;
-    };
+    // 获取统计数据（由 fetchUserInfo 中的 getCurrentProfile 统一处理）
+    const fetchStats = async () => {};
 
     // 获取关注列表
     const fetchFollowing = async () => {
@@ -766,6 +801,9 @@ export default {
       formatTime,
       editUsername,
       editBio,
+      editBirthday,
+      editGender,
+      editOccupation,
       handleSaveProfile,
       userAvatar,
       showAvatarOverlay,
