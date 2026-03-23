@@ -1,12 +1,14 @@
 package com.example.springboot_backend.talk2me.controller;
 
 import com.example.springboot_backend.core.model.Result;
+import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
 import com.example.springboot_backend.talk2me.model.vo.UpdateProfileRequest;
 import com.example.springboot_backend.talk2me.model.vo.UserProfileResponse;
 import com.example.springboot_backend.talk2me.service.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,11 +24,27 @@ public class UserController {
     this.userService = userService;
   }
 
+  private Long getCurrentUserId(Authentication auth) {
+    if (auth == null || !auth.isAuthenticated()) {
+      throw new AccessDeniedException("未认证用户");
+    }
+
+    Object principal = auth.getPrincipal();
+    if (principal instanceof UserDetailsServiceImpl.UserPrincipal userPrincipal) {
+      return userPrincipal.getId();
+    }
+
+    try {
+      return Long.parseLong(auth.getName());
+    } catch (NumberFormatException ex) {
+      throw new IllegalStateException("无法从认证信息中解析用户ID", ex);
+    }
+  }
+
   @GetMapping("/profile")
   @Operation(summary = "获取当前用户资料")
   public Result<UserProfileResponse> getCurrentProfile(Authentication auth) {
-    Long userId = Long.parseLong(auth.getName());
-    return Result.success(userService.getProfile(userId));
+    return Result.success(userService.getProfile(getCurrentUserId(auth)));
   }
 
   @GetMapping("/{userId}/profile")
@@ -39,15 +57,13 @@ public class UserController {
   @Operation(summary = "更新用户资料")
   public Result<UserProfileResponse> updateProfile(
       Authentication auth, @Valid @RequestBody UpdateProfileRequest request) {
-    Long userId = Long.parseLong(auth.getName());
-    return Result.success(userService.updateProfile(userId, request));
+    return Result.success(userService.updateProfile(getCurrentUserId(auth), request));
   }
 
   @PostMapping("/avatar")
   @Operation(summary = "上传头像")
   public Result<String> uploadAvatar(
       Authentication auth, @RequestParam("file") MultipartFile file) {
-    Long userId = Long.parseLong(auth.getName());
-    return Result.success(userService.uploadAvatar(userId, file));
+    return Result.success(userService.uploadAvatar(getCurrentUserId(auth), file));
   }
 }

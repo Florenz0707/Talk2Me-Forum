@@ -41,9 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       // 只有当请求中包含有效的JWT Token时，才设置认证上下文
       // 对于公开端点（如登录、注册），如果没有token，Spring Security的permitAll()会允许访问
       if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-        String username = tokenProvider.getUsernameFromToken(jwt);
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        String subject = tokenProvider.getUsernameFromToken(jwt);
+        UserDetails userDetails = loadUserDetailsBySubject(subject);
         UsernamePasswordAuthenticationToken authentication =
             new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
@@ -56,6 +55,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  private UserDetails loadUserDetailsBySubject(String subject) {
+    if (!StringUtils.hasText(subject)) {
+      throw new IllegalArgumentException("JWT subject is empty");
+    }
+    if (isNumeric(subject)) {
+      return userDetailsService.loadUserById(Long.parseLong(subject));
+    }
+    return userDetailsService.loadUserByUsername(subject);
+  }
+
+  private boolean isNumeric(String value) {
+    for (int i = 0; i < value.length(); i++) {
+      if (!Character.isDigit(value.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private String getJwtFromRequest(HttpServletRequest request) {
