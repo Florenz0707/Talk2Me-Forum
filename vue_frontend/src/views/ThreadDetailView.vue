@@ -316,7 +316,7 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { likeApi, replyApi, postApi } from "../utils/api";
+import { likeApi, replyApi, postApi, sectionApi } from "../utils/api";
 import Header from "../components/Header.vue";
 
 export default {
@@ -658,6 +658,20 @@ export default {
             likes: post.likeCount || 0,
             isLiked: post.isLiked || false,
           };
+
+          // 若帖子数据中没有板块名称，则根据 sectionId 单独获取
+          if (!thread.value.sectionName && post.sectionId) {
+            try {
+              const sectionRes = await sectionApi.getSectionById(
+                post.sectionId,
+              );
+              if (sectionRes.code === 200 && sectionRes.data) {
+                thread.value.sectionName = sectionRes.data.name || "";
+              }
+            } catch (sectionError) {
+              console.error("获取板块信息失败:", sectionError);
+            }
+          }
         }
       } catch (error) {
         console.error("获取帖子详情失败:", error);

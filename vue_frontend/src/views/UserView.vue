@@ -85,17 +85,17 @@
               <i class="fas fa-envelope"></i>
               <span>我的消息</span>
             </div>
-            <div
-              class="nav-item"
-              :class="{ active: activeNavItem === 'favorites' }"
-              @click="
-                activeNavItem = 'favorites';
-                activeStatsTab = null;
-              "
-            >
-              <i class="fas fa-star"></i>
-              <span>收藏</span>
-            </div>
+            <!--            <div-->
+            <!--              class="nav-item"-->
+            <!--              :class="{ active: activeNavItem === 'favorites' }"-->
+            <!--              @click="-->
+            <!--                activeNavItem = 'favorites';-->
+            <!--                activeStatsTab = null;-->
+            <!--              "-->
+            <!--            >-->
+            <!--              <i class="fas fa-star"></i>-->
+            <!--              <span>收藏</span>-->
+            <!--            </div>-->
             <div
               class="nav-item"
               :class="{ active: activeNavItem === 'profile' }"
@@ -263,55 +263,55 @@
             </div>
 
             <!-- 收藏内容 -->
-            <div v-else-if="activeNavItem === 'favorites'">
-              <h2>默认收藏夹</h2>
-              <div v-if="favoritesLoading" class="empty-state">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>加载中...</p>
-              </div>
-              <div v-else-if="favoriteThreads.length === 0" class="empty-state">
-                <i class="fas fa-star"></i>
-                <p>暂无收藏</p>
-              </div>
-              <div v-else class="thread-table-container">
-                <table class="thread-table">
-                  <thead>
-                    <tr class="thread-header">
-                      <th class="thread-info">帖子</th>
-                      <th class="thread-author">作者</th>
-                      <th class="thread-time">时间</th>
-                      <th class="thread-replies">回复</th>
-                      <th class="thread-views">浏览</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="thread in favoriteThreads"
-                      :key="thread.id"
-                      class="thread-item"
-                    >
-                      <td class="thread-info">
-                        <div class="thread-title">
-                          <router-link
-                            :to="'/thread/' + thread.id"
-                            :title="thread.title"
-                            >{{ thread.title }}</router-link
-                          >
-                        </div>
-                      </td>
-                      <td class="thread-author">
-                        <span class="author-name">{{ thread.author }}</span>
-                      </td>
-                      <td class="thread-time">
-                        {{ formatTime(thread.createdAt) }}
-                      </td>
-                      <td class="thread-replies">{{ thread.replies }}</td>
-                      <td class="thread-views">{{ thread.views }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <!--            <div v-else-if="activeNavItem === 'favorites'">-->
+            <!--              <h2>默认收藏夹</h2>-->
+            <!--              <div v-if="favoritesLoading" class="empty-state">-->
+            <!--                <i class="fas fa-spinner fa-spin"></i>-->
+            <!--                <p>加载中...</p>-->
+            <!--              </div>-->
+            <!--              <div v-else-if="favoriteThreads.length === 0" class="empty-state">-->
+            <!--                <i class="fas fa-star"></i>-->
+            <!--                <p>暂无收藏</p>-->
+            <!--              </div>-->
+            <!--              <div v-else class="thread-table-container">-->
+            <!--                <table class="thread-table">-->
+            <!--                  <thead>-->
+            <!--                    <tr class="thread-header">-->
+            <!--                      <th class="thread-info">帖子</th>-->
+            <!--                      <th class="thread-author">作者</th>-->
+            <!--                      <th class="thread-time">时间</th>-->
+            <!--                      <th class="thread-replies">回复</th>-->
+            <!--                      <th class="thread-views">浏览</th>-->
+            <!--                    </tr>-->
+            <!--                  </thead>-->
+            <!--                  <tbody>-->
+            <!--                    <tr-->
+            <!--                      v-for="thread in favoriteThreads"-->
+            <!--                      :key="thread.id"-->
+            <!--                      class="thread-item"-->
+            <!--                    >-->
+            <!--                      <td class="thread-info">-->
+            <!--                        <div class="thread-title">-->
+            <!--                          <router-link-->
+            <!--                            :to="'/thread/' + thread.id"-->
+            <!--                            :title="thread.title"-->
+            <!--                            >{{ thread.title }}</router-link-->
+            <!--                          >-->
+            <!--                        </div>-->
+            <!--                      </td>-->
+            <!--                      <td class="thread-author">-->
+            <!--                        <span class="author-name">{{ thread.author }}</span>-->
+            <!--                      </td>-->
+            <!--                      <td class="thread-time">-->
+            <!--                        {{ formatTime(thread.createdAt) }}-->
+            <!--                      </td>-->
+            <!--                      <td class="thread-replies">{{ thread.replies }}</td>-->
+            <!--                      <td class="thread-views">{{ thread.views }}</td>-->
+            <!--                    </tr>-->
+            <!--                  </tbody>-->
+            <!--                </table>-->
+            <!--              </div>-->
+            <!--            </div>-->
 
             <!-- 个人资料内容 -->
             <div v-else-if="activeNavItem === 'profile'">
