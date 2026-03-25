@@ -7,6 +7,7 @@ import com.example.springboot_backend.talk2me.model.domain.ReplyDO;
 import com.example.springboot_backend.talk2me.model.vo.CreateReplyRequest;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
 import com.example.springboot_backend.talk2me.repository.ReplyMapper;
+import com.example.springboot_backend.talk2me.service.INotificationService;
 import com.example.springboot_backend.talk2me.service.IReplyService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,10 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReplyService implements IReplyService {
   private final ReplyMapper replyMapper;
   private final PostMapper postMapper;
+  private final INotificationService notificationService;
 
-  public ReplyService(ReplyMapper replyMapper, PostMapper postMapper) {
+  public ReplyService(
+      ReplyMapper replyMapper, PostMapper postMapper, INotificationService notificationService) {
     this.replyMapper = replyMapper;
     this.postMapper = postMapper;
+    this.notificationService = notificationService;
   }
 
   @Override
@@ -45,6 +49,9 @@ public class ReplyService implements IReplyService {
 
     post.setReplyCount(post.getReplyCount() + 1);
     postMapper.updateById(post);
+
+    notificationService.createNotification(
+        post.getUserId(), userId, "REPLY_POST", "POST", postId, "你的帖子有了新回复");
 
     return reply;
   }

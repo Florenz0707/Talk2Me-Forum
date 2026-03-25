@@ -77,6 +77,32 @@ CREATE TABLE IF NOT EXISTS likes (
 CREATE UNIQUE INDEX IF NOT EXISTS uk_user_target ON likes(user_id, target_type, target_id);
 CREATE INDEX IF NOT EXISTS idx_target ON likes(target_type, target_id);
 
+-- 关注关系表
+CREATE TABLE IF NOT EXISTS user_follows (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    follower_id BIGINT NOT NULL,
+    followee_id BIGINT NOT NULL,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_follow_relation ON user_follows(follower_id, followee_id);
+CREATE INDEX IF NOT EXISTS idx_followee_id ON user_follows(followee_id);
+
+-- 通知表
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    recipient_id BIGINT NOT NULL,
+    actor_id BIGINT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    target_type VARCHAR(20) NOT NULL,
+    target_id BIGINT NOT NULL,
+    content VARCHAR(500) NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_notification_recipient ON notifications(recipient_id, is_read, create_time);
+
 -- 初始化分区数据
 INSERT INTO sections (name, description, create_time, update_time) VALUES
 ('技术讨论', '技术相关话题', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

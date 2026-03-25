@@ -39,7 +39,7 @@ class UserControllerTest {
     when(userService.getProfile(1L)).thenReturn(response);
 
     mockMvc
-        .perform(get("/api/users/profile"))
+        .perform(get("/api/v1/users/profile"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.username").value("testuser"));
   }
@@ -59,7 +59,7 @@ class UserControllerTest {
 
     mockMvc
         .perform(
-            put("/api/users/profile")
+            put("/api/v1/users/profile")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
@@ -76,7 +76,7 @@ class UserControllerTest {
     when(userService.getProfile(2L)).thenReturn(response);
 
     mockMvc
-        .perform(get("/api/users/2/profile"))
+        .perform(get("/api/v1/users/2/profile"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.username").value("otheruser"));
   }
