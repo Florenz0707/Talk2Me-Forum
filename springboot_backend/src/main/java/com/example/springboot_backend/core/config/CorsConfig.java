@@ -9,6 +9,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -128,16 +130,19 @@ public class CorsConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final Environment environment;
 
     public SecurityConfig(
         JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
         JwtAccessDeniedHandler jwtAccessDeniedHandler,
         JwtAuthenticationFilter jwtAuthenticationFilter,
-        CorsConfigurationSource corsConfigurationSource) {
+        CorsConfigurationSource corsConfigurationSource,
+        Environment environment) {
       this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
       this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
       this.jwtAuthenticationFilter = jwtAuthenticationFilter;
       this.corsConfigurationSource = corsConfigurationSource;
+      this.environment = environment;
     }
 
     @Bean
@@ -162,36 +167,43 @@ public class CorsConfig {
           .sessionManagement(
               session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
           .authorizeHttpRequests(
-              auth ->
-                  auth
-                      // H2控制台允许访问（仅开发环境）
-                      .requestMatchers("/h2-console", "/h2-console/**")
-                      .permitAll()
-                      // Actuator端点允许访问（仅开发环境，生产环境应该限制）
-                      .requestMatchers("/actuator", "/actuator/**")
-                      .permitAll()
-                      // 公开端点：登录、注册、刷新token不需要认证
-                      // 注意：Spring Security会自动处理server.servlet.context-path，这里不需要包含context-path
-                      .requestMatchers(
-                          "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh")
-                      .permitAll()
-                      // Swagger文档允许访问
-                      .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
-                      .permitAll()
-                      // 放行Spring Boot错误分发路径，避免业务异常被二次拦截成401
-                      .requestMatchers("/error")
-                      .permitAll()
-                      // GET请求允许访问
-                      .requestMatchers(HttpMethod.GET, "/api/v1/sections", "/api/v1/sections/**")
-                      .permitAll()
-                      .requestMatchers(HttpMethod.GET, "/api/v1/posts", "/api/v1/posts/**")
-                      .permitAll()
-                      // 其他认证相关端点需要认证
-                      .requestMatchers("/api/v1/auth/**")
-                      .authenticated()
-                      // 其他所有请求需要认证
-                      .anyRequest()
-                      .authenticated())
+              auth -> {
+                // 仅开发环境放行H2控制台和Actuator
+                if (isDevProfile()) {
+                  auth.requestMatchers("/h2-console", "/h2-console/**").permitAll();
+                  auth.requestMatchers("/actuator", "/actuator/**").permitAll();
+                } else {
+                  auth.requestMatchers("/h2-console", "/h2-console/**").denyAll();
+                  auth.requestMatchers("/actuator", "/actuator/**").authenticated();
+                }
+
+                auth
+                    // 公开端点：登录、注册、刷新token不需要认证
+                    // 注意：Spring Security会自动处理server.servlet.context-path，这里不需要包含context-path
+                    .requestMatchers(
+                        "/api/v1/auth/login",
+                        "/api/v1/auth/register",
+                        "/api/v1/auth/refresh",
+                        "/api/v1/auth/verification")
+                    .permitAll()
+                    // Swagger文档允许访问
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+                    .permitAll()
+                    // 放行Spring Boot错误分发路径，避免业务异常被二次拦截成401
+                    .requestMatchers("/error")
+                    .permitAll()
+                    // GET请求允许访问
+                    .requestMatchers(HttpMethod.GET, "/api/v1/sections", "/api/v1/sections/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/posts", "/api/v1/posts/**")
+                    .permitAll()
+                    // 其他认证相关端点需要认证
+                    .requestMatchers("/api/v1/auth/**")
+                    .authenticated()
+                    // 其他所有请求需要认证
+                    .anyRequest()
+                    .authenticated();
+              })
           .exceptionHandling(
               exception ->
                   exception
@@ -205,6 +217,10 @@ public class CorsConfig {
           .rememberMe(AbstractHttpConfigurer::disable);
 
       return http.build();
+    }
+
+    private boolean isDevProfile() {
+      return environment.acceptsProfiles(Profiles.of("dev", "local", "test"));
     }
   }
 }

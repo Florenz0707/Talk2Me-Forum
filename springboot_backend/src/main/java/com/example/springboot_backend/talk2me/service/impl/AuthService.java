@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,18 +26,21 @@ public class AuthService implements IAuthService {
   private final PasswordEncoder passwordEncoder;
   private final JwtTokenProvider tokenProvider;
   private final AuthenticationManager authenticationManager;
+  private final UserDetailsServiceImpl userDetailsService;
 
   public AuthService(
       UserMapper userMapper,
       UserStatsMapper userStatsMapper,
       PasswordEncoder passwordEncoder,
       JwtTokenProvider tokenProvider,
-      AuthenticationManager authenticationManager) {
+      AuthenticationManager authenticationManager,
+      UserDetailsServiceImpl userDetailsService) {
     this.userMapper = userMapper;
     this.userStatsMapper = userStatsMapper;
     this.passwordEncoder = passwordEncoder;
     this.tokenProvider = tokenProvider;
     this.authenticationManager = authenticationManager;
+    this.userDetailsService = userDetailsService;
   }
 
   @Override
@@ -99,8 +103,14 @@ public class AuthService implements IAuthService {
       throw new RuntimeException("Token is not a refresh token");
     }
 
-    // 返回成功消息
-    return new RefreshResponse("Token refreshed successfully");
+    String username = tokenProvider.getUsernameFromToken(refreshToken);
+    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    String newAccessToken = tokenProvider.generateToken(authentication);
+    String newRefreshToken = tokenProvider.generateRefreshToken(username);
+
+    return new RefreshResponse(newAccessToken, newRefreshToken, "Token refreshed successfully");
   }
 
   @Override
