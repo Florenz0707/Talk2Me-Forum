@@ -189,6 +189,9 @@ public class CorsConfig {
                     // Swagger文档允许访问
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
+                    // WebSocket 握手端点放行，认证在 STOMP CONNECT 阶段处理
+                    .requestMatchers("/ws/**")
+                    .permitAll()
                     // 放行Spring Boot错误分发路径，避免业务异常被二次拦截成401
                     .requestMatchers("/error")
                     .permitAll()

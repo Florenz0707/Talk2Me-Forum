@@ -11,9 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class NotificationService implements INotificationService {
   private final NotificationMapper notificationMapper;
+  private final NotificationRealtimeService notificationRealtimeService;
 
-  public NotificationService(NotificationMapper notificationMapper) {
+  public NotificationService(
+      NotificationMapper notificationMapper,
+      NotificationRealtimeService notificationRealtimeService) {
     this.notificationMapper = notificationMapper;
+    this.notificationRealtimeService = notificationRealtimeService;
   }
 
   @Override
@@ -41,6 +45,7 @@ public class NotificationService implements INotificationService {
     notification.setContent(content);
     notification.setIsRead(false);
     notificationMapper.insert(notification);
+    notificationRealtimeService.dispatch(notification);
     return notification;
   }
 
