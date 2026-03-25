@@ -75,25 +75,28 @@ public class UserService implements IUserService {
   @Transactional
   public String uploadAvatar(Long userId, MultipartFile file) {
     if (file.isEmpty()) {
-      throw new RuntimeException("文件不能为空");
+      throw new IllegalArgumentException("文件不能为空");
     }
 
     String originalFilename = file.getOriginalFilename();
-    String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+    String extension = extractExtension(originalFilename);
     String filename = UUID.randomUUID().toString() + extension;
 
     try {
-      Path uploadDir = Paths.get(avatarUploadPath);
+      Path uploadDir = Paths.get(avatarUploadPath).toAbsolutePath().normalize();
       if (!Files.exists(uploadDir)) {
         Files.createDirectories(uploadDir);
       }
 
-      Path filePath = uploadDir.resolve(filename);
-      file.transferTo(filePath.toFile());
+      Path filePath = uploadDir.resolve(filename).normalize();
+      file.transferTo(filePath);
 
       String avatarUrl = "/avatars/" + filename;
 
       UserDO user = userMapper.selectById(userId);
+      if (user == null) {
+        throw new RuntimeException("用户不存在");
+      }
       user.setAvatar(avatarUrl);
       user.setUpdateTime(LocalDateTime.now());
       userMapper.updateById(user);
@@ -102,6 +105,17 @@ public class UserService implements IUserService {
     } catch (IOException e) {
       throw new RuntimeException("文件上传失败", e);
     }
+  }
+
+  private String extractExtension(String originalFilename) {
+    if (originalFilename == null || originalFilename.isBlank()) {
+      throw new IllegalArgumentException("文件名不能为空");
+    }
+    int dotIndex = originalFilename.lastIndexOf('.');
+    if (dotIndex < 0 || dotIndex == originalFilename.length() - 1) {
+      throw new IllegalArgumentException("文件必须包含有效后缀名");
+    }
+    return originalFilename.substring(dotIndex);
   }
 
   private UserStatsDO initUserStats(Long userId) {
