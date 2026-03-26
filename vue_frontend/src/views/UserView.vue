@@ -667,6 +667,14 @@ export default {
       }
     };
 
+    const classifyNotification = (notification) => {
+      const type = String(notification?.type || "").toUpperCase();
+      if (type.startsWith("LIKE")) return "likes";
+      if (type.startsWith("REPLY")) return "replies";
+      if (type.startsWith("FOLLOW")) return "follows";
+      return "unknown";
+    };
+
     // 加载通知列表
     const loadNotifications = async () => {
       try {
@@ -676,13 +684,13 @@ export default {
         });
         if (res.data?.records) {
           likeNotifications.value = res.data.records.filter(
-            (n) => n.type === "LIKE",
+            (n) => classifyNotification(n) === "likes",
           );
           replyNotifications.value = res.data.records.filter(
-            (n) => n.type === "REPLY",
+            (n) => classifyNotification(n) === "replies",
           );
           followNotifications.value = res.data.records.filter(
-            (n) => n.type === "FOLLOW",
+            (n) => classifyNotification(n) === "follows",
           );
         }
       } catch (error) {
@@ -692,12 +700,13 @@ export default {
 
     // 处理WebSocket通知
     const handleNotification = (notification) => {
-      if (notification.type === "LIKE") {
+      const category = classifyNotification(notification);
+      if (category === "likes") {
         likeNotifications.value.unshift(notification);
         likesCount.value++;
-      } else if (notification.type === "REPLY") {
+      } else if (category === "replies") {
         replyNotifications.value.unshift(notification);
-      } else if (notification.type === "FOLLOW") {
+      } else if (category === "follows") {
         followNotifications.value.unshift(notification);
         followersCount.value++;
       }
