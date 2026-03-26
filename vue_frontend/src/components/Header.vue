@@ -48,6 +48,18 @@
                 <i class="fas fa-envelope"></i>
                 <span>我的消息</span>
               </div>
+              <div class="dropdown-item" @click="goToLikes">
+                <i class="fas fa-heart"></i>
+                <span>收到的赞</span>
+              </div>
+              <div class="dropdown-item" @click="goToFollowers">
+                <i class="fas fa-user-plus"></i>
+                <span>新的粉丝</span>
+              </div>
+              <div class="dropdown-item" @click="goToReplies">
+                <i class="fas fa-comment"></i>
+                <span>回复我的</span>
+              </div>
             </div>
           </div>
         </template>
@@ -113,7 +125,34 @@ const handleSearch = () => {
 
 // 跳转到新消息
 const goToMessages = () => {
-  router.push({ path: "/user", query: { tab: "messages" } });
+  router.push({
+    path: "/user",
+    query: { tab: "messages", messageTab: "private" },
+  });
+  showUserMenu.value = false;
+};
+
+// 跳转到收到的赞
+const goToLikes = () => {
+  router.push({
+    path: "/user",
+    query: { tab: "messages", messageTab: "likes" },
+  });
+  showUserMenu.value = false;
+};
+
+// 跳转到新的粉丝
+const goToFollowers = () => {
+  router.push({ path: "/user", query: { statsTab: "followers" } });
+  showUserMenu.value = false;
+};
+
+// 跳转到回复我的
+const goToReplies = () => {
+  router.push({
+    path: "/user",
+    query: { tab: "messages", messageTab: "replies" },
+  });
   showUserMenu.value = false;
 };
 

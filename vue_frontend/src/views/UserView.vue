@@ -44,7 +44,11 @@
     <!-- 数据指标行 -->
     <div class="stats-container">
       <div class="stats-wrapper">
-        <div class="stat-item">
+        <div
+          class="stat-item"
+          :class="{ 'stat-active': activeStatsTab === 'likes' }"
+          @click="handleStatsClick('likes')"
+        >
           <div class="stat-number">{{ likesCount }}</div>
           <div class="stat-label">获赞数</div>
         </div>
@@ -211,7 +215,89 @@
             <!-- 我的消息内容 -->
             <div v-if="activeNavItem === 'messages'" class="messages-container">
               <h2>我的消息</h2>
-              <div class="messages-layout">
+
+              <!-- 消息导航栏 -->
+              <div class="message-tabs">
+                <div
+                  class="message-tab"
+                  :class="{ active: activeMessageTab === 'likes' }"
+                  @click="activeMessageTab = 'likes'"
+                >
+                  收到的赞
+                </div>
+                <div
+                  class="message-tab"
+                  :class="{ active: activeMessageTab === 'replies' }"
+                  @click="activeMessageTab = 'replies'"
+                >
+                  回复我的
+                </div>
+                <div
+                  class="message-tab"
+                  :class="{ active: activeMessageTab === 'private' }"
+                  @click="activeMessageTab = 'private'"
+                >
+                  我的私信
+                </div>
+              </div>
+
+              <!-- 收到的赞 -->
+              <div
+                v-if="activeMessageTab === 'likes'"
+                class="notification-list"
+              >
+                <div v-if="likeNotifications.length === 0" class="empty-state">
+                  <i class="fas fa-heart"></i>
+                  <p>暂无点赞通知</p>
+                </div>
+                <div v-else>
+                  <div
+                    v-for="notif in likeNotifications"
+                    :key="notif.id"
+                    class="notification-item"
+                  >
+                    <i class="fas fa-heart notif-icon"></i>
+                    <div class="notif-content">
+                      <span class="notif-text">{{ notif.content }}</span>
+                      <span class="notif-time">{{
+                        formatTime(notif.createTime)
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 回复我的 -->
+              <div
+                v-if="activeMessageTab === 'replies'"
+                class="notification-list"
+              >
+                <div v-if="replyNotifications.length === 0" class="empty-state">
+                  <i class="fas fa-comment"></i>
+                  <p>暂无回复通知</p>
+                </div>
+                <div v-else>
+                  <div
+                    v-for="notif in replyNotifications"
+                    :key="notif.id"
+                    class="notification-item"
+                  >
+                    <i class="fas fa-comment notif-icon"></i>
+                    <div class="notif-content">
+                      <span class="notif-text">{{ notif.content }}</span>
+                      <span class="notif-time">{{
+                        formatTime(notif.createTime)
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 我的私信 -->
+              <div
+                v-if="activeMessageTab === 'private'"
+                class="messages-layout"
+              >
                 <!-- 左侧联系人列表 -->
                 <div
                   v-if="messageContacts.length > 0 || newMessageTarget"
@@ -403,7 +489,8 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, inject, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { authApi, userApi } from "../utils/api";
+import { authApi, userApi, notificationApi } from "../utils/api";
+import { notificationWS } from "../utils/websocket";
 
 export default {
   name: "UserView",
@@ -424,6 +511,14 @@ export default {
 
     // 导航栏选中项
     const activeNavItem = ref("favorites");
+
+    // 消息导航栏
+    const activeMessageTab = ref("likes");
+
+    // 通知列表
+    const likeNotifications = ref([]);
+    const replyNotifications = ref([]);
+    const followNotifications = ref([]);
 
     // 数据指标导航
     const activeStatsTab = ref(null);
@@ -572,6 +667,42 @@ export default {
       }
     };
 
+    // 加载通知列表
+    const loadNotifications = async () => {
+      try {
+        const res = await notificationApi.getNotifications({
+          page: 1,
+          size: 50,
+        });
+        if (res.data?.records) {
+          likeNotifications.value = res.data.records.filter(
+            (n) => n.type === "LIKE",
+          );
+          replyNotifications.value = res.data.records.filter(
+            (n) => n.type === "REPLY",
+          );
+          followNotifications.value = res.data.records.filter(
+            (n) => n.type === "FOLLOW",
+          );
+        }
+      } catch (error) {
+        console.error("加载通知失败:", error);
+      }
+    };
+
+    // 处理WebSocket通知
+    const handleNotification = (notification) => {
+      if (notification.type === "LIKE") {
+        likeNotifications.value.unshift(notification);
+        likesCount.value++;
+      } else if (notification.type === "REPLY") {
+        replyNotifications.value.unshift(notification);
+      } else if (notification.type === "FOLLOW") {
+        followNotifications.value.unshift(notification);
+        followersCount.value++;
+      }
+    };
+
     // 退出登录
     const handleLogout = async () => {
       isLoggingOut.value = true;
@@ -637,6 +768,13 @@ export default {
       if (route.query.tab) {
         activeNavItem.value = route.query.tab;
       }
+      if (route.query.messageTab) {
+        activeMessageTab.value = route.query.messageTab;
+      }
+      if (route.query.statsTab) {
+        activeStatsTab.value = route.query.statsTab;
+        activeNavItem.value = null;
+      }
       if (route.query.targetUser) {
         newMessageTarget.value = route.query.targetUser;
         newMessageTargetId.value = route.query.targetUserId || "";
@@ -647,6 +785,11 @@ export default {
       }
       fetchUserInfo();
       fetchStats();
+      loadNotifications();
+
+      // 连接WebSocket
+      notificationWS.connect();
+      notificationWS.onNotification(handleNotification);
 
       // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
       setTimeout(() => {
@@ -681,6 +824,7 @@ export default {
       if (navigationGuard) {
         navigationGuard();
       }
+      notificationWS.disconnect();
     });
 
     // 处理搜索
@@ -778,7 +922,12 @@ export default {
     // 处理数据指标点击
     const handleStatsClick = (tab) => {
       activeStatsTab.value = tab;
-      activeNavItem.value = null;
+      if (tab === "likes") {
+        activeNavItem.value = "messages";
+        activeMessageTab.value = "likes";
+      } else {
+        activeNavItem.value = null;
+      }
     };
 
     return {
@@ -790,6 +939,10 @@ export default {
       isLeaving,
       isEntering,
       activeNavItem,
+      activeMessageTab,
+      likeNotifications,
+      replyNotifications,
+      followNotifications,
       isLoggedIn,
       isDarkMode,
       toggleDarkMode,
@@ -2107,5 +2260,78 @@ input:checked + .slider:before {
 
 .follow-back-btn:hover {
   opacity: 0.9;
+}
+
+/* 消息导航栏 */
+.message-tabs {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.message-tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #666;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.3s;
+}
+
+.message-tab:hover {
+  color: var(--primary-color);
+}
+
+.message-tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* 通知列表 */
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f0f0f0;
+}
+
+.notif-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+  margin-top: 2px;
+}
+
+.notif-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notif-text {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.notif-time {
+  font-size: 12px;
+  color: #999;
 }
 </style>

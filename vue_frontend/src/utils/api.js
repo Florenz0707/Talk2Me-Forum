@@ -585,6 +585,76 @@ export const likeApi = {
   },
 };
 
+// ==================== 七、notification-controller (通知控制器) ====================
+export const notificationApi = {
+  // 获取通知列表 - GET /api/v1/notifications
+  async getNotifications(params = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append("page", params.page);
+      if (params.size) queryParams.append("size", params.size);
+
+      const endpoint = queryParams.toString()
+        ? `/notifications?${queryParams.toString()}`
+        : "/notifications";
+
+      const response = await request(endpoint, "GET", null, true);
+      return response;
+    } catch (error) {
+      console.error("获取通知列表失败:", error);
+      throw error;
+    }
+  },
+
+  // 获取未读通知数 - GET /api/v1/notifications/unread-count
+  async getUnreadCount() {
+    try {
+      const response = await request(
+        "/notifications/unread-count",
+        "GET",
+        null,
+        true,
+      );
+      return response;
+    } catch (error) {
+      console.error("获取未读通知数失败:", error);
+      throw error;
+    }
+  },
+
+  // 标记通知为已读 - POST /api/v1/notifications/{notificationId}/read
+  async markRead(notificationId) {
+    try {
+      const response = await request(
+        `/notifications/${notificationId}/read`,
+        "POST",
+        null,
+        true,
+      );
+      return response;
+    } catch (error) {
+      console.error("标记通知已读失败:", error);
+      throw error;
+    }
+  },
+
+  // 标记所有通知为已读 - POST /api/v1/notifications/read-all
+  async markAllRead() {
+    try {
+      const response = await request(
+        "/notifications/read-all",
+        "POST",
+        null,
+        true,
+      );
+      return response;
+    } catch (error) {
+      console.error("标记所有通知已读失败:", error);
+      throw error;
+    }
+  },
+};
+
 // 自动刷新令牌 - 可以根据需要使用
 let refreshTimeout;
 
@@ -624,4 +694,5 @@ export default {
   section: sectionApi,
   user: userApi,
   like: likeApi,
+  notification: notificationApi,
 };

@@ -173,7 +173,7 @@
 
 <script setup>
 import { ref, watch, inject } from "vue";
-import { authApi } from "../utils/api";
+import { authApi, userApi } from "../utils/api";
 
 const props = defineProps({
   visible: Boolean,
@@ -186,6 +186,17 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 
 const updateLoginStatus = inject("updateLoginStatus");
+
+const fetchUserProfile = async () => {
+  try {
+    const response = await userApi.getCurrentProfile();
+    if (response.data?.avatar_url) {
+      localStorage.setItem("userAvatar", response.data.avatar_url);
+    }
+  } catch (error) {
+    console.error("获取用户资料失败:", error);
+  }
+};
 
 const activeTab = ref(props.initialTab);
 
@@ -266,6 +277,7 @@ const handleLogin = async () => {
     await authApi.login(loginForm.value.username, loginForm.value.password);
     const token = localStorage.getItem("auth_token");
     if (token) {
+      await fetchUserProfile();
       updateLoginStatus(true);
       emit("close");
     } else {
@@ -314,6 +326,7 @@ const handleRegister = async () => {
       await authApi.login(username, password);
       const token = localStorage.getItem("auth_token");
       if (token) {
+        await fetchUserProfile();
         updateLoginStatus(true);
         setTimeout(() => emit("close"), 600);
       }
