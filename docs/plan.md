@@ -129,18 +129,21 @@
 
 #### P0
 
-- [ ] 保持现有通知接口稳定。
-      完成标准：`GET /notifications`、`GET /notifications/unread-count`、`POST /notifications/{id}/read`、`POST /notifications/read-all` 可正常使用。
-- [ ] 确认点赞、回复、关注三类通知语义稳定，且不会给自己发通知。
-- [ ] 确认实时推送与落库顺序一致。
-      完成标准：先落库，再推送。
-- [ ] 确认 `isRead` 与未读数统计一致。
+- [x] 保持现有通知接口稳定。
+      完成说明：2026-03-27，后端完成；复核 `NotificationController` 与通知服务实现，新增通知集成测试，并结合已通过的 `mvn test` 与用户确认执行通过的 `uv run test/smoke_check.py`；当前 `GET /notifications`、`GET /notifications/unread-count`、`POST /notifications/{id}/read`、`POST /notifications/read-all` 可正常使用；无阻塞遗留问题。
+- [x] 确认点赞、回复、关注三类通知语义稳定，且不会给自己发通知。
+      完成说明：2026-03-27，后端完成；复核 `LikeService`、`ReplyService`、`FollowService` 的通知触发语义，并通过 `NotificationServiceIntegrationTest` 验证自通知拦截；用户已确认 `smoke_check.py` 与 `ws_redis_notification_check.py` 成功执行，覆盖点赞、回复、关注三类链路；遗留问题是 richer payload 与跳转细节留待 Phase 2 收口。
+- [x] 确认实时推送与落库顺序一致。
+      完成说明：2026-03-27，后端完成；新增通知集成测试，在 `dispatch` 调用时验证通知记录已可从数据库查询；验证方式为 `mvn test`；无阻塞遗留问题。
+- [x] 确认 `isRead` 与未读数统计一致。
+      完成说明：2026-03-27，后端完成；新增通知集成测试覆盖单条已读、全部已读与跨用户未读数隔离；验证方式为 `mvn test` 和用户确认的脚本联调；无阻塞遗留问题。
 
 #### P1
 
-- [ ] 为前端跳转补充最低限度规则说明。
-      完成标准：`targetType=POST` 跳帖子详情；`targetType=REPLY` 跳帖子详情并定位回复；`targetType=USER` 跳用户相关页。
-- [ ] 增加通知接口返回字段说明文档，明确当前前端可依赖的字段。
+- [x] 为前端跳转补充最低限度规则说明。
+      完成说明：2026-03-27，后端完成；新增 `springboot_backend/NOTIFICATION_PHASE1_CONTRACT.md`，明确 `POST`、`USER`、`REPLY` 三类 `targetType` 的跳转语义和当前 `REPLY` 的协议限制；验证方式为文档复核；遗留问题是 `REPLY` 的完整跳转信息将在 Phase 2 统一协议中增强。
+- [x] 增加通知接口返回字段说明文档，明确当前前端可依赖的字段。
+      完成说明：2026-03-27，后端完成；新增 `springboot_backend/NOTIFICATION_PHASE1_CONTRACT.md`，说明 HTTP 列表、未读数、已读接口和 WebSocket 推送字段；验证方式为对照后端代码与前端现有消费字段复核；无阻塞遗留问题。
 
 #### P2
 

@@ -72,6 +72,7 @@ NOTIFICATION_REDIS_TOPIC=talk2me:notification:events
 - `GET /api/v1/notifications/unread-count`
 - `POST /api/v1/notifications/{notificationId}/read`
 - `POST /api/v1/notifications/read-all`
+- Phase 1 协议说明：`NOTIFICATION_PHASE1_CONTRACT.md`
 
 ## 测试脚本
 
