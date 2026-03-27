@@ -28,6 +28,11 @@ docker run -d -p 8099:8099 --env-file .env --name springboot-backend springboot-
 - Swagger UI: http://localhost:8099/talk2me/swagger-ui/index.html
 - H2 Console: http://localhost:8099/talk2me/h2-console
 
+默认开发配置已对齐以上地址：
+
+- `server.port=8099`
+- `server.servlet.context-path=/talk2me`
+
 ## 功能模块
 
 - 用户认证（注册/登录/JWT刷新）
@@ -82,8 +87,18 @@ NOTIFICATION_REDIS_TOPIC=talk2me:notification:events
 
 ```bash
 cd springboot_backend
+mvn test
 uv run test/smoke_check.py
 uv run test/ws_redis_notification_check.py
+```
+
+Python 测试脚本默认读取 `springboot_backend/.env` 中的服务配置，当前默认值为：
+
+```env
+SERVER_PORT=8099
+SERVER_CONTEXT_PATH=/talk2me
+API_BASE_PATH=/api/v1
+WEBSOCKET_ENDPOINT=/ws
 ```
 
 ## API文档

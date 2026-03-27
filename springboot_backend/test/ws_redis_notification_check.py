@@ -18,11 +18,14 @@ from typing import Dict, Optional, Tuple
 
 import websocket
 
+from env_config import load_service_config
 
+
+SERVICE_CONFIG = load_service_config()
 TIMEOUT_SECONDS = 8
-DEFAULT_BASE_URL = "http://127.0.0.1:8099"
-DEFAULT_API_BASE_PATH = "/api/v1"
-DEFAULT_WS_PATH = "/ws"
+DEFAULT_BASE_URL = SERVICE_CONFIG["base_url"]
+DEFAULT_API_BASE_PATH = SERVICE_CONFIG["api_base_path"]
+DEFAULT_WS_PATH = SERVICE_CONFIG["ws_path"]
 
 
 def assert_ok(condition: bool, message: str) -> None:
@@ -63,7 +66,12 @@ def http_json(
 
 
 def detect_base_root(base_url: str, api_base_path: str) -> str:
-    candidates = ["", "/talk2me", "/api", "/backend"]
+    configured_context_path = SERVICE_CONFIG["context_path"]
+    candidates = []
+    for candidate in [configured_context_path, "", "/talk2me", "/api", "/backend"]:
+        normalized = candidate.rstrip("/")
+        if normalized not in candidates:
+            candidates.append(normalized)
     for prefix in candidates:
         status, _ = http_json(
             f"{base_url.rstrip('/')}{prefix}",
@@ -236,6 +244,8 @@ def main() -> None:
     base_root = detect_base_root(base_url, api_base_path)
     print(f"[INFO] detected root: {base_root}")
     print(f"[INFO] api base path: {api_base_path}")
+    print(f"[INFO] ws path: {ws_path}")
+    print(f"[INFO] loaded service config: {SERVICE_CONFIG}")
 
     token_a = register_or_login(base_root, api_base_path, user_a, password)
     token_b = register_or_login(base_root, api_base_path, user_b, password)

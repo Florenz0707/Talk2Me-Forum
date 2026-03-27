@@ -227,6 +227,7 @@ springboot_backend/src/main/java/com/example/springboot_backend/
 ```bash
 ./mvnw spring-boot:run
 ./mvnw test
+mvn test
 ./mvnw validate
 ./mvnw -DskipTests package
 ```
@@ -235,6 +236,7 @@ springboot_backend/src/main/java/com/example/springboot_backend/
 
 - `validate` 会被仓库根目录 `pre-commit` 用于校验 `pom.xml`
 - 打包命令已有现成批准前缀可用：`./mvnw -DskipTests package`
+- 当前环境下如 `./mvnw test` 遇到 Mockito inline agent 问题，可优先使用 `mvn test`
 
 ### 4.4 后端环境配置
 
@@ -242,19 +244,21 @@ springboot_backend/src/main/java/com/example/springboot_backend/
 
 - `springboot_backend/src/main/resources/application.properties`
 - `springboot_backend/template.env`
+- `springboot_backend/.env`
 
 默认关键点：
 
-- `server.port` 默认是 `8080`
-- `server.servlet.context-path` 默认空
+- `server.port` 默认是 `8099`
+- `server.servlet.context-path` 默认是 `/talk2me`
 - 数据库默认是内存 H2
 - Redis 配置默认存在，但通知广播默认关闭
 - `notification.redis.enabled=false`
+- Python 联调脚本会优先读取 `springboot_backend/.env` 中的服务地址配置
 
 注意事项：
 
-1. 后端 README 中给出的 `8099` 和 `/talk2me` 是一种运行方式，不等于代码默认值。
-2. 当前前端实际假设后端跑在 `8099` 且带 `/talk2me` 前缀，因此如果后端只按默认值 `8080 + 空 context-path` 启动，前端不会直接联通。
+1. 后端默认配置已对齐当前前端联调约定：`8099` + `/talk2me`。
+2. 如果修改端口或 context-path，需要同步检查当前前端约定，否则前后端不会直接联通。
 3. 联调前必须先统一这三个位置：
    - `springboot_backend` 运行配置
    - `vue_frontend/vite.config.js`
