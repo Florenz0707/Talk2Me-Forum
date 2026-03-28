@@ -92,6 +92,8 @@
 
 ## Phase 1：通知中心闭环
 
+阶段状态：进行中。截至 2026-03-28，当前实际推进范围仍停留在 Phase 1；Phase 2 的 `NotificationVO` / richer payload 协议升级未开始，Phase 3 的地址配置和联调治理也未开始。
+
 ### 优先级
 
 - P0：必须先完成
@@ -103,26 +105,35 @@
 #### P0
 
 - [ ] 将“我的消息”页面明确收口为“通知中心”。
-- [ ] 新增“新粉丝”通知 tab，统一承接 `followNotifications`。
-- [ ] 接入未读数展示。
+- [x] 新增“新粉丝”通知 tab，统一承接 `followNotifications`。
+      完成说明：2026-03-27，前端完成；改动 `UserView.vue` 和 `Header.vue`，新增 `followers` 通知分类入口；验证方式为手工联调与页面复核；遗留问题是页面整体命名仍为“我的消息”，尚未完全收口为“通知中心”。
+- [x] 接入未读数展示。
       完成标准：Header 显示总未读 badge；通知 tab 显示分类未读态或总未读态。
+      完成说明：2026-03-27，前端完成；改动 `Header.vue`、`notificationState.js`、`UserView.vue`；已实现 Header 总未读点和分类未读 badge；验证方式为手工联调、`mvn test` 与 `pre-commit run --all-files` 后复核；无阻塞遗留问题。
 - [ ] 实现通知已读流转。
       完成标准：点击单条通知时调用 `markRead`；提供“全部标记为已读”；已读/未读样式有明确区分。
-- [ ] 处理实时通知插入后的未读状态。
+      现状说明：当前已支持单条点击已读、tab 切换时批量标记当前 tab 未读，以及已读/未读样式区分；但前端仍缺显式“全部标记为已读”入口，因此本项暂不打勾。
+- [x] 处理实时通知插入后的未读状态。
       完成标准：WebSocket 新通知进入列表顶部；未读数同步增加。
+      完成说明：2026-03-28，前后端联动完成；后端补充通知创建/删除实时事件，前端按 `eventType` 增删通知并同步未读数；验证方式为 `mvn test`、`pre-commit run --all-files` 与代码复核；无阻塞遗留问题。
 - [ ] 去掉“私信已完成”的假象。
       完成标准：当前没有私信后端时，标记为“暂未开放”或从本轮通知中心中移出。
+      现状说明：`UserView.vue` 中仍保留“我的私信”tab，因此本项尚未完成。
 
 #### P1
 
 - [ ] 通知列表支持空状态、加载状态、错误状态。
+      现状说明：当前已有空状态，但通知列表尚未补齐独立的加载态和错误态呈现。
 - [ ] 点击通知后根据 `targetType/targetId` 做基础跳转。
       完成标准：帖子通知跳帖子详情；用户通知跳用户主页或粉丝页。
-- [ ] 前端对实时通知和首次加载通知去重，避免重复插入。
+      现状说明：当前点击通知仍只执行已读，不做业务跳转。
+- [x] 前端对实时通知和首次加载通知去重，避免重复插入。
+      完成说明：2026-03-28，前端完成；`notificationState.js` 使用按 `id` 维护的通知状态源，`UserView.vue` 对实时插入使用 `prependNotification` 去重；验证方式为代码复核、`pre-commit run --all-files`；无阻塞遗留问题。
 
 #### P2
 
-- [ ] 前端分类未读数单独展示。
+- [x] 前端分类未读数单独展示。
+      完成说明：2026-03-27，前端完成；在 Header 下拉和通知 tab 中分别展示 `LIKE / REPLY / FOLLOW` 未读数；验证方式为页面联调和代码复核；无阻塞遗留问题。
 - [ ] 通知筛选和分页优化。
 
 ### 后端任务
@@ -132,11 +143,15 @@
 - [x] 保持现有通知接口稳定。
       完成说明：2026-03-27，后端完成；复核 `NotificationController` 与通知服务实现，新增通知集成测试，并结合已通过的 `mvn test` 与用户确认执行通过的 `uv run test/smoke_check.py`；当前 `GET /notifications`、`GET /notifications/unread-count`、`POST /notifications/{id}/read`、`POST /notifications/read-all` 可正常使用；无阻塞遗留问题。
 - [x] 确认点赞、回复、关注三类通知语义稳定，且不会给自己发通知。
-      完成说明：2026-03-27，后端完成；复核 `LikeService`、`ReplyService`、`FollowService` 的通知触发语义，并通过 `NotificationServiceIntegrationTest` 验证自通知拦截；用户已确认 `smoke_check.py` 与 `ws_redis_notification_check.py` 成功执行，覆盖点赞、回复、关注三类链路；遗留问题是 richer payload 与跳转细节留待 Phase 2 收口。
+      完成说明：2026-03-27 完成基础语义核对；2026-03-28 继续补齐取消点赞、删除回复后的通知撤销语义，现已由后端统一处理通知生效/失效；验证方式为 `NotificationServiceIntegrationTest`、`LikeServiceIntegrationTest`、`ReplyServiceIntegrationTest`、`mvn test` 与 `pre-commit run --all-files`；遗留问题是 richer payload 与跳转细节留待 Phase 2 收口。
 - [x] 确认实时推送与落库顺序一致。
       完成说明：2026-03-27，后端完成；新增通知集成测试，在 `dispatch` 调用时验证通知记录已可从数据库查询；验证方式为 `mvn test`；无阻塞遗留问题。
 - [x] 确认 `isRead` 与未读数统计一致。
       完成说明：2026-03-27，后端完成；新增通知集成测试覆盖单条已读、全部已读与跨用户未读数隔离；验证方式为 `mvn test` 和用户确认的脚本联调；无阻塞遗留问题。
+- [x] 将通知失效语义收口到后端。
+      完成说明：2026-03-28，后端完成；`notifications` 增加逻辑删除字段，通知服务提供撤销能力，WebSocket 推送补充 `DELETED` 事件；`LikeService.unlike`、`ReplyService.deleteReply` 已接入通知回收；验证方式为 `NotificationServiceIntegrationTest`、`LikeServiceIntegrationTest`、`ReplyServiceIntegrationTest`、`mvn test` 与 `pre-commit run --all-files`；无阻塞遗留问题。
+- [x] 维护取消点赞、删除回复后的统计一致性。
+      完成说明：2026-03-28，后端完成；取消点赞会回退作者获赞数并撤销原点赞通知，删除回复会同步回退帖子回复数、回复获赞数、作者 `user_profile.likeCount` 与相关通知；验证方式为新增服务集成测试和 `mvn test`；无阻塞遗留问题。
 
 #### P1
 
@@ -153,20 +168,22 @@
 
 前后端在这一阶段的合拢标准：
 
-- [ ] 用户能在 Header 看见未读通知数。
-- [ ] 用户能在通知中心看见“赞 / 回复 / 新粉丝”三类通知。
-- [ ] 新通知产生后链路完整。
+- [x] 用户能在 Header 看见未读通知数。
+- [x] 用户能在通知中心看见“赞 / 回复 / 新粉丝”三类通知。
+- [x] 新通知产生后链路完整。
       完成标准：数据落库；未读数增加；WebSocket 收到实时通知；前端列表顶部新增。
+      完成说明：截至 2026-03-28，创建通知与撤销通知两条链路均已打通；列表、未读数和实时事件能保持一致。
 - [ ] 点击单条已读、全部已读后状态一致。
       完成标准：列表状态更新；未读数同步归零或减少；刷新页面后状态一致。
+      现状说明：单条已读和按 tab 自动已读已可用，但缺少显式“全部已读”入口，因此该合拢点尚未完成。
 
 ### Phase 1 完成后的验收成果
 
 完成 Phase 1 后，应能明确交付以下成果：
 
 - [ ] 一版可用的“通知中心”页面，而不是半成品“消息中心”。
-- [ ] Header 未读 badge 可用，且与列表状态一致。
-- [ ] 点赞、回复、新粉丝三类通知均可查看。
+- [x] Header 未读 badge 可用，且与列表状态一致。
+- [x] 点赞、回复、新粉丝三类通知均可查看。
 - [ ] 单条已读、全部已读行为可操作且可回刷验证。
 - [ ] 一份 Phase 1 联调记录已产出。
       完成标准：包含列表拉取验证、未读数验证、WebSocket 实时通知验证、已读状态验证。
