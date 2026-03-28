@@ -7,10 +7,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from env_config import load_service_config
 
-DEFAULT_BASE_URL = "http://127.0.0.1:8099"
+
+SERVICE_CONFIG = load_service_config()
+DEFAULT_BASE_URL = SERVICE_CONFIG["base_url"]
 TIMEOUT_SECONDS = 8
-DEFAULT_API_BASE_PATH = "/api/v1"
+DEFAULT_API_BASE_PATH = SERVICE_CONFIG["api_base_path"]
 
 
 def http_json(base_url, method, path, body=None, token=None):
@@ -42,7 +45,12 @@ def http_json(base_url, method, path, body=None, token=None):
 
 
 def detect_base_root(base_url, api_base_path):
-    candidates = ["", "/talk2me", "/api", "/backend"]
+    configured_context_path = SERVICE_CONFIG["context_path"]
+    candidates = []
+    for candidate in [configured_context_path, "", "/talk2me", "/api", "/backend"]:
+        normalized = candidate.rstrip("/")
+        if normalized not in candidates:
+            candidates.append(normalized)
     for prefix in candidates:
         status, _ = http_json(
             f"{base_url}{prefix}",
@@ -117,6 +125,7 @@ def main():
     base_root = detect_base_root(base_url, api_base_path)
     print(f"[INFO] detected root: {base_root}")
     print(f"[INFO] api base path: {api_base_path}")
+    print(f"[INFO] loaded service config: {SERVICE_CONFIG}")
     token_a = register_or_login(base_root, api_base_path, user_a, pwd)
     token_b = register_or_login(base_root, api_base_path, user_b, pwd)
 

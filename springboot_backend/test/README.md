@@ -10,6 +10,17 @@
 
 ## 使用方法
 
+Python 测试脚本默认会读取 `springboot_backend/.env` 中的服务配置，至少支持以下字段：
+
+```env
+SERVER_PORT=8099
+SERVER_CONTEXT_PATH=/talk2me
+API_BASE_PATH=/api/v1
+WEBSOCKET_ENDPOINT=/ws
+```
+
+如果 `.env` 不存在，脚本会回退到以上默认值。
+
 ### 方法一：浏览器测试（推荐）
 
 1. 启动 Spring Boot 应用

@@ -1,0 +1,118 @@
+package com.example.springboot_backend.talk2me.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.springboot_backend.talk2me.model.domain.NotificationDO;
+import com.example.springboot_backend.talk2me.repository.NotificationMapper;
+import com.example.springboot_backend.talk2me.service.impl.NotificationRealtimeService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+@SpringBootTest
+class NotificationServiceIntegrationTest {
+
+  @Autowired private INotificationService notificationService;
+
+  @Autowired private NotificationMapper notificationMapper;
+
+  @MockBean private NotificationRealtimeService notificationRealtimeService;
+
+  @BeforeEach
+  void setUp() {
+    notificationMapper.delete(null);
+    reset(notificationRealtimeService);
+  }
+
+  @Test
+  void createNotification_PersistsBeforeDispatch() {
+    doAnswer(
+            invocation -> {
+              NotificationDO notification = invocation.getArgument(0);
+              assertNotNull(notification.getId());
+
+              NotificationDO persisted = notificationMapper.selectById(notification.getId());
+              assertNotNull(persisted);
+              assertEquals(notification.getRecipientId(), persisted.getRecipientId());
+              assertFalse(Boolean.TRUE.equals(persisted.getIsRead()));
+              return null;
+            })
+        .when(notificationRealtimeService)
+        .dispatch(any(NotificationDO.class));
+
+    NotificationDO created =
+        notificationService.createNotification(100L, 200L, "LIKE_POST", "POST", 300L, "你的帖子收到了一个赞");
+
+    assertNotNull(created);
+    assertEquals(1L, notificationService.countUnread(100L));
+
+    Page<NotificationDO> page = notificationService.listNotifications(100L, 1, 20);
+    assertEquals(1, page.getRecords().size());
+    assertEquals(created.getId(), page.getRecords().getFirst().getId());
+
+    verify(notificationRealtimeService).dispatch(any(NotificationDO.class));
+  }
+
+  @Test
+  void createNotification_SkipsSelfNotification() {
+    NotificationDO created =
+        notificationService.createNotification(100L, 100L, "FOLLOW_USER", "USER", 100L, "有新用户关注了你");
+
+    assertNull(created);
+    assertEquals(0L, notificationService.countUnread(100L));
+    verify(notificationRealtimeService, never()).dispatch(any(NotificationDO.class));
+  }
+
+  @Test
+  void markReadAndMarkAllRead_KeepUnreadCountConsistent() {
+    NotificationDO first =
+        notificationService.createNotification(100L, 201L, "LIKE_POST", "POST", 301L, "你的帖子收到了一个赞");
+    NotificationDO second =
+        notificationService.createNotification(100L, 202L, "REPLY_POST", "POST", 302L, "你的帖子有了新回复");
+    NotificationDO otherUserNotification =
+        notificationService.createNotification(101L, 203L, "FOLLOW_USER", "USER", 101L, "有新用户关注了你");
+
+    assertNotNull(first);
+    assertNotNull(second);
+    assertNotNull(otherUserNotification);
+    assertEquals(2L, notificationService.countUnread(100L));
+    assertEquals(1L, notificationService.countUnread(101L));
+
+    notificationService.markRead(100L, first.getId());
+
+    NotificationDO updatedFirst = notificationMapper.selectById(first.getId());
+    assertTrue(Boolean.TRUE.equals(updatedFirst.getIsRead()));
+    assertEquals(1L, notificationService.countUnread(100L));
+
+    notificationService.markAllRead(100L);
+
+    NotificationDO updatedSecond = notificationMapper.selectById(second.getId());
+    NotificationDO untouchedOtherUserNotification =
+        notificationMapper.selectById(otherUserNotification.getId());
+    assertTrue(Boolean.TRUE.equals(updatedSecond.getIsRead()));
+    assertFalse(Boolean.TRUE.equals(untouchedOtherUserNotification.getIsRead()));
+    assertEquals(0L, notificationService.countUnread(100L));
+    assertEquals(1L, notificationService.countUnread(101L));
+  }
+
+  @Test
+  void markRead_RejectsOtherUsersNotification() {
+    NotificationDO created =
+        notificationService.createNotification(
+            200L, 201L, "LIKE_REPLY", "REPLY", 301L, "你的评论收到了一个赞");
+
+    assertNotNull(created);
+    assertThrows(RuntimeException.class, () -> notificationService.markRead(100L, created.getId()));
+
+    NotificationDO persisted = notificationMapper.selectById(created.getId());
+    assertFalse(Boolean.TRUE.equals(persisted.getIsRead()));
+  }
+}
