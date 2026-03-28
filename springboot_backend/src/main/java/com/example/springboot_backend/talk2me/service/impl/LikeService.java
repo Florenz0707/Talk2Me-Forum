@@ -4,11 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.springboot_backend.talk2me.model.domain.LikeDO;
 import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.domain.ReplyDO;
+import com.example.springboot_backend.talk2me.model.domain.UserStatsDO;
 import com.example.springboot_backend.talk2me.repository.LikeMapper;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
 import com.example.springboot_backend.talk2me.repository.ReplyMapper;
+import com.example.springboot_backend.talk2me.repository.UserStatsMapper;
 import com.example.springboot_backend.talk2me.service.ILikeService;
 import com.example.springboot_backend.talk2me.service.INotificationService;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,16 +21,19 @@ public class LikeService implements ILikeService {
   private final LikeMapper likeMapper;
   private final PostMapper postMapper;
   private final ReplyMapper replyMapper;
+  private final UserStatsMapper userStatsMapper;
   private final INotificationService notificationService;
 
   public LikeService(
       LikeMapper likeMapper,
       PostMapper postMapper,
       ReplyMapper replyMapper,
+      UserStatsMapper userStatsMapper,
       INotificationService notificationService) {
     this.likeMapper = likeMapper;
     this.postMapper = postMapper;
     this.replyMapper = replyMapper;
+    this.userStatsMapper = userStatsMapper;
     this.notificationService = notificationService;
   }
 
@@ -78,16 +84,45 @@ public class LikeService implements ILikeService {
     if ("POST".equals(targetType)) {
       PostDO post = postMapper.selectById(targetId);
       if (post != null) {
-        post.setLikeCount(Math.max(0, post.getLikeCount() + delta));
+        post.setLikeCount(Math.max(0, defaultCount(post.getLikeCount()) + delta));
         postMapper.updateById(post);
+        updateReceivedLikeCount(post.getUserId(), delta);
       }
     } else if ("REPLY".equals(targetType)) {
       ReplyDO reply = replyMapper.selectById(targetId);
       if (reply != null) {
-        reply.setLikeCount(Math.max(0, reply.getLikeCount() + delta));
+        reply.setLikeCount(Math.max(0, defaultCount(reply.getLikeCount()) + delta));
         replyMapper.updateById(reply);
+        updateReceivedLikeCount(reply.getUserId(), delta);
       }
     }
+  }
+
+  private void updateReceivedLikeCount(Long userId, int delta) {
+    UserStatsDO stats = getOrCreateStats(userId);
+    stats.setLikeCount(Math.max(0, defaultCount(stats.getLikeCount()) + delta));
+    userStatsMapper.updateById(stats);
+  }
+
+  private UserStatsDO getOrCreateStats(Long userId) {
+    UserStatsDO stats = userStatsMapper.selectById(userId);
+    if (stats != null) {
+      return stats;
+    }
+
+    UserStatsDO newStats = new UserStatsDO();
+    newStats.setUserId(userId);
+    newStats.setLikeCount(0);
+    newStats.setFollowerCount(0);
+    newStats.setFollowingCount(0);
+    newStats.setCreateTime(LocalDateTime.now());
+    newStats.setUpdateTime(LocalDateTime.now());
+    userStatsMapper.insert(newStats);
+    return newStats;
+  }
+
+  private int defaultCount(Integer count) {
+    return count == null ? 0 : count;
   }
 
   private String normalizeTargetType(String targetType) {
