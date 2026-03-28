@@ -544,7 +544,7 @@ import { notificationWS } from "../utils/websocket";
 import { setUserAvatar } from "../utils/authStorage";
 import {
   applyIncomingNotification,
-  getLikeNotificationDelta,
+  buildEffectiveLikeNotifications,
   markNotificationsAsReadInSummary,
   notificationSummary,
   markNotificationAsReadInSummary,
@@ -616,18 +616,7 @@ export default {
     const likeUnreadCount = computed(() => notificationSummary.byType.LIKE);
     const replyUnreadCount = computed(() => notificationSummary.byType.REPLY);
     const followUnreadCount = computed(() => notificationSummary.byType.FOLLOW);
-    const notificationLikesCount = computed(() =>
-      likeNotifications.value.reduce(
-        (total, notification) =>
-          Math.max(0, total + getLikeNotificationDelta(notification)),
-        0,
-      ),
-    );
-    const likesCount = computed(() =>
-      notificationStatsLoaded.value
-        ? Math.max(profileLikesCount.value, notificationLikesCount.value)
-        : profileLikesCount.value,
-    );
+    const likesCount = computed(() => profileLikesCount.value);
     const followingCount = computed(() => profileFollowingCount.value);
     const followersCount = computed(() =>
       notificationStatsLoaded.value
@@ -879,7 +868,7 @@ export default {
     const loadNotifications = async () => {
       try {
         const records = await fetchNotificationRecords();
-        likeNotifications.value = records.filter((n) => n.type === "LIKE");
+        likeNotifications.value = buildEffectiveLikeNotifications(records);
         replyNotifications.value = records.filter((n) => n.type === "REPLY");
         followNotifications.value = records.filter((n) => n.type === "FOLLOW");
         notificationStatsLoaded.value = true;
@@ -895,8 +884,12 @@ export default {
     const handleNotification = (notification) => {
       const normalizedNotification = applyIncomingNotification(notification);
       if (normalizedNotification.type === "LIKE") {
-        prependNotification(likeNotifications, normalizedNotification);
+        likeNotifications.value = buildEffectiveLikeNotifications([
+          normalizedNotification,
+          ...likeNotifications.value,
+        ]);
         notificationStatsLoaded.value = true;
+        fetchUserInfo();
       } else if (normalizedNotification.type === "REPLY") {
         prependNotification(replyNotifications, normalizedNotification);
       } else if (normalizedNotification.type === "FOLLOW") {
