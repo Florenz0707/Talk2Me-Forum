@@ -1,5 +1,6 @@
 package com.example.springboot_backend.talk2me.model.domain;
 
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.springboot_backend.core.model.BaseEntity;
 
@@ -12,6 +13,7 @@ public class NotificationDO extends BaseEntity {
   private Long targetId;
   private String content;
   private Boolean isRead;
+  @TableLogic private Integer deleted;
 
   public Long getRecipientId() {
     return recipientId;
@@ -67,5 +69,13 @@ public class NotificationDO extends BaseEntity {
 
   public void setIsRead(Boolean isRead) {
     this.isRead = isRead;
+  }
+
+  public Integer getDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(Integer deleted) {
+    this.deleted = deleted;
   }
 }

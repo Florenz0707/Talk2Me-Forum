@@ -38,7 +38,19 @@ public class NotificationRealtimeService {
     if (notification == null) {
       return;
     }
-    NotificationPushMessage pushMessage = NotificationPushMessage.from(notification);
+    NotificationPushMessage pushMessage = NotificationPushMessage.createdFrom(notification);
+    if (!redisEnabled) {
+      sendToWebSocket(pushMessage);
+      return;
+    }
+    publishToRedis(pushMessage);
+  }
+
+  public void dispatchDeleted(NotificationDO notification) {
+    if (notification == null) {
+      return;
+    }
+    NotificationPushMessage pushMessage = NotificationPushMessage.deletedFrom(notification);
     if (!redisEnabled) {
       sendToWebSocket(pushMessage);
       return;

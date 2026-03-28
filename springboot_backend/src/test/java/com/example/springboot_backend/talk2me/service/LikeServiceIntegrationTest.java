@@ -28,6 +28,8 @@ class LikeServiceIntegrationTest {
 
   @Autowired private ILikeService likeService;
 
+  @Autowired private INotificationService notificationService;
+
   @Autowired private IUserService userService;
 
   @Autowired private UserMapper userMapper;
@@ -68,6 +70,7 @@ class LikeServiceIntegrationTest {
     UserProfileResponse profile = userService.getProfile(author.getId());
 
     assertEquals(1, likeMapper.selectCount(null));
+    assertEquals(1L, notificationService.countUnread(author.getId()));
     assertEquals(Integer.valueOf(1), persistedPost.getLikeCount());
     assertNotNull(authorStats);
     assertEquals(Integer.valueOf(1), authorStats.getLikeCount());
@@ -80,6 +83,9 @@ class LikeServiceIntegrationTest {
     UserProfileResponse updatedProfile = userService.getProfile(author.getId());
 
     assertEquals(0, likeMapper.selectCount(null));
+    assertEquals(0L, notificationService.countUnread(author.getId()));
+    assertEquals(
+        0, notificationService.listNotifications(author.getId(), 1, 20).getRecords().size());
     assertEquals(Integer.valueOf(0), updatedPost.getLikeCount());
     assertEquals(Integer.valueOf(0), updatedAuthorStats.getLikeCount());
     assertEquals(Integer.valueOf(0), updatedProfile.getLikeCount());
@@ -99,6 +105,7 @@ class LikeServiceIntegrationTest {
     UserProfileResponse profile = userService.getProfile(author.getId());
 
     assertEquals(1, likeMapper.selectCount(null));
+    assertEquals(1L, notificationService.countUnread(author.getId()));
     assertEquals(Integer.valueOf(1), persistedReply.getLikeCount());
     assertNotNull(authorStats);
     assertEquals(Integer.valueOf(1), authorStats.getLikeCount());
@@ -111,6 +118,9 @@ class LikeServiceIntegrationTest {
     UserProfileResponse updatedProfile = userService.getProfile(author.getId());
 
     assertEquals(0, likeMapper.selectCount(null));
+    assertEquals(0L, notificationService.countUnread(author.getId()));
+    assertEquals(
+        0, notificationService.listNotifications(author.getId(), 1, 20).getRecords().size());
     assertEquals(Integer.valueOf(0), updatedReply.getLikeCount());
     assertEquals(Integer.valueOf(0), updatedAuthorStats.getLikeCount());
     assertEquals(Integer.valueOf(0), updatedProfile.getLikeCount());

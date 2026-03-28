@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     target_id BIGINT NOT NULL,
     content VARCHAR(500) NOT NULL,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted INT NOT NULL DEFAULT 0,
     create_time TIMESTAMP NOT NULL,
     update_time TIMESTAMP NOT NULL
 );

@@ -2,6 +2,7 @@ package com.example.springboot_backend.talk2me.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -114,5 +115,23 @@ class NotificationServiceIntegrationTest {
 
     NotificationDO persisted = notificationMapper.selectById(created.getId());
     assertFalse(Boolean.TRUE.equals(persisted.getIsRead()));
+  }
+
+  @Test
+  void revokeNotification_RemovesItFromUnreadAndList() {
+    NotificationDO created =
+        notificationService.createNotification(100L, 200L, "LIKE_POST", "POST", 300L, "你的帖子收到了一个赞");
+
+    assertNotNull(created);
+    assertEquals(1L, notificationService.countUnread(100L));
+
+    notificationService.revokeNotification(100L, 200L, "LIKE_POST", "POST", 300L);
+
+    assertEquals(0L, notificationService.countUnread(100L));
+    assertTrue(notificationService.listNotifications(100L, 1, 20).getRecords().isEmpty());
+    assertNull(notificationMapper.selectById(created.getId()));
+    verify(notificationRealtimeService)
+        .dispatchDeleted(
+            argThat((NotificationDO notification) -> created.getId().equals(notification.getId())));
   }
 }

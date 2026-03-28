@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.springboot_backend.talk2me.model.domain.NotificationDO;
 import com.example.springboot_backend.talk2me.repository.NotificationMapper;
 import com.example.springboot_backend.talk2me.service.INotificationService;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +51,33 @@ public class NotificationService implements INotificationService {
   }
 
   @Override
+  @Transactional
+  public void revokeNotification(
+      Long recipientId, Long actorId, String type, String targetType, Long targetId) {
+    LambdaQueryWrapper<NotificationDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper
+        .eq(NotificationDO::getRecipientId, recipientId)
+        .eq(NotificationDO::getActorId, actorId)
+        .eq(NotificationDO::getType, type)
+        .eq(NotificationDO::getTargetType, targetType)
+        .eq(NotificationDO::getTargetId, targetId);
+    revokeMatchingNotifications(wrapper);
+  }
+
+  @Override
+  @Transactional
+  public void revokeNotificationsByTarget(
+      Long recipientId, String type, String targetType, Long targetId) {
+    LambdaQueryWrapper<NotificationDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper
+        .eq(NotificationDO::getRecipientId, recipientId)
+        .eq(NotificationDO::getType, type)
+        .eq(NotificationDO::getTargetType, targetType)
+        .eq(NotificationDO::getTargetId, targetId);
+    revokeMatchingNotifications(wrapper);
+  }
+
+  @Override
   public Page<NotificationDO> listNotifications(Long recipientId, Integer page, Integer size) {
     Page<NotificationDO> pageParam = new Page<>(page, size);
     LambdaQueryWrapper<NotificationDO> wrapper = new LambdaQueryWrapper<>();
@@ -86,5 +114,14 @@ public class NotificationService implements INotificationService {
     NotificationDO updateEntity = new NotificationDO();
     updateEntity.setIsRead(true);
     notificationMapper.update(updateEntity, wrapper);
+  }
+
+  private void revokeMatchingNotifications(LambdaQueryWrapper<NotificationDO> wrapper) {
+    List<NotificationDO> notifications = notificationMapper.selectList(wrapper);
+    notifications.forEach(
+        notification -> {
+          notificationMapper.deleteById(notification.getId());
+          notificationRealtimeService.dispatchDeleted(notification);
+        });
   }
 }

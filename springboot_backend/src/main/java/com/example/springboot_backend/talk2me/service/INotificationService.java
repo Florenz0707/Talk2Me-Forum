@@ -12,6 +12,11 @@ public interface INotificationService {
       Long targetId,
       String content);
 
+  void revokeNotification(
+      Long recipientId, Long actorId, String type, String targetType, Long targetId);
+
+  void revokeNotificationsByTarget(Long recipientId, String type, String targetType, Long targetId);
+
   Page<NotificationDO> listNotifications(Long recipientId, Integer page, Integer size);
 
   Long countUnread(Long recipientId);

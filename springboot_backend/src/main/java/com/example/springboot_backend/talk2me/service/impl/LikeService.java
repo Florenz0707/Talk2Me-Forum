@@ -78,6 +78,7 @@ public class LikeService implements ILikeService {
     }
 
     updateLikeCount(normalizedTargetType, targetId, -1);
+    revokeLikeNotification(normalizedTargetType, targetId, userId);
   }
 
   private void updateLikeCount(String targetType, Long targetId, int delta) {
@@ -138,15 +139,42 @@ public class LikeService implements ILikeService {
 
   private void ensureTargetExists(String targetType, Long targetId) {
     if ("POST".equals(targetType)) {
-      if (postMapper.selectById(targetId) == null) {
+      PostDO post = postMapper.selectById(targetId);
+      if (post == null || !isActiveStatus(post.getStatus())) {
         throw new RuntimeException("Post not found");
       }
       return;
     }
 
-    if ("REPLY".equals(targetType) && replyMapper.selectById(targetId) == null) {
+    ReplyDO reply = replyMapper.selectById(targetId);
+    if (reply == null || !isActiveStatus(reply.getStatus())) {
       throw new RuntimeException("Reply not found");
     }
+  }
+
+  private void revokeLikeNotification(String targetType, Long targetId, Long actorId) {
+    if ("POST".equals(targetType)) {
+      PostDO post = postMapper.selectById(targetId);
+      if (post == null) {
+        return;
+      }
+      notificationService.revokeNotification(
+          post.getUserId(), actorId, "LIKE_POST", "POST", targetId);
+      return;
+    }
+
+    if ("REPLY".equals(targetType)) {
+      ReplyDO reply = replyMapper.selectById(targetId);
+      if (reply == null) {
+        return;
+      }
+      notificationService.revokeNotification(
+          reply.getUserId(), actorId, "LIKE_REPLY", "REPLY", targetId);
+    }
+  }
+
+  private boolean isActiveStatus(Integer status) {
+    return status == null || status == 0;
   }
 
   private void createLikeNotification(String targetType, Long targetId, Long actorId) {

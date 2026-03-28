@@ -4,6 +4,7 @@ import com.example.springboot_backend.talk2me.model.domain.NotificationDO;
 import java.time.LocalDateTime;
 
 public class NotificationPushMessage {
+  private String eventType;
   private Long id;
   private Long recipientId;
   private Long actorId;
@@ -14,8 +15,21 @@ public class NotificationPushMessage {
   private Boolean isRead;
   private LocalDateTime createTime;
 
+  public static NotificationPushMessage createdFrom(NotificationDO notification) {
+    return from(notification, "CREATED");
+  }
+
+  public static NotificationPushMessage deletedFrom(NotificationDO notification) {
+    return from(notification, "DELETED");
+  }
+
   public static NotificationPushMessage from(NotificationDO notification) {
+    return createdFrom(notification);
+  }
+
+  private static NotificationPushMessage from(NotificationDO notification, String eventType) {
     NotificationPushMessage message = new NotificationPushMessage();
+    message.setEventType(eventType);
     message.setId(notification.getId());
     message.setRecipientId(notification.getRecipientId());
     message.setActorId(notification.getActorId());
@@ -26,6 +40,14 @@ public class NotificationPushMessage {
     message.setIsRead(notification.getIsRead());
     message.setCreateTime(notification.getCreateTime());
     return message;
+  }
+
+  public String getEventType() {
+    return eventType;
+  }
+
+  public void setEventType(String eventType) {
+    this.eventType = eventType;
   }
 
   public Long getId() {

@@ -545,7 +545,6 @@ import { setUserAvatar } from "../utils/authStorage";
 import { isSameUserId, onUserProfileUpdated } from "../utils/profileStats";
 import {
   applyIncomingNotification,
-  buildEffectiveLikeNotifications,
   markNotificationsAsReadInSummary,
   notificationSummary,
   markNotificationAsReadInSummary,
@@ -652,6 +651,16 @@ export default {
       }
 
       return false;
+    };
+
+    const removeNotificationById = (listRef, notificationId) => {
+      if (notificationId == null) {
+        return;
+      }
+
+      listRef.value = listRef.value.filter(
+        (item) => item.id !== notificationId,
+      );
     };
 
     const getNotificationsByTab = (tab) => {
@@ -865,7 +874,7 @@ export default {
     const loadNotifications = async () => {
       try {
         const records = await fetchNotificationRecords();
-        likeNotifications.value = buildEffectiveLikeNotifications(records);
+        likeNotifications.value = records.filter((n) => n.type === "LIKE");
         replyNotifications.value = records.filter((n) => n.type === "REPLY");
         followNotifications.value = records.filter((n) => n.type === "FOLLOW");
         notificationStatsLoaded.value = true;
@@ -880,11 +889,23 @@ export default {
     // 处理WebSocket通知
     const handleNotification = (notification) => {
       const normalizedNotification = applyIncomingNotification(notification);
+      if (normalizedNotification.eventType === "DELETED") {
+        removeNotificationById(likeNotifications, normalizedNotification.id);
+        removeNotificationById(replyNotifications, normalizedNotification.id);
+        removeNotificationById(followNotifications, normalizedNotification.id);
+        notificationStatsLoaded.value = true;
+
+        if (
+          normalizedNotification.type === "LIKE" ||
+          normalizedNotification.type === "FOLLOW"
+        ) {
+          fetchUserInfo();
+        }
+        return;
+      }
+
       if (normalizedNotification.type === "LIKE") {
-        likeNotifications.value = buildEffectiveLikeNotifications([
-          normalizedNotification,
-          ...likeNotifications.value,
-        ]);
+        prependNotification(likeNotifications, normalizedNotification);
         notificationStatsLoaded.value = true;
         fetchUserInfo();
       } else if (normalizedNotification.type === "REPLY") {
