@@ -1,5 +1,6 @@
 package com.example.springboot_backend.talk2me.model.domain;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.springboot_backend.core.model.BaseEntity;
 
@@ -11,6 +12,9 @@ public class ReplyDO extends BaseEntity {
   private Integer floorNumber;
   private Integer likeCount;
   private Integer status;
+
+  @TableField(exist = false)
+  private Boolean isLiked;
 
   public Long getPostId() {
     return postId;
@@ -58,5 +62,13 @@ public class ReplyDO extends BaseEntity {
 
   public void setStatus(Integer status) {
     this.status = status;
+  }
+
+  public Boolean getIsLiked() {
+    return isLiked;
+  }
+
+  public void setIsLiked(Boolean isLiked) {
+    this.isLiked = isLiked;
   }
 }

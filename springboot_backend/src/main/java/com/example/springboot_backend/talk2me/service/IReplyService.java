@@ -7,7 +7,7 @@ import com.example.springboot_backend.talk2me.model.vo.CreateReplyRequest;
 public interface IReplyService {
   ReplyDO createReply(Long postId, CreateReplyRequest request, Long userId);
 
-  Page<ReplyDO> listReplies(Long postId, Integer page, Integer size);
+  Page<ReplyDO> listReplies(Long postId, Integer page, Integer size, Long currentUserId);
 
   void deleteReply(Long id, Long userId);
 }

@@ -1,6 +1,7 @@
 package com.example.springboot_backend.talk2me.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.reset;
 
@@ -90,7 +91,28 @@ class ReplyServiceIntegrationTest {
     assertTrue(
         notificationService.listNotifications(replyAuthor.getId(), 1, 20).getRecords().isEmpty());
     assertEquals(Integer.valueOf(0), userService.getProfile(replyAuthor.getId()).getLikeCount());
-    assertTrue(replyService.listReplies(post.getId(), 1, 20).getRecords().isEmpty());
+    assertTrue(
+        replyService.listReplies(post.getId(), 1, 20, replyAuthor.getId()).getRecords().isEmpty());
+  }
+
+  @Test
+  void listReplies_LoggedInUserReceivesIsLikedState() {
+    UserDO postOwner = insertUser("reply-post-owner");
+    UserDO replyAuthor = insertUser("reply-liked-author");
+    UserDO liker = insertUser("reply-liked-viewer");
+    PostDO post = insertPost(postOwner.getId(), "Reply liked target");
+
+    CreateReplyRequest request = new CreateReplyRequest();
+    request.setContent("reply liked content");
+    ReplyDO reply = replyService.createReply(post.getId(), request, replyAuthor.getId());
+    likeService.like("reply", reply.getId(), liker.getId());
+
+    var page = replyService.listReplies(post.getId(), 1, 20, liker.getId());
+    var anonymousPage = replyService.listReplies(post.getId(), 1, 20, null);
+
+    assertEquals(1, page.getRecords().size());
+    assertTrue(Boolean.TRUE.equals(page.getRecords().getFirst().getIsLiked()));
+    assertFalse(Boolean.TRUE.equals(anonymousPage.getRecords().getFirst().getIsLiked()));
   }
 
   private UserDO insertUser(String username) {

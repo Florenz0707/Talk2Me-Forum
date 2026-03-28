@@ -28,14 +28,31 @@ public class PostController {
     return principal.getId();
   }
 
+  private Long getOptionalCurrentUserId(Authentication auth) {
+    if (auth == null || !auth.isAuthenticated()) {
+      return null;
+    }
+
+    Object principal = auth.getPrincipal();
+    if (principal instanceof UserDetailsServiceImpl.UserPrincipal userPrincipal) {
+      return userPrincipal.getId();
+    }
+
+    try {
+      return Long.parseLong(auth.getName());
+    } catch (NumberFormatException ignored) {
+      return null;
+    }
+  }
+
   @PostMapping
   public Result<PostDO> createPost(@Valid @RequestBody CreatePostRequest request) {
     return Result.success(postService.createPost(request, getCurrentUserId()));
   }
 
   @GetMapping("/{id}")
-  public Result<PostDO> getPost(@PathVariable Long id) {
-    return Result.success(postService.getPost(id));
+  public Result<PostDO> getPost(@PathVariable Long id, Authentication auth) {
+    return Result.success(postService.getPost(id, getOptionalCurrentUserId(auth)));
   }
 
   @PutMapping("/{id}")
@@ -54,7 +71,10 @@ public class PostController {
   public Result<PageResult<PostDO>> listPosts(
       @RequestParam(required = false) Long sectionId,
       @RequestParam(defaultValue = "1") Integer page,
-      @RequestParam(defaultValue = "20") Integer size) {
-    return Result.success(PageResult.of(postService.listPosts(sectionId, page, size)));
+      @RequestParam(defaultValue = "20") Integer size,
+      Authentication auth) {
+    return Result.success(
+        PageResult.of(
+            postService.listPosts(sectionId, page, size, getOptionalCurrentUserId(auth))));
   }
 }

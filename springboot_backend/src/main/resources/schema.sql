@@ -77,6 +77,16 @@ CREATE TABLE IF NOT EXISTS likes (
 CREATE UNIQUE INDEX IF NOT EXISTS uk_user_target ON likes(user_id, target_type, target_id);
 CREATE INDEX IF NOT EXISTS idx_target ON likes(target_type, target_id);
 
+-- 帖子浏览记录表
+CREATE TABLE IF NOT EXISTS post_views (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    create_time TIMESTAMP NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_post_view_user ON post_views(post_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_post_views_user_id ON post_views(user_id);
+
 -- 关注关系表
 CREATE TABLE IF NOT EXISTS user_follows (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

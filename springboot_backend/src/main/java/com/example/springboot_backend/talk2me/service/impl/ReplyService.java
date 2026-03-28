@@ -14,6 +14,9 @@ import com.example.springboot_backend.talk2me.repository.UserStatsMapper;
 import com.example.springboot_backend.talk2me.service.INotificationService;
 import com.example.springboot_backend.talk2me.service.IReplyService;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,14 +73,16 @@ public class ReplyService implements IReplyService {
   }
 
   @Override
-  public Page<ReplyDO> listReplies(Long postId, Integer page, Integer size) {
+  public Page<ReplyDO> listReplies(Long postId, Integer page, Integer size, Long currentUserId) {
     Page<ReplyDO> pageParam = new Page<>(page, size);
     LambdaQueryWrapper<ReplyDO> wrapper = new LambdaQueryWrapper<>();
     wrapper
         .eq(ReplyDO::getPostId, postId)
         .eq(ReplyDO::getStatus, 0)
         .orderByAsc(ReplyDO::getFloorNumber);
-    return replyMapper.selectPage(pageParam, wrapper);
+    Page<ReplyDO> result = replyMapper.selectPage(pageParam, wrapper);
+    fillReplyLikedState(result.getRecords(), currentUserId);
+    return result;
   }
 
   @Override
@@ -142,5 +147,30 @@ public class ReplyService implements IReplyService {
 
   private boolean isActiveStatus(Integer status) {
     return status == null || status == 0;
+  }
+
+  private void fillReplyLikedState(java.util.List<ReplyDO> replies, Long currentUserId) {
+    if (replies == null || replies.isEmpty()) {
+      return;
+    }
+
+    Set<Long> likedReplyIds =
+        getLikedReplyIds(currentUserId, replies.stream().map(ReplyDO::getId).toList());
+    replies.forEach(reply -> reply.setIsLiked(likedReplyIds.contains(reply.getId())));
+  }
+
+  private Set<Long> getLikedReplyIds(Long currentUserId, java.util.List<Long> replyIds) {
+    if (currentUserId == null || replyIds == null || replyIds.isEmpty()) {
+      return Collections.emptySet();
+    }
+
+    LambdaQueryWrapper<LikeDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper
+        .eq(LikeDO::getUserId, currentUserId)
+        .eq(LikeDO::getTargetType, "REPLY")
+        .in(LikeDO::getTargetId, replyIds);
+    return likeMapper.selectList(wrapper).stream()
+        .map(LikeDO::getTargetId)
+        .collect(Collectors.toSet());
   }
 }

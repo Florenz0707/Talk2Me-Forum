@@ -27,6 +27,23 @@ public class ReplyController {
     return principal.getId();
   }
 
+  private Long getOptionalCurrentUserId(Authentication auth) {
+    if (auth == null || !auth.isAuthenticated()) {
+      return null;
+    }
+
+    Object principal = auth.getPrincipal();
+    if (principal instanceof UserDetailsServiceImpl.UserPrincipal userPrincipal) {
+      return userPrincipal.getId();
+    }
+
+    try {
+      return Long.parseLong(auth.getName());
+    } catch (NumberFormatException ignored) {
+      return null;
+    }
+  }
+
   @PostMapping("/posts/{postId}/replies")
   public Result<ReplyDO> createReply(
       @PathVariable Long postId, @Valid @RequestBody CreateReplyRequest request) {
@@ -37,8 +54,10 @@ public class ReplyController {
   public Result<Page<ReplyDO>> listReplies(
       @PathVariable Long postId,
       @RequestParam(defaultValue = "1") Integer page,
-      @RequestParam(defaultValue = "20") Integer size) {
-    return Result.success(replyService.listReplies(postId, page, size));
+      @RequestParam(defaultValue = "20") Integer size,
+      Authentication auth) {
+    return Result.success(
+        replyService.listReplies(postId, page, size, getOptionalCurrentUserId(auth)));
   }
 
   @DeleteMapping("/replies/{id}")

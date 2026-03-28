@@ -44,12 +44,14 @@ async function request(endpoint, method, data = null, useAuth = true) {
     "Content-Type": "application/json",
   };
 
+  const authMode =
+    useAuth === "optional" ? "optional" : useAuth ? "required" : "none";
+  const token = getAuthToken();
+  const payload = token ? decodeJwtPayload(token) : null;
+
   // 如果需要身份验证且有令牌，则添加Authorization头
-  if (useAuth) {
-    const token = getAuthToken();
-    // 校验 token：不存在或不是合法 JWT（无法解析 payload）均视为无效
-    const payload = token ? decodeJwtPayload(token) : null;
-    if (!token || !payload) {
+  if (authMode !== "none") {
+    if (authMode === "required" && (!token || !payload)) {
       clearAuthSession();
       window.dispatchEvent(
         new CustomEvent("authChange", { detail: { isAuthenticated: false } }),
@@ -57,17 +59,29 @@ async function request(endpoint, method, data = null, useAuth = true) {
       window.dispatchEvent(new CustomEvent("open-login-modal"));
       throw new ApiError("请先登录", 401, "NO_TOKEN");
     }
-    // 检查 token 是否已过期
-    if (payload.exp && payload.exp * 1000 < Date.now()) {
-      console.warn("Token 已过期，自动登出");
+
+    if (token && payload) {
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        console.warn("Token 已过期，自动登出");
+        clearAuthSession();
+        window.dispatchEvent(
+          new CustomEvent("authChange", { detail: { isAuthenticated: false } }),
+        );
+        if (authMode === "required") {
+          window.dispatchEvent(new CustomEvent("open-login-modal"));
+          throw new ApiError("登录已过期，请重新登录", 401, "TOKEN_EXPIRED");
+        }
+      } else {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    } else if (authMode === "required") {
       clearAuthSession();
       window.dispatchEvent(
         new CustomEvent("authChange", { detail: { isAuthenticated: false } }),
       );
       window.dispatchEvent(new CustomEvent("open-login-modal"));
-      throw new ApiError("登录已过期，请重新登录", 401, "TOKEN_EXPIRED");
+      throw new ApiError("请先登录", 401, "NO_TOKEN");
     }
-    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const options = {
@@ -333,7 +347,7 @@ export const postApi = {
   // 返回格式: { code, message, data: PostDO }
   async getPostById(id) {
     try {
-      const response = await request(`/posts/${id}`, "GET", null, true);
+      const response = await request(`/posts/${id}`, "GET", null, "optional");
       // 返回完整的响应数据，让调用者处理data字段
       return response;
     } catch (error) {
@@ -383,7 +397,7 @@ export const postApi = {
         ? `/posts?${queryParams.toString()}`
         : "/posts";
 
-      const response = await request(endpoint, "GET", null, true);
+      const response = await request(endpoint, "GET", null, "optional");
       return response;
     } catch (error) {
       console.error("获取帖子列表失败:", error);
@@ -421,7 +435,7 @@ export const replyApi = {
         ? `/posts/${postId}/replies?${queryParams.toString()}`
         : `/posts/${postId}/replies`;
 
-      const response = await request(endpoint, "GET", null, true);
+      const response = await request(endpoint, "GET", null, "optional");
       return response;
     } catch (error) {
       console.error("获取回复列表失败:", error);

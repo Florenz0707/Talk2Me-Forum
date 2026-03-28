@@ -2,20 +2,33 @@ package com.example.springboot_backend.talk2me.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.springboot_backend.talk2me.model.domain.LikeDO;
 import com.example.springboot_backend.talk2me.model.domain.PostDO;
+import com.example.springboot_backend.talk2me.model.domain.PostViewDO;
 import com.example.springboot_backend.talk2me.model.vo.CreatePostRequest;
 import com.example.springboot_backend.talk2me.model.vo.UpdatePostRequest;
+import com.example.springboot_backend.talk2me.repository.LikeMapper;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
+import com.example.springboot_backend.talk2me.repository.PostViewMapper;
 import com.example.springboot_backend.talk2me.service.IPostService;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PostService implements IPostService {
   private final PostMapper postMapper;
+  private final LikeMapper likeMapper;
+  private final PostViewMapper postViewMapper;
 
-  public PostService(PostMapper postMapper) {
+  public PostService(PostMapper postMapper, LikeMapper likeMapper, PostViewMapper postViewMapper) {
     this.postMapper = postMapper;
+    this.likeMapper = likeMapper;
+    this.postViewMapper = postViewMapper;
   }
 
   @Override
@@ -36,11 +49,11 @@ public class PostService implements IPostService {
 
   @Override
   @Transactional
-  public PostDO getPost(Long id) {
+  public PostDO getPost(Long id, Long currentUserId) {
     PostDO post = postMapper.selectById(id);
-    if (post != null && post.getStatus() == 0) {
-      post.setViewCount(post.getViewCount() + 1);
-      postMapper.updateById(post);
+    if (post != null && isActiveStatus(post.getStatus())) {
+      applyView(post, currentUserId);
+      post.setIsLiked(isPostLikedByUser(post.getId(), currentUserId));
     }
     return post;
   }
@@ -70,7 +83,7 @@ public class PostService implements IPostService {
   }
 
   @Override
-  public Page<PostDO> listPosts(Long sectionId, Integer page, Integer size) {
+  public Page<PostDO> listPosts(Long sectionId, Integer page, Integer size, Long currentUserId) {
     Page<PostDO> pageParam = new Page<>(page, size);
     LambdaQueryWrapper<PostDO> wrapper = new LambdaQueryWrapper<>();
     wrapper.eq(PostDO::getStatus, 0);
@@ -78,6 +91,72 @@ public class PostService implements IPostService {
       wrapper.eq(PostDO::getSectionId, sectionId);
     }
     wrapper.orderByDesc(PostDO::getCreateTime);
-    return postMapper.selectPage(pageParam, wrapper);
+    Page<PostDO> result = postMapper.selectPage(pageParam, wrapper);
+    fillPostLikedState(result.getRecords(), currentUserId);
+    return result;
+  }
+
+  private void applyView(PostDO post, Long currentUserId) {
+    if (currentUserId == null) {
+      return;
+    }
+
+    PostViewDO postView = new PostViewDO();
+    postView.setPostId(post.getId());
+    postView.setUserId(currentUserId);
+    try {
+      postViewMapper.insert(postView);
+    } catch (DuplicateKeyException ignored) {
+      return;
+    }
+
+    post.setViewCount(defaultCount(post.getViewCount()) + 1);
+    postMapper.updateById(post);
+  }
+
+  private void fillPostLikedState(List<PostDO> posts, Long currentUserId) {
+    if (posts == null || posts.isEmpty()) {
+      return;
+    }
+
+    Set<Long> likedPostIds =
+        getLikedTargetIds("POST", currentUserId, posts.stream().map(PostDO::getId).toList());
+    posts.forEach(post -> post.setIsLiked(likedPostIds.contains(post.getId())));
+  }
+
+  private boolean isPostLikedByUser(Long postId, Long currentUserId) {
+    if (currentUserId == null || postId == null) {
+      return false;
+    }
+
+    LambdaQueryWrapper<LikeDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper
+        .eq(LikeDO::getUserId, currentUserId)
+        .eq(LikeDO::getTargetType, "POST")
+        .eq(LikeDO::getTargetId, postId);
+    return likeMapper.selectCount(wrapper) > 0;
+  }
+
+  private Set<Long> getLikedTargetIds(String targetType, Long currentUserId, List<Long> targetIds) {
+    if (currentUserId == null || targetIds == null || targetIds.isEmpty()) {
+      return Collections.emptySet();
+    }
+
+    LambdaQueryWrapper<LikeDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper
+        .eq(LikeDO::getUserId, currentUserId)
+        .eq(LikeDO::getTargetType, targetType)
+        .in(LikeDO::getTargetId, targetIds);
+    return likeMapper.selectList(wrapper).stream()
+        .map(LikeDO::getTargetId)
+        .collect(Collectors.toSet());
+  }
+
+  private int defaultCount(Integer count) {
+    return count == null ? 0 : count;
+  }
+
+  private boolean isActiveStatus(Integer status) {
+    return status == null || status == 0;
   }
 }
