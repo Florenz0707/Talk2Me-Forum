@@ -542,6 +542,7 @@ import { useRouter, useRoute } from "vue-router";
 import { authApi, userApi, notificationApi } from "../utils/api";
 import { notificationWS } from "../utils/websocket";
 import { setUserAvatar } from "../utils/authStorage";
+import { isSameUserId, onUserProfileUpdated } from "../utils/profileStats";
 import {
   applyIncomingNotification,
   buildEffectiveLikeNotifications,
@@ -569,6 +570,7 @@ export default {
     const isEntering = ref(true);
     let navigationGuard = null;
     let unsubscribeNotification = null;
+    let unsubscribeProfileUpdated = null;
 
     // 导航栏选中项
     const activeNavItem = ref("messages");
@@ -586,6 +588,7 @@ export default {
 
     // 数据指标导航
     const activeStatsTab = ref(null);
+    const currentUserId = ref("");
     const profileLikesCount = ref(0);
     const profileFollowingCount = ref(0);
     const profileFollowersCount = ref(0);
@@ -618,14 +621,7 @@ export default {
     const followUnreadCount = computed(() => notificationSummary.byType.FOLLOW);
     const likesCount = computed(() => profileLikesCount.value);
     const followingCount = computed(() => profileFollowingCount.value);
-    const followersCount = computed(() =>
-      notificationStatsLoaded.value
-        ? Math.max(
-            profileFollowersCount.value,
-            followNotifications.value.length,
-          )
-        : profileFollowersCount.value,
-    );
+    const followersCount = computed(() => profileFollowersCount.value);
 
     // 收藏的帖子数据（从后端拉取，暂无接口时为空）
     const favoriteThreads = ref([]);
@@ -843,6 +839,7 @@ export default {
         const res = await userApi.getCurrentProfile();
         if (res.data) {
           const p = res.data;
+          currentUserId.value = p.id || p.userId || currentUserId.value;
           if (p.username) {
             username.value = p.username;
             editUsername.value = p.username;
@@ -895,6 +892,7 @@ export default {
       } else if (normalizedNotification.type === "FOLLOW") {
         prependNotification(followNotifications, normalizedNotification);
         notificationStatsLoaded.value = true;
+        fetchUserInfo();
       }
     };
 
@@ -1001,6 +999,11 @@ export default {
       notificationWS.connect();
       unsubscribeNotification =
         notificationWS.onNotification(handleNotification);
+      unsubscribeProfileUpdated = onUserProfileUpdated(({ userId }) => {
+        if (isSameUserId(currentUserId.value, userId)) {
+          fetchUserInfo();
+        }
+      });
 
       // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
       setTimeout(() => {
@@ -1038,6 +1041,10 @@ export default {
       if (unsubscribeNotification) {
         unsubscribeNotification();
         unsubscribeNotification = null;
+      }
+      if (unsubscribeProfileUpdated) {
+        unsubscribeProfileUpdated();
+        unsubscribeProfileUpdated = null;
       }
     });
 

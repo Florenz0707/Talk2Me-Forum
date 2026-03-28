@@ -377,6 +377,7 @@ export const postApi = {
       if (params.page) queryParams.append("page", params.page);
       if (params.size) queryParams.append("size", params.size);
       if (params.sectionId) queryParams.append("sectionId", params.sectionId);
+      if (params.userId) queryParams.append("userId", params.userId);
 
       const endpoint = queryParams.toString()
         ? `/posts?${queryParams.toString()}`

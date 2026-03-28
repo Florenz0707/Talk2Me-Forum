@@ -5,7 +5,6 @@
   >
     <Header title="用户主页" />
 
-    <!-- 用户信息栏 -->
     <div class="user-profile-section">
       <div class="user-avatar-small">
         <div class="user-info-container">
@@ -22,15 +21,15 @@
         <div class="stats-and-actions">
           <div class="stats-wrapper">
             <div class="stat-item">
-              <div class="stat-number">–</div>
+              <div class="stat-number">{{ likeCount }}</div>
               <div class="stat-label">获赞数</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number">–</div>
+              <div class="stat-number">{{ followingCount }}</div>
               <div class="stat-label">关注数</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number">–</div>
+              <div class="stat-number">{{ followerCount }}</div>
               <div class="stat-label">粉丝数</div>
             </div>
           </div>
@@ -46,7 +45,6 @@
       </div>
     </div>
 
-    <!-- 主内容区域 -->
     <div class="main-content-container">
       <div class="content-card">
         <h2>用户发表的帖子</h2>
@@ -81,10 +79,11 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { postApi } from "../utils/api";
+import { postApi, userApi } from "../utils/api";
 import Header from "../components/Header.vue";
+import { isSameUserId, onUserProfileUpdated } from "../utils/profileStats";
 
 export default {
   name: "OtherUserView",
@@ -98,10 +97,14 @@ export default {
     const isEntering = ref(true);
     const username = ref("用户");
     const userAvatar = ref("");
-    const userBio = ref("");
+    const userBio = ref("暂无简介");
+    const likeCount = ref(0);
+    const followingCount = ref(0);
+    const followerCount = ref(0);
     const userPosts = ref([]);
     const loading = ref(true);
     let navigationGuard = null;
+    let unsubscribeProfileUpdated = null;
 
     const formatTime = (timeString) => {
       if (!timeString) return "";
@@ -120,8 +123,7 @@ export default {
     };
 
     const handleFollow = async () => {
-      // TODO: 调用关注API
-      console.log("关注用户");
+      console.log("关注用户:", route.params.id);
     };
 
     const handleMessage = () => {
@@ -135,39 +137,94 @@ export default {
       });
     };
 
-    const fetchUserPosts = async () => {
-      const userId = route.params.id;
+    const fetchUserProfile = async (userId = route.params.id) => {
       if (!userId) return;
 
-      loading.value = true;
+      try {
+        const response = await userApi.getUserProfile(userId);
+        if (response.code === 200 && response.data) {
+          const profile = response.data;
+          username.value = profile.username || `用户${userId}`;
+          userAvatar.value = profile.avatar || profile.avatarUrl || "";
+          userBio.value = profile.bio || "暂无简介";
+          likeCount.value = profile.likeCount || 0;
+          followingCount.value = profile.followingCount || 0;
+          followerCount.value = profile.followerCount || 0;
+        }
+      } catch (error) {
+        console.error("获取用户资料失败:", error);
+      }
+    };
+
+    const fetchUserPosts = async (userId = route.params.id) => {
+      if (!userId) return;
+
       try {
         const response = await postApi.getPosts({ userId, page: 1, size: 50 });
         if (response.code === 200 && response.data) {
-          userPosts.value = response.data.records.map((post) => ({
+          const records = Array.isArray(response.data.records)
+            ? response.data.records
+            : [];
+
+          userPosts.value = records.map((post) => ({
             id: post.id,
             title: post.title,
             createdAt: post.createTime,
             views: post.viewCount || 0,
             replies: post.replyCount || 0,
           }));
-          if (response.data.records.length > 0) {
-            username.value =
-              response.data.records[0].username || `用户${userId}`;
+
+          if (records.length > 0 && !userAvatar.value) {
+            userAvatar.value = records[0].authorAvatar || "";
           }
+          if (
+            records.length > 0 &&
+            (!username.value || username.value === "用户")
+          ) {
+            username.value = records[0].username || `用户${userId}`;
+          }
+        } else {
+          userPosts.value = [];
         }
       } catch (error) {
+        userPosts.value = [];
         console.error("获取用户帖子失败:", error);
+      }
+    };
+
+    const loadPageData = async (userId = route.params.id) => {
+      if (!userId) return;
+
+      loading.value = true;
+      try {
+        await Promise.all([fetchUserProfile(userId), fetchUserPosts(userId)]);
       } finally {
         loading.value = false;
       }
     };
+
+    watch(
+      () => route.params.id,
+      (userId, previousUserId) => {
+        if (!userId || userId === previousUserId) {
+          return;
+        }
+
+        loadPageData(userId);
+      },
+    );
 
     onMounted(() => {
       setTimeout(() => {
         isEntering.value = false;
       }, 500);
 
-      fetchUserPosts();
+      loadPageData();
+      unsubscribeProfileUpdated = onUserProfileUpdated(({ userId }) => {
+        if (isSameUserId(route.params.id, userId)) {
+          fetchUserProfile(route.params.id);
+        }
+      });
 
       navigationGuard = router.beforeEach((to, from, next) => {
         if (from.path.startsWith("/user/")) {
@@ -182,6 +239,10 @@ export default {
     });
 
     onBeforeUnmount(() => {
+      if (unsubscribeProfileUpdated) {
+        unsubscribeProfileUpdated();
+        unsubscribeProfileUpdated = null;
+      }
       if (navigationGuard) {
         navigationGuard();
       }
@@ -193,6 +254,9 @@ export default {
       username,
       userAvatar,
       userBio,
+      likeCount,
+      followingCount,
+      followerCount,
       userPosts,
       loading,
       formatTime,

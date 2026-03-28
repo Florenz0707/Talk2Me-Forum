@@ -319,6 +319,7 @@ import { useRouter, useRoute } from "vue-router";
 import { likeApi, replyApi, postApi, sectionApi } from "../utils/api";
 import Header from "../components/Header.vue";
 import { getUserAvatar } from "../utils/authStorage";
+import { emitUserProfileUpdated } from "../utils/profileStats";
 
 export default {
   name: "ThreadDetailView",
@@ -430,6 +431,19 @@ export default {
     };
 
     // 点赞功能
+    const syncTargetUserProfile = (userId, field, delta) => {
+      if (!userId || !delta) {
+        return;
+      }
+
+      emitUserProfileUpdated({
+        userId,
+        field,
+        delta,
+        source: "thread-detail",
+      });
+    };
+
     const toggleLike = async () => {
       if (!isLoggedIn.value) {
         router.push("/login");
@@ -444,6 +458,7 @@ export default {
           await likeApi.unlike("post", thread.value.id);
           thread.value.isLiked = false;
           thread.value.likes--;
+          syncTargetUserProfile(thread.value.authorId, "likeCount", -1);
         } else {
           await likeApi.like({
             targetType: "post",
@@ -451,6 +466,7 @@ export default {
           });
           thread.value.isLiked = true;
           thread.value.likes++;
+          syncTargetUserProfile(thread.value.authorId, "likeCount", 1);
         }
       } catch (error) {
         console.error("点赞失败:", error);
@@ -471,6 +487,7 @@ export default {
           await likeApi.unlike("reply", comment.id);
           comment.isLiked = false;
           comment.likes--;
+          syncTargetUserProfile(comment.authorId, "likeCount", -1);
         } else {
           await likeApi.like({
             targetType: "reply",
@@ -478,6 +495,7 @@ export default {
           });
           comment.isLiked = true;
           comment.likes++;
+          syncTargetUserProfile(comment.authorId, "likeCount", 1);
         }
       } catch (error) {
         console.error("评论点赞失败:", error);
@@ -496,6 +514,7 @@ export default {
           await likeApi.unlike("reply", reply.id);
           reply.isLiked = false;
           reply.likes--;
+          syncTargetUserProfile(reply.authorId, "likeCount", -1);
         } else {
           await likeApi.like({
             targetType: "reply",
@@ -503,6 +522,7 @@ export default {
           });
           reply.isLiked = true;
           reply.likes++;
+          syncTargetUserProfile(reply.authorId, "likeCount", 1);
         }
       } catch (error) {
         console.error("回复点赞失败:", error);
