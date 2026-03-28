@@ -43,3 +43,5 @@ logs/
 
 **/.venv/
 **/__pycache__/
+
+uploads/
