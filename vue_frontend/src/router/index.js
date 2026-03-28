@@ -1,10 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
 import UserView from "../views/UserView.vue";
 import ColorTest from "../components/ColorTest.vue";
+import { getAuthToken } from "../utils/authStorage";
 
 // 检查是否已登录的函数
 const isAuthenticated = () => {
-  const accessToken = localStorage.getItem("auth_token");
+  const accessToken = getAuthToken();
   return accessToken !== null && accessToken !== "";
 };
 

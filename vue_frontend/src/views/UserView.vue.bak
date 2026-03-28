@@ -7,7 +7,7 @@
       'fade-enter-active': isEntering,
     }"
   >
-    <!-- 头像展示栏 -->
+    <!-- 澶村儚灞曠ず鏍?-->
     <div class="avatar-header">
       <div class="avatar-header-content">
         <div
@@ -17,14 +17,14 @@
         >
           <div class="user-avatar-large">
             <i v-if="!userAvatar" class="fas fa-user-circle"></i>
-            <img v-else :src="userAvatar" alt="用户头像" class="avatar-image" />
+            <img v-else :src="userAvatar" alt="鐢ㄦ埛澶村儚" class="avatar-image" />
           </div>
           <div
             class="avatar-overlay"
             :class="{ show: showAvatarOverlay }"
             @click="triggerFileInput"
           >
-            <span class="change-avatar-text">更换头像</span>
+            <span class="change-avatar-text">鏇存崲澶村儚</span>
           </div>
           <input
             ref="fileInput"
@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <!-- 数据指标行 -->
+    <!-- 鏁版嵁鎸囨爣琛?-->
     <div class="stats-container">
       <div class="stats-wrapper">
         <div
@@ -50,7 +50,7 @@
           @click="handleStatsClick('likes')"
         >
           <div class="stat-number">{{ likesCount }}</div>
-          <div class="stat-label">获赞数</div>
+          <div class="stat-label">鑾疯禐鏁?/div>
         </div>
         <div
           class="stat-item"
@@ -58,7 +58,7 @@
           @click="handleStatsClick('following')"
         >
           <div class="stat-number">{{ followingCount }}</div>
-          <div class="stat-label">关注数</div>
+          <div class="stat-label">鍏虫敞鏁?/div>
         </div>
         <div
           class="stat-item"
@@ -66,16 +66,16 @@
           @click="handleStatsClick('followers')"
         >
           <div class="stat-number">{{ followersCount }}</div>
-          <div class="stat-label">粉丝数</div>
+          <div class="stat-label">绮変笣鏁?/div>
         </div>
       </div>
     </div>
 
-    <!-- 主内容容器 -->
+    <!-- 涓诲唴瀹瑰鍣?-->
     <div class="main-content-container">
-      <!-- 主内容区域 -->
+      <!-- 涓诲唴瀹瑰尯鍩?-->
       <div class="main-content-wrapper">
-        <!-- 左侧导航栏 -->
+        <!-- 宸︿晶瀵艰埅鏍?-->
         <div class="left-sidebar">
           <div class="nav-menu">
             <div
@@ -87,7 +87,7 @@
               "
             >
               <i class="fas fa-envelope"></i>
-              <span>我的消息</span>
+              <span>鎴戠殑娑堟伅</span>
             </div>
             <!--            <div-->
             <!--              class="nav-item"-->
@@ -98,7 +98,7 @@
             <!--              "-->
             <!--            >-->
             <!--              <i class="fas fa-star"></i>-->
-            <!--              <span>收藏</span>-->
+            <!--              <span>鏀惰棌</span>-->
             <!--            </div>-->
             <div
               class="nav-item"
@@ -109,7 +109,7 @@
               "
             >
               <i class="fas fa-user"></i>
-              <span>个人资料</span>
+              <span>涓汉璧勬枡</span>
             </div>
             <div
               class="nav-item"
@@ -120,36 +120,36 @@
               "
             >
               <i class="fas fa-cog"></i>
-              <span>设置</span>
+              <span>璁剧疆</span>
             </div>
             <router-link to="/" class="nav-item">
               <i class="fas fa-home"></i>
-              <span>回到主页</span>
+              <span>鍥炲埌涓婚〉</span>
             </router-link>
             <div class="nav-item logout-item" @click="handleLogout">
               <i class="fas fa-sign-out-alt"></i>
-              <span>退出登录</span>
+              <span>閫€鍑虹櫥褰?/span>
             </div>
           </div>
         </div>
 
-        <!-- 右侧内容区域 -->
+        <!-- 鍙充晶鍐呭鍖哄煙 -->
         <div class="right-content">
-          <!-- 动态内容区域 -->
+          <!-- 鍔ㄦ€佸唴瀹瑰尯鍩?-->
           <div class="content-card">
-            <!-- 关注列表 -->
+            <!-- 鍏虫敞鍒楄〃 -->
             <div
               v-if="activeStatsTab === 'following'"
               class="user-list-container"
             >
-              <h2>我的关注</h2>
+              <h2>鎴戠殑鍏虫敞</h2>
               <div v-if="followingLoading" class="empty-state">
                 <i class="fas fa-spinner fa-spin"></i>
-                <p>加载中...</p>
+                <p>鍔犺浇涓?..</p>
               </div>
               <div v-else-if="followingList.length === 0" class="empty-state">
                 <i class="fas fa-user-friends"></i>
-                <p>暂无关注</p>
+                <p>鏆傛棤鍏虫敞</p>
               </div>
               <div v-else class="user-list">
                 <div
@@ -163,29 +163,29 @@
                   <div class="user-item-info">
                     <div class="user-item-name">{{ user.username }}</div>
                     <div class="user-item-bio">
-                      {{ user.bio || "暂无简介" }}
+                      {{ user.bio || "鏆傛棤绠€浠? }}
                     </div>
                   </div>
                   <button class="unfollow-btn" @click="handleUnfollow(user.id)">
-                    取消关注
+                    鍙栨秷鍏虫敞
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- 粉丝列表 -->
+            <!-- 绮変笣鍒楄〃 -->
             <div
               v-else-if="activeStatsTab === 'followers'"
               class="user-list-container"
             >
-              <h2>我的粉丝</h2>
+              <h2>鎴戠殑绮変笣</h2>
               <div v-if="followersLoading" class="empty-state">
                 <i class="fas fa-spinner fa-spin"></i>
-                <p>加载中...</p>
+                <p>鍔犺浇涓?..</p>
               </div>
               <div v-else-if="followersList.length === 0" class="empty-state">
                 <i class="fas fa-users"></i>
-                <p>暂无粉丝</p>
+                <p>鏆傛棤绮変笣</p>
               </div>
               <div v-else class="user-list">
                 <div
@@ -199,72 +199,60 @@
                   <div class="user-item-info">
                     <div class="user-item-name">{{ user.username }}</div>
                     <div class="user-item-bio">
-                      {{ user.bio || "暂无简介" }}
+                      {{ user.bio || "鏆傛棤绠€浠? }}
                     </div>
                   </div>
                   <button
                     class="follow-back-btn"
                     @click="handleFollowBack(user.id)"
                   >
-                    回关
+                    鍥炲叧
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- 我的消息内容 -->
+            <!-- 鎴戠殑娑堟伅鍐呭 -->
             <div v-if="activeNavItem === 'messages'" class="messages-container">
-              <h2>我的消息</h2>
+              <div class="messages-header">
+                <h2>鎴戠殑娑堟伅</h2>
+                <button class="mark-all-read-btn" @click="markAllRead">
+                  鍏ㄩ儴宸茶
+                </button>
+              </div>
 
-              <!-- 消息导航栏 -->
+              <!-- 娑堟伅瀵艰埅鏍?-->
               <div class="message-tabs">
                 <div
                   class="message-tab"
                   :class="{ active: activeMessageTab === 'likes' }"
                   @click="activeMessageTab = 'likes'"
                 >
-                  <span v-if="likeUnreadCount > 0" class="message-tab-badge">
-                    {{ formatUnreadCount(likeUnreadCount) }}
-                  </span>
-                  收到的赞
+                  鏀跺埌鐨勮禐
                 </div>
                 <div
                   class="message-tab"
                   :class="{ active: activeMessageTab === 'replies' }"
                   @click="activeMessageTab = 'replies'"
                 >
-                  <span v-if="replyUnreadCount > 0" class="message-tab-badge">
-                    {{ formatUnreadCount(replyUnreadCount) }}
-                  </span>
-                  回复我的
+                  鍥炲鎴戠殑
                 </div>
                 <div
                   class="message-tab"
                   :class="{ active: activeMessageTab === 'followers' }"
                   @click="activeMessageTab = 'followers'"
                 >
-                  <span v-if="followUnreadCount > 0" class="message-tab-badge">
-                    {{ formatUnreadCount(followUnreadCount) }}
-                  </span>
-                  新的粉丝
-                </div>
-                <div
-                  class="message-tab"
-                  :class="{ active: activeMessageTab === 'private' }"
-                  @click="activeMessageTab = 'private'"
-                >
-                  我的私信
-                </div>
+                  鏂扮矇涓?                </div>
               </div>
 
-              <!-- 收到的赞 -->
+              <!-- 鏀跺埌鐨勮禐 -->
               <div
                 v-if="activeMessageTab === 'likes'"
                 class="notification-list"
               >
                 <div v-if="likeNotifications.length === 0" class="empty-state">
                   <i class="fas fa-heart"></i>
-                  <p>暂无点赞通知</p>
+                  <p>鏆傛棤鐐硅禐閫氱煡</p>
                 </div>
                 <div v-else>
                   <div
@@ -285,14 +273,14 @@
                 </div>
               </div>
 
-              <!-- 回复我的 -->
+              <!-- 鍥炲鎴戠殑 -->
               <div
                 v-if="activeMessageTab === 'replies'"
                 class="notification-list"
               >
                 <div v-if="replyNotifications.length === 0" class="empty-state">
                   <i class="fas fa-comment"></i>
-                  <p>暂无回复通知</p>
+                  <p>鏆傛棤鍥炲閫氱煡</p>
                 </div>
                 <div v-else>
                   <div
@@ -313,17 +301,14 @@
                 </div>
               </div>
 
-              <!-- 我的私信 -->
+              <!-- 鏂扮矇涓?-->
               <div
                 v-if="activeMessageTab === 'followers'"
                 class="notification-list"
               >
-                <div
-                  v-if="followNotifications.length === 0"
-                  class="empty-state"
-                >
+                <div v-if="followNotifications.length === 0" class="empty-state">
                   <i class="fas fa-user-plus"></i>
-                  <p>暂无新的粉丝通知</p>
+                  <p>鏆傛棤鏂扮矇涓濋€氱煡</p>
                 </div>
                 <div v-else>
                   <div
@@ -344,80 +329,28 @@
                 </div>
               </div>
 
-              <div
-                v-if="activeMessageTab === 'private'"
-                class="messages-layout"
-              >
-                <!-- 左侧联系人列表 -->
-                <div
-                  v-if="messageContacts.length > 0 || newMessageTarget"
-                  class="contacts-sidebar"
-                >
-                  <!-- 目标用户信息栏 -->
-                  <div v-if="newMessageTarget" class="target-user-card">
-                    <div class="target-user-avatar">
-                      <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="target-user-name">{{ newMessageTarget }}</div>
-                  </div>
-                  <div
-                    v-for="contact in messageContacts"
-                    :key="contact.id"
-                    class="contact-item"
-                    :class="{ active: selectedContact?.id === contact.id }"
-                    @click="selectContact(contact)"
-                  >
-                    <i class="fas fa-user-circle"></i>
-                    <span>{{ contact.name }}</span>
-                  </div>
-                </div>
-
-                <!-- 右侧消息输入区 -->
-                <div class="message-input-area">
-                  <div v-if="newMessageTarget" class="new-message-form">
-                    <h3>发送消息给 {{ newMessageTarget }}</h3>
-                    <textarea
-                      v-model="newMessageContent"
-                      class="message-textarea"
-                      placeholder="输入消息内容..."
-                    ></textarea>
-                    <div class="message-actions">
-                      <button class="send-btn" @click="handleSendMessage">
-                        发送
-                      </button>
-                      <button class="cancel-btn" @click="cancelNewMessage">
-                        取消
-                      </button>
-                    </div>
-                  </div>
-                  <div v-else class="empty-state">
-                    <i class="fas fa-envelope-open"></i>
-                    <p>暂无新消息</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            <!-- 收藏内容 -->
+            <!-- 鏀惰棌鍐呭 -->
             <!--            <div v-else-if="activeNavItem === 'favorites'">-->
-            <!--              <h2>默认收藏夹</h2>-->
+            <!--              <h2>榛樿鏀惰棌澶?/h2>-->
             <!--              <div v-if="favoritesLoading" class="empty-state">-->
             <!--                <i class="fas fa-spinner fa-spin"></i>-->
-            <!--                <p>加载中...</p>-->
+            <!--                <p>鍔犺浇涓?..</p>-->
             <!--              </div>-->
             <!--              <div v-else-if="favoriteThreads.length === 0" class="empty-state">-->
             <!--                <i class="fas fa-star"></i>-->
-            <!--                <p>暂无收藏</p>-->
+            <!--                <p>鏆傛棤鏀惰棌</p>-->
             <!--              </div>-->
             <!--              <div v-else class="thread-table-container">-->
             <!--                <table class="thread-table">-->
             <!--                  <thead>-->
             <!--                    <tr class="thread-header">-->
-            <!--                      <th class="thread-info">帖子</th>-->
-            <!--                      <th class="thread-author">作者</th>-->
-            <!--                      <th class="thread-time">时间</th>-->
-            <!--                      <th class="thread-replies">回复</th>-->
-            <!--                      <th class="thread-views">浏览</th>-->
+            <!--                      <th class="thread-info">甯栧瓙</th>-->
+            <!--                      <th class="thread-author">浣滆€?/th>-->
+            <!--                      <th class="thread-time">鏃堕棿</th>-->
+            <!--                      <th class="thread-replies">鍥炲</th>-->
+            <!--                      <th class="thread-views">娴忚</th>-->
             <!--                    </tr>-->
             <!--                  </thead>-->
             <!--                  <tbody>-->
@@ -449,12 +382,12 @@
             <!--              </div>-->
             <!--            </div>-->
 
-            <!-- 个人资料内容 -->
+            <!-- 涓汉璧勬枡鍐呭 -->
             <div v-else-if="activeNavItem === 'profile'">
-              <h2>个人资料</h2>
+              <h2>涓汉璧勬枡</h2>
               <div class="profile-form">
                 <div class="form-group">
-                  <label>用户名</label>
+                  <label>鐢ㄦ埛鍚?/label>
                   <input
                     type="text"
                     :value="editUsername"
@@ -463,11 +396,11 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label>个性签名</label>
+                  <label>涓€х鍚?/label>
                   <textarea v-model="editBio" class="form-textarea"></textarea>
                 </div>
                 <div class="form-group">
-                  <label>生日</label>
+                  <label>鐢熸棩</label>
                   <input
                     type="date"
                     v-model="editBirthday"
@@ -475,49 +408,49 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label>性别</label>
+                  <label>鎬у埆</label>
                   <select v-model="editGender" class="form-input">
-                    <option value="">请选择</option>
-                    <option value="MALE">男</option>
-                    <option value="FEMALE">女</option>
-                    <option value="OTHER">其他</option>
+                    <option value="">璇烽€夋嫨</option>
+                    <option value="MALE">鐢?/option>
+                    <option value="FEMALE">濂?/option>
+                    <option value="OTHER">鍏朵粬</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>职业</label>
+                  <label>鑱屼笟</label>
                   <input
                     type="text"
                     v-model="editOccupation"
                     class="form-input"
-                    placeholder="请输入职业"
+                    placeholder="璇疯緭鍏ヨ亴涓?
                   />
                 </div>
                 <button class="save-btn" @click="handleSaveProfile">
-                  保存修改
+                  淇濆瓨淇敼
                 </button>
               </div>
             </div>
 
-            <!-- 设置内容 -->
+            <!-- 璁剧疆鍐呭 -->
             <div v-else-if="activeNavItem === 'settings'">
-              <h2>设置</h2>
+              <h2>璁剧疆</h2>
               <div class="settings-list">
                 <div class="setting-item">
-                  <span>通知设置</span>
+                  <span>閫氱煡璁剧疆</span>
                   <label class="switch">
                     <input type="checkbox" checked />
                     <span class="slider"></span>
                   </label>
                 </div>
                 <div class="setting-item">
-                  <span>隐私设置</span>
+                  <span>闅愮璁剧疆</span>
                   <label class="switch">
                     <input type="checkbox" checked />
                     <span class="slider"></span>
                   </label>
                 </div>
                 <div class="setting-item">
-                  <span>深色模式</span>
+                  <span>娣辫壊妯″紡</span>
                   <label class="switch">
                     <input
                       type="checkbox"
@@ -537,20 +470,10 @@
 </template>
 
 <script>
-import { computed, ref, onMounted, onBeforeUnmount, inject, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, inject, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { authApi, userApi, notificationApi } from "../utils/api";
 import { notificationWS } from "../utils/websocket";
-import { setUserAvatar } from "../utils/authStorage";
-import {
-  applyIncomingNotification,
-  getLikeNotificationDelta,
-  markNotificationsAsReadInSummary,
-  notificationSummary,
-  markNotificationAsReadInSummary,
-  normalizeNotification,
-  refreshNotificationSummary,
-} from "../utils/notificationState";
 
 export default {
   name: "UserView",
@@ -570,80 +493,43 @@ export default {
     let navigationGuard = null;
     let unsubscribeNotification = null;
 
-    // 导航栏选中项
-    const activeNavItem = ref("messages");
+    // 瀵艰埅鏍忛€変腑椤?    const activeNavItem = ref("favorites");
 
-    // 消息导航栏
-    const activeMessageTab = ref("likes");
+    // 娑堟伅瀵艰埅鏍?    const activeMessageTab = ref("likes");
 
-    // 通知列表
+    // 閫氱煡鍒楄〃
     const likeNotifications = ref([]);
     const replyNotifications = ref([]);
     const followNotifications = ref([]);
-    const notificationStatsLoaded = ref(false);
-    const NOTIFICATION_PAGE_SIZE = 100;
-    const NOTIFICATION_MAX_PAGES = 20;
 
-    // 数据指标导航
+    // 鏁版嵁鎸囨爣瀵艰埅
     const activeStatsTab = ref(null);
-    const profileLikesCount = ref(0);
-    const profileFollowingCount = ref(0);
-    const profileFollowersCount = ref(0);
+    const likesCount = ref(0);
+    const followingCount = ref(0);
+    const followersCount = ref(0);
 
-    // 关注列表
+    // 鍏虫敞鍒楄〃
     const followingList = ref([]);
     const followingLoading = ref(false);
 
-    // 粉丝列表
+    // 绮変笣鍒楄〃
     const followersList = ref([]);
     const followersLoading = ref(false);
 
-    // 新消息相关
-    const newMessageTarget = ref("");
-    const newMessageTargetId = ref("");
-    const newMessageContent = ref("");
-    const messageContacts = ref([]);
-    const selectedContact = ref(null);
-
-    // 搜索功能
+    // 鎼滅储鍔熻兘
     const searchQuery = ref("");
     const showUserMenu = ref(false);
 
-    // 头像相关
+    // 澶村儚鐩稿叧
     const userAvatar = ref("");
     const showAvatarOverlay = ref(false);
     const fileInput = ref(null);
-    const likeUnreadCount = computed(() => notificationSummary.byType.LIKE);
-    const replyUnreadCount = computed(() => notificationSummary.byType.REPLY);
-    const followUnreadCount = computed(() => notificationSummary.byType.FOLLOW);
-    const notificationLikesCount = computed(() =>
-      likeNotifications.value.reduce(
-        (total, notification) =>
-          Math.max(0, total + getLikeNotificationDelta(notification)),
-        0,
-      ),
-    );
-    const likesCount = computed(() =>
-      notificationStatsLoaded.value
-        ? Math.max(profileLikesCount.value, notificationLikesCount.value)
-        : profileLikesCount.value,
-    );
-    const followingCount = computed(() => profileFollowingCount.value);
-    const followersCount = computed(() =>
-      notificationStatsLoaded.value
-        ? Math.max(
-            profileFollowersCount.value,
-            followNotifications.value.length,
-          )
-        : profileFollowersCount.value,
-    );
 
-    // 收藏的帖子数据（从后端拉取，暂无接口时为空）
+    // 鏀惰棌鐨勫笘瀛愭暟鎹紙浠庡悗绔媺鍙栵紝鏆傛棤鎺ュ彛鏃朵负绌猴級
     const favoriteThreads = ref([]);
     const favoritesLoading = ref(false);
 
-    // 格式化时间函数
-    const formatTime = (timeString) => {
+    // 鏍煎紡鍖栨椂闂村嚱鏁?    const formatTime = (timeString) => {
       const date = new Date(timeString);
       return date.toLocaleString("zh-CN", {
         year: "numeric",
@@ -654,130 +540,14 @@ export default {
       });
     };
 
-    const formatUnreadCount = (count) => (count > 99 ? "99+" : count);
-
-    const prependNotification = (listRef, notification) => {
-      const hasSameId =
-        notification?.id !== undefined &&
-        listRef.value.some((item) => item.id === notification.id);
-
-      if (!hasSameId) {
-        listRef.value.unshift(notification);
-        return true;
-      }
-
-      return false;
-    };
-
-    const getNotificationsByTab = (tab) => {
-      if (tab === "likes") return likeNotifications.value;
-      if (tab === "replies") return replyNotifications.value;
-      if (tab === "followers") return followNotifications.value;
-      return [];
-    };
-
-    const fetchNotificationRecords = async () => {
-      const records = [];
-      let page = 1;
-      let totalPages = 1;
-
-      while (page <= totalPages && page <= NOTIFICATION_MAX_PAGES) {
-        const res = await notificationApi.getNotifications({
-          page,
-          size: NOTIFICATION_PAGE_SIZE,
-        });
-        const pageData = res?.data || {};
-        const pageRecords = Array.isArray(pageData.records)
-          ? pageData.records
-          : [];
-
-        records.push(...pageRecords.map(normalizeNotification));
-
-        if (typeof pageData.pages === "number" && pageData.pages > 0) {
-          totalPages = pageData.pages;
-        } else if (typeof pageData.total === "number") {
-          totalPages = Math.max(
-            1,
-            Math.ceil(pageData.total / NOTIFICATION_PAGE_SIZE),
-          );
-        } else if (pageRecords.length < NOTIFICATION_PAGE_SIZE) {
-          totalPages = page;
-        } else {
-          totalPages = page + 1;
-        }
-
-        if (pageRecords.length === 0) {
-          break;
-        }
-
-        page += 1;
-      }
-
-      return records;
-    };
-
-    const markTabNotificationsAsRead = async (tab) => {
-      const unreadNotifications = getNotificationsByTab(tab).filter(
-        (notif) => !notif?.isRead && notif?.id != null,
-      );
-
-      if (!unreadNotifications.length) {
-        return;
-      }
-
-      const results = await Promise.allSettled(
-        unreadNotifications.map((notif) => notificationApi.markRead(notif.id)),
-      );
-      const markedNotifications = [];
-
-      results.forEach((result, index) => {
-        if (result.status !== "fulfilled") {
-          console.error("标记通知已读失败:", result.reason);
-          return;
-        }
-
-        const notification = unreadNotifications[index];
-        notification.isRead = true;
-        markedNotifications.push(notification);
-      });
-
-      markNotificationsAsReadInSummary(markedNotifications);
-    };
-
-    const applyRouteState = (query = {}) => {
-      if (query.tab) {
-        activeNavItem.value = query.tab;
-        activeStatsTab.value = null;
-      }
-
-      if (query.messageTab) {
-        activeMessageTab.value = query.messageTab;
-        activeNavItem.value = "messages";
-      }
-
-      if (query.statsTab) {
-        activeStatsTab.value = query.statsTab;
-        activeNavItem.value = null;
-      }
-
-      if (query.targetUser) {
-        newMessageTarget.value = query.targetUser;
-        newMessageTargetId.value = query.targetUserId || "";
-        selectedContact.value = {
-          id: query.targetUserId || "",
-          name: query.targetUser,
-        };
-      }
-    };
-
-    // 编辑个人资料
+    // 缂栬緫涓汉璧勬枡
     const editUsername = ref("");
     const editBio = ref("");
     const editBirthday = ref("");
     const editGender = ref("");
     const editOccupation = ref("");
 
-    // 保存个人资料
+    // 淇濆瓨涓汉璧勬枡
     const handleSaveProfile = async () => {
       try {
         const profileData = {
@@ -795,61 +565,58 @@ export default {
           if (p.occupation !== undefined)
             editOccupation.value = p.occupation || "";
         }
-        alert("个人资料保存成功");
+        alert("涓汉璧勬枡淇濆瓨鎴愬姛");
       } catch (error) {
-        console.error("保存个人资料失败:", error);
-        alert("保存失败，请稍后重试");
+        console.error("淇濆瓨涓汉璧勬枡澶辫触:", error);
+        alert("淇濆瓨澶辫触锛岃绋嶅悗閲嶈瘯");
       }
     };
 
-    // 触发文件选择
+    // 瑙﹀彂鏂囦欢閫夋嫨
     const triggerFileInput = () => {
       fileInput.value.click();
     };
 
-    // 处理头像更换
+    // 澶勭悊澶村儚鏇存崲
     const handleAvatarChange = async (event) => {
       const file = event.target.files[0];
       if (!file) return;
 
       if (!file.type.startsWith("image/")) {
-        alert("请选择图片文件");
+        alert("璇烽€夋嫨鍥剧墖鏂囦欢");
         return;
       }
 
       const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
-        alert("图片大小不能超过5MB");
+        alert("鍥剧墖澶у皬涓嶈兘瓒呰繃5MB");
         return;
       }
 
       try {
         const response = await userApi.uploadAvatar(file);
-        // API 返回 ResultString: { code, message, data: "url_string" }
+        // API 杩斿洖 ResultString: { code, message, data: "url_string" }
         if (response.data) {
           userAvatar.value = response.data;
-          setUserAvatar(response.data);
-          alert("头像上传成功");
+          alert("澶村儚涓婁紶鎴愬姛");
         }
       } catch (error) {
-        console.error("上传头像失败:", error);
-        alert("上传失败，请稍后重试");
+        console.error("涓婁紶澶村儚澶辫触:", error);
+        alert("涓婁紶澶辫触锛岃绋嶅悗閲嶈瘯");
       }
     };
 
-    // 获取当前登录用户信息（含完整 profile）
-    const fetchUserInfo = async () => {
-      // 先从 token 取用户名作为初始值
-      const nameFromToken = authApi.getUsernameFromToken();
+    // 鑾峰彇褰撳墠鐧诲綍鐢ㄦ埛淇℃伅锛堝惈瀹屾暣 profile锛?    const fetchUserInfo = async () => {
+      // 鍏堜粠 token 鍙栫敤鎴峰悕浣滀负鍒濆鍊?      const nameFromToken = authApi.getUsernameFromToken();
       if (nameFromToken) {
         username.value = nameFromToken;
         editUsername.value = nameFromToken;
       } else {
         const remembered = localStorage.getItem("rememberedUsername");
-        username.value = remembered || "用户";
+        username.value = remembered || "鐢ㄦ埛";
         editUsername.value = username.value;
       }
-      // 从后端拉取完整 profile
+      // 浠庡悗绔媺鍙栧畬鏁?profile
       try {
         const res = await userApi.getCurrentProfile();
         if (res.data) {
@@ -859,104 +626,147 @@ export default {
             editUsername.value = p.username;
           }
           if (p.bio) editBio.value = p.bio;
-          if (p.avatar) {
-            userAvatar.value = p.avatar;
-            setUserAvatar(p.avatar);
-          }
+          if (p.avatar) userAvatar.value = p.avatar;
           if (p.birthday) editBirthday.value = p.birthday;
           if (p.gender) editGender.value = p.gender;
           if (p.occupation) editOccupation.value = p.occupation;
-          profileLikesCount.value = p.likeCount || 0;
-          profileFollowingCount.value = p.followingCount || 0;
-          profileFollowersCount.value = p.followerCount || 0;
+          likesCount.value = p.likeCount || 0;
+          followingCount.value = p.followingCount || 0;
+          followersCount.value = p.followerCount || 0;
         }
       } catch (error) {
-        console.error("获取用户资料失败:", error);
+        console.error("鑾峰彇鐢ㄦ埛璧勬枡澶辫触:", error);
       }
     };
 
-    // 加载通知列表
+    // 鍔犺浇閫氱煡鍒楄〃
+    const normalizeNotificationType = (type) =>
+      typeof type === "string" ? type.toUpperCase() : "";
+
+    const isLikeNotification = (type) => {
+      const normalized = normalizeNotificationType(type);
+      return normalized === "LIKE" || normalized.startsWith("LIKE_");
+    };
+
+    const isReplyNotification = (type) => {
+      const normalized = normalizeNotificationType(type);
+      return normalized === "REPLY" || normalized.startsWith("REPLY_");
+    };
+
+    const isFollowNotification = (type) => {
+      const normalized = normalizeNotificationType(type);
+      return normalized === "FOLLOW" || normalized.startsWith("FOLLOW_");
+    };
+
+    const prependNotification = (listRef, notification) => {
+      if (!notification || !notification.id) {
+        return false;
+      }
+      const exists = listRef.value.some((item) => item.id === notification.id);
+      if (exists) {
+        return false;
+      }
+      listRef.value.unshift({
+        ...notification,
+        isRead: notification.isRead ?? false,
+      });
+      return true;
+    };
+
+    // 鍔犺浇閫氱煡鍒楄〃
     const loadNotifications = async () => {
       try {
-        const records = await fetchNotificationRecords();
-        likeNotifications.value = records.filter((n) => n.type === "LIKE");
-        replyNotifications.value = records.filter((n) => n.type === "REPLY");
-        followNotifications.value = records.filter((n) => n.type === "FOLLOW");
-        notificationStatsLoaded.value = true;
-        if (activeNavItem.value === "messages") {
-          await markTabNotificationsAsRead(activeMessageTab.value);
+        const res = await notificationApi.getNotifications({
+          page: 1,
+          size: 50,
+        });
+        if (res.data?.records) {
+          likeNotifications.value = res.data.records.filter((n) =>
+            isLikeNotification(n.type),
+          );
+          replyNotifications.value = res.data.records.filter((n) =>
+            isReplyNotification(n.type),
+          );
+          followNotifications.value = res.data.records.filter((n) =>
+            isFollowNotification(n.type),
+          );
         }
       } catch (error) {
-        console.error("加载通知失败:", error);
+        console.error("鍔犺浇閫氱煡澶辫触:", error);
       }
     };
 
-    // 处理WebSocket通知
+    // 澶勭悊WebSocket閫氱煡
     const handleNotification = (notification) => {
-      const normalizedNotification = applyIncomingNotification(notification);
-      if (normalizedNotification.type === "LIKE") {
-        prependNotification(likeNotifications, normalizedNotification);
-        notificationStatsLoaded.value = true;
-      } else if (normalizedNotification.type === "REPLY") {
-        prependNotification(replyNotifications, normalizedNotification);
-      } else if (normalizedNotification.type === "FOLLOW") {
-        prependNotification(followNotifications, normalizedNotification);
-        notificationStatsLoaded.value = true;
+      if (isLikeNotification(notification?.type)) {
+        const inserted = prependNotification(likeNotifications, notification);
+        if (inserted) {
+          likesCount.value++;
+        }
+      } else if (isReplyNotification(notification?.type)) {
+        prependNotification(replyNotifications, notification);
+      } else if (isFollowNotification(notification?.type)) {
+        const inserted = prependNotification(followNotifications, notification);
+        if (inserted) {
+          followersCount.value++;
+        }
       }
     };
 
-    // 退出登录
-    const handleNotificationClick = async (notif) => {
-      if (notif?.isRead || notif?.id == null) {
-        return;
-      }
-
+    // 澶勭悊閫氱煡鐐瑰嚮锛堟爣璁颁负宸茶锛?    const handleNotificationClick = async (notif) => {
+      if (notif.isRead) return;
       try {
         await notificationApi.markRead(notif.id);
         notif.isRead = true;
-        markNotificationAsReadInSummary(notif);
       } catch (error) {
-        console.error("鏍囪閫氱煡宸茶澶辫触:", error);
+        console.error("鏍囪宸茶澶辫触:", error);
       }
     };
 
-    const handleLogout = async () => {
+    // 鍏ㄩ儴宸茶
+    const markAllRead = async () => {
+      try {
+        await notificationApi.markAllRead();
+        likeNotifications.value.forEach(n => n.isRead = true);
+        replyNotifications.value.forEach(n => n.isRead = true);
+        followNotifications.value.forEach(n => n.isRead = true);
+      } catch (error) {
+        console.error("鍏ㄩ儴宸茶澶辫触:", error);
+      }
+    };
+
+    // 閫€鍑虹櫥褰?    const handleLogout = async () => {
       isLoggingOut.value = true;
       try {
-        // 调用退出登录API
+        // 璋冪敤閫€鍑虹櫥褰旳PI
         await authApi.logout();
-        console.log("退出登录成功");
+        console.log("閫€鍑虹櫥褰曟垚鍔?);
 
-        // 清除本地存储的用户信息和Token
+        // 娓呴櫎鏈湴瀛樺偍鐨勭敤鎴蜂俊鎭拰Token
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("rememberedUsername");
         localStorage.removeItem("auth_token");
 
-        // 更新全局登录状态
-        updateLoginStatus(false);
+        // 鏇存柊鍏ㄥ眬鐧诲綍鐘舵€?        updateLoginStatus(false);
 
-        // 导航到主页（路由守卫会触发离开动画）
-        router.push("/");
+        // 瀵艰埅鍒颁富椤碉紙璺敱瀹堝崼浼氳Е鍙戠寮€鍔ㄧ敾锛?        router.push("/");
       } catch (error) {
-        console.error("退出登录失败:", error);
-        // 即使API调用失败，仍然清除本地存储并跳转到主页
-        localStorage.removeItem("accessToken");
+        console.error("閫€鍑虹櫥褰曞け璐?", error);
+        // 鍗充娇API璋冪敤澶辫触锛屼粛鐒舵竻闄ゆ湰鍦板瓨鍌ㄥ苟璺宠浆鍒颁富椤?        localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("rememberedUsername");
         localStorage.removeItem("auth_token");
 
-        // 更新全局登录状态
-        updateLoginStatus(false);
+        // 鏇存柊鍏ㄥ眬鐧诲綍鐘舵€?        updateLoginStatus(false);
 
-        // 导航到主页（路由守卫会触发离开动画）
-        router.push("/");
+        // 瀵艰埅鍒颁富椤碉紙璺敱瀹堝崼浼氳Е鍙戠寮€鍔ㄧ敾锛?        router.push("/");
       } finally {
         isLoggingOut.value = false;
       }
     };
 
-    // 监听 activeStatsTab 变化
+    // 鐩戝惉 activeStatsTab 鍙樺寲
     watch(activeStatsTab, (newTab) => {
       if (newTab === "following") {
         fetchFollowing();
@@ -965,66 +775,51 @@ export default {
       }
     });
 
-    watch([activeNavItem, activeMessageTab], ([navItem, messageTab]) => {
-      if (navItem !== "messages") {
-        return;
-      }
-
-      markTabNotificationsAsRead(messageTab);
-    });
-
-    // 401 后用户重新登录时，自动重新加载用户信息
-    watch(isLoggedIn, (newValue, oldValue) => {
+    // 401 鍚庣敤鎴烽噸鏂扮櫥褰曟椂锛岃嚜鍔ㄩ噸鏂板姞杞界敤鎴蜂俊鎭?    watch(isLoggedIn, (newValue, oldValue) => {
       if (newValue && !oldValue) {
         fetchUserInfo();
-        loadNotifications();
-        refreshNotificationSummary();
       }
     });
 
-    // 页面挂载时获取用户信息
-    watch(
-      () => route.fullPath,
-      () => {
-        applyRouteState(route.query);
-      },
-    );
-
-    onMounted(() => {
-      // 未登录则跳回主页并弹出登录框
+    // 椤甸潰鎸傝浇鏃惰幏鍙栫敤鎴蜂俊鎭?    onMounted(() => {
+      // 鏈櫥褰曞垯璺冲洖涓婚〉骞跺脊鍑虹櫥褰曟
       if (!authApi.isAuthenticated()) {
         window.dispatchEvent(new CustomEvent("open-login-modal"));
         router.push("/");
         return;
       }
 
-      applyRouteState(route.query);
+      if (route.query.tab) {
+        activeNavItem.value = route.query.tab;
+      }
+      if (route.query.messageTab) {
+        activeMessageTab.value = route.query.messageTab;
+      }
+      if (route.query.statsTab) {
+        activeStatsTab.value = route.query.statsTab;
+        activeNavItem.value = null;
+      }
       fetchUserInfo();
       fetchStats();
       loadNotifications();
-      refreshNotificationSummary();
 
-      // 连接WebSocket
+      // 杩炴帴WebSocket
       notificationWS.connect();
-      unsubscribeNotification =
-        notificationWS.onNotification(handleNotification);
+      unsubscribeNotification = notificationWS.onNotification(handleNotification);
 
-      // 进入动画：延迟清除 isEntering，让 keyframe 动画完整播放
+      // 杩涘叆鍔ㄧ敾锛氬欢杩熸竻闄?isEntering锛岃 keyframe 鍔ㄧ敾瀹屾暣鎾斁
       setTimeout(() => {
         isEntering.value = false;
       }, 600);
 
-      // 触发背景渐变动画
+      // 瑙﹀彂鑳屾櫙娓愬彉鍔ㄧ敾
       setTimeout(() => {
         bgGradientComplete.value = true;
 
-        // 背景渐变完成后触发卡片弹出动画
-        setTimeout(() => {
-          // 动画完成
-        }, 300); // 0.3秒背景渐变时间
-      }, 100); // 给DOM一点时间渲染
-
-      // 设置导航守卫
+        // 鑳屾櫙娓愬彉瀹屾垚鍚庤Е鍙戝崱鐗囧脊鍑哄姩鐢?        setTimeout(() => {
+          // 鍔ㄧ敾瀹屾垚
+        }, 300); // 0.3绉掕儗鏅笎鍙樻椂闂?      }, 100); // 缁橠OM涓€鐐规椂闂存覆鏌?
+      // 璁剧疆瀵艰埅瀹堝崼
       navigationGuard = router.beforeEach((to, from, next) => {
         if (from.path === route.path) {
           isLeaving.value = true;
@@ -1037,8 +832,7 @@ export default {
       });
     });
 
-    // 组件卸载时清除导航守卫
-    onBeforeUnmount(() => {
+    // 缁勪欢鍗歌浇鏃舵竻闄ゅ鑸畧鍗?    onBeforeUnmount(() => {
       if (navigationGuard) {
         navigationGuard();
       }
@@ -1048,99 +842,64 @@ export default {
       }
     });
 
-    // 处理搜索
+    // 澶勭悊鎼滅储
     const handleSearch = () => {
       if (searchQuery.value.trim()) {
-        console.log("搜索内容:", searchQuery.value);
-        // 这里可以添加搜索逻辑，例如调用API或过滤本地数据
-        // 暂时只打印搜索内容
-      }
+        console.log("鎼滅储鍐呭:", searchQuery.value);
+        // 杩欓噷鍙互娣诲姞鎼滅储閫昏緫锛屼緥濡傝皟鐢ˋPI鎴栬繃婊ゆ湰鍦版暟鎹?        // 鏆傛椂鍙墦鍗版悳绱㈠唴瀹?      }
     };
 
-    // 发送消息
-    const handleSendMessage = async () => {
-      if (!newMessageContent.value.trim()) {
-        alert("请输入消息内容");
-        return;
-      }
-      // TODO: 调用发送消息API
-      console.log(
-        "发送消息给:",
-        newMessageTarget.value,
-        newMessageContent.value,
-      );
-      alert("消息发送成功");
-      cancelNewMessage();
-    };
+    // 鑾峰彇缁熻鏁版嵁锛堢敱 fetchUserInfo 涓殑 getCurrentProfile 缁熶竴澶勭悊锛?    const fetchStats = async () => {};
 
-    // 取消新消息
-    const cancelNewMessage = () => {
-      newMessageTarget.value = "";
-      newMessageTargetId.value = "";
-      newMessageContent.value = "";
-      selectedContact.value = null;
-      router.replace({ path: "/user", query: { tab: "messages" } });
-    };
-
-    // 选择联系人
-    const selectContact = (contact) => {
-      selectedContact.value = contact;
-      newMessageTarget.value = contact.name;
-      newMessageTargetId.value = contact.id;
-    };
-
-    // 获取统计数据（由 fetchUserInfo 中的 getCurrentProfile 统一处理）
-    const fetchStats = async () => {};
-
-    // 获取关注列表
+    // 鑾峰彇鍏虫敞鍒楄〃
     const fetchFollowing = async () => {
       followingLoading.value = true;
       try {
-        // TODO: 调用后端接口
+        // TODO: 璋冪敤鍚庣鎺ュ彛
         // const data = await userApi.getFollowing();
         // followingList.value = data;
         followingList.value = [];
       } catch (error) {
-        console.error("获取关注列表失败:", error);
+        console.error("鑾峰彇鍏虫敞鍒楄〃澶辫触:", error);
       } finally {
         followingLoading.value = false;
       }
     };
 
-    // 获取粉丝列表
+    // 鑾峰彇绮変笣鍒楄〃
     const fetchFollowers = async () => {
       followersLoading.value = true;
       try {
-        // TODO: 调用后端接口
+        // TODO: 璋冪敤鍚庣鎺ュ彛
         // const data = await userApi.getFollowers();
         // followersList.value = data;
         followersList.value = [];
       } catch (error) {
-        console.error("获取粉丝列表失败:", error);
+        console.error("鑾峰彇绮変笣鍒楄〃澶辫触:", error);
       } finally {
         followersLoading.value = false;
       }
     };
 
-    // 取消关注
+    // 鍙栨秷鍏虫敞
     const handleUnfollow = async (userId) => {
-      // TODO: 调用后端接口
+      // TODO: 璋冪敤鍚庣鎺ュ彛
       // await userApi.unfollow(userId);
-      console.log("取消关注用户:", userId);
-      alert("取消关注成功");
+      console.log("鍙栨秷鍏虫敞鐢ㄦ埛:", userId);
+      alert("鍙栨秷鍏虫敞鎴愬姛");
       fetchFollowing();
     };
 
-    // 回关
+    // 鍥炲叧
     const handleFollowBack = async (userId) => {
-      // TODO: 调用后端接口
+      // TODO: 璋冪敤鍚庣鎺ュ彛
       // await userApi.follow(userId);
-      console.log("回关用户:", userId);
-      alert("关注成功");
+      console.log("鍥炲叧鐢ㄦ埛:", userId);
+      alert("鍏虫敞鎴愬姛");
       fetchFollowers();
     };
 
-    // 处理数据指标点击
+    // 澶勭悊鏁版嵁鎸囨爣鐐瑰嚮
     const handleStatsClick = (tab) => {
       activeStatsTab.value = tab;
       if (tab === "likes") {
@@ -1173,7 +932,6 @@ export default {
       favoriteThreads,
       favoritesLoading,
       formatTime,
-      formatUnreadCount,
       editUsername,
       editBio,
       editBirthday,
@@ -1185,19 +943,7 @@ export default {
       fileInput,
       triggerFileInput,
       handleAvatarChange,
-      newMessageTarget,
-      newMessageTargetId,
-      newMessageContent,
-      messageContacts,
-      selectedContact,
-      selectContact,
-      handleSendMessage,
-      cancelNewMessage,
-      handleNotificationClick,
       activeStatsTab,
-      likeUnreadCount,
-      replyUnreadCount,
-      followUnreadCount,
       likesCount,
       followingCount,
       followersCount,
@@ -1214,7 +960,7 @@ export default {
 </script>
 
 <style scoped>
-/* 用户页面容器 */
+/* 鐢ㄦ埛椤甸潰瀹瑰櫒 */
 .user-view-container {
   min-height: 100vh;
   background-color: #f5f7fa;
@@ -1222,7 +968,7 @@ export default {
   transition: background-color 0.3s ease-in-out;
 }
 
-/* 头像展示栏 */
+/* 澶村儚灞曠ず鏍?*/
 .avatar-header {
   background-color: #2c3e50;
   height: 20vh;
@@ -1256,7 +1002,7 @@ export default {
   margin: 0;
 }
 
-/* 头像包装器 */
+/* 澶村儚鍖呰鍣?*/
 .avatar-wrapper {
   position: relative;
   display: inline-block;
@@ -1266,7 +1012,7 @@ export default {
   margin-left: -20px;
 }
 
-/* 头像图片 */
+/* 澶村儚鍥剧墖 */
 .avatar-image {
   width: 120px;
   height: 120px;
@@ -1276,7 +1022,7 @@ export default {
   transition: all 0.3s ease;
 }
 
-/* 头像悬停遮罩层 */
+/* 澶村儚鎮仠閬僵灞?*/
 .avatar-overlay {
   position: absolute;
   top: 0;
@@ -1299,7 +1045,7 @@ export default {
   visibility: visible;
 }
 
-/* 更换头像文字 */
+/* 鏇存崲澶村儚鏂囧瓧 */
 .change-avatar-text {
   color: white;
   font-size: 14px;
@@ -1308,7 +1054,7 @@ export default {
   user-select: none;
 }
 
-/* 头像悬停效果 */
+/* 澶村儚鎮仠鏁堟灉 */
 .avatar-wrapper:hover .user-avatar-large {
   filter: brightness(0.8);
 }
@@ -1333,12 +1079,12 @@ export default {
   line-height: 1.5;
 }
 
-/* 背景渐变完成状态 */
+/* 鑳屾櫙娓愬彉瀹屾垚鐘舵€?*/
 .user-view-container.bg-gradient-complete {
   background-color: #f5f7fa;
 }
 
-/* 背景离开时的渐变动画 */
+/* 鑳屾櫙绂诲紑鏃剁殑娓愬彉鍔ㄧ敾 */
 .user-view-container.bg-fade-leave-active {
   animation: userPageLeave 0.5s ease-in-out forwards;
 }
@@ -1356,7 +1102,7 @@ export default {
   }
 }
 
-/* 页面进入时的渐入动画 */
+/* 椤甸潰杩涘叆鏃剁殑娓愬叆鍔ㄧ敾 */
 .user-view-container.fade-enter-active {
   animation: userPageEnter 0.5s ease-out;
 }
@@ -1372,7 +1118,7 @@ export default {
   }
 }
 
-/* 顶部导航栏 - 与HomeView一致 */
+/* 椤堕儴瀵艰埅鏍?- 涓嶩omeView涓€鑷?*/
 .bili-header-bar {
   background-color: #2c3e50;
   z-index: 1000;
@@ -1380,7 +1126,7 @@ export default {
   box-sizing: border-box;
 }
 
-/* 论坛logo样式 */
+/* 璁哄潧logo鏍峰紡 */
 .forum-logo {
   font-size: 24px;
   font-weight: 700;
@@ -1429,7 +1175,7 @@ export default {
   margin-right: 15px;
 }
 
-/* 右侧元素紧凑排列 */
+/* 鍙充晶鍏冪礌绱у噾鎺掑垪 */
 .right-entry .flex {
   align-items: center;
 }
@@ -1455,7 +1201,7 @@ export default {
   font-weight: 600;
 }
 
-/* 搜索栏样式 */
+/* 鎼滅储鏍忔牱寮?*/
 .center-search-container {
   flex: 2;
   display: flex;
@@ -1499,19 +1245,19 @@ export default {
   color: var(--primary-color);
 }
 
-/* 用户头像容器 */
+/* 鐢ㄦ埛澶村儚瀹瑰櫒 */
 .user-avatar-container {
   position: relative;
   display: inline-block;
 }
 
-/* 用户头像样式 */
+/* 鐢ㄦ埛澶村儚鏍峰紡 */
 .user-avatar {
   font-size: 30px;
   display: block;
 }
 
-/* 用户下拉菜单 */
+/* 鐢ㄦ埛涓嬫媺鑿滃崟 */
 .user-dropdown-menu {
   position: absolute;
   top: 100%;
@@ -1529,14 +1275,14 @@ export default {
   z-index: 1000;
 }
 
-/* 下拉菜单显示状态 */
+/* 涓嬫媺鑿滃崟鏄剧ず鐘舵€?*/
 .user-dropdown-menu.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-/* 下拉菜单项 */
+/* 涓嬫媺鑿滃崟椤?*/
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -1560,7 +1306,7 @@ export default {
   font-size: 14px;
 }
 
-/* 数据指标行 */
+/* 鏁版嵁鎸囨爣琛?*/
 .stats-container {
   width: 100%;
   margin-top: 20px;
@@ -1613,7 +1359,7 @@ export default {
   color: #666;
 }
 
-/* 主内容区域包装器 */
+/* 涓诲唴瀹瑰尯鍩熷寘瑁呭櫒 */
 .main-content-container {
   width: 100%;
   margin-top: 20px;
@@ -1632,7 +1378,7 @@ export default {
   gap: 0;
 }
 
-/* 左侧导航栏 */
+/* 宸︿晶瀵艰埅鏍?*/
 .left-sidebar {
   width: 200px;
   flex-shrink: 0;
@@ -1674,7 +1420,7 @@ export default {
   font-weight: 500;
 }
 
-/* 确保router-link作为菜单项时的样式 */
+/* 纭繚router-link浣滀负鑿滃崟椤规椂鐨勬牱寮?*/
 .nav-item.router-link-active {
   background-color: #e3f2fd;
   border-left-color: var(--primary-color);
@@ -1685,7 +1431,7 @@ export default {
   color: var(--primary-color);
 }
 
-/* 退出登录项样式 */
+/* 閫€鍑虹櫥褰曢」鏍峰紡 */
 .logout-item {
   margin-top: 20px;
   color: #e74c3c !important;
@@ -1706,7 +1452,7 @@ export default {
   color: #c0392b !important;
 }
 
-/* 目标用户信息卡片 */
+/* 鐩爣鐢ㄦ埛淇℃伅鍗＄墖 */
 .target-user-card {
   display: flex;
   flex-direction: column;
@@ -1738,7 +1484,7 @@ export default {
   word-break: break-word;
 }
 
-/* 确保router-link的文本颜色与其他菜单项一致 */
+/* 纭繚router-link鐨勬枃鏈鑹蹭笌鍏朵粬鑿滃崟椤逛竴鑷?*/
 .nav-item {
   color: #333;
   text-decoration: none;
@@ -1752,7 +1498,7 @@ export default {
   color: #333;
 }
 
-/* 右侧内容区域 */
+/* 鍙充晶鍐呭鍖哄煙 */
 .right-content {
   flex: 1;
   min-width: 0;
@@ -1761,7 +1507,7 @@ export default {
   border-left: 1px solid #e8ecf0;
 }
 
-/* 内容卡片 */
+/* 鍐呭鍗＄墖 */
 .content-card {
   background-color: #f5f7fa;
   padding: 0;
@@ -1776,14 +1522,14 @@ export default {
   margin-bottom: 20px;
 }
 
-/* 粉丝列表 */
+/* 绮変笣鍒楄〃 */
 .fan-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-/* 粉丝项 */
+/* 绮変笣椤?*/
 .fan-item {
   display: flex;
   align-items: center;
@@ -1798,7 +1544,7 @@ export default {
   background-color: #f5f5f5;
 }
 
-/* 粉丝头像 */
+/* 绮変笣澶村儚 */
 .fan-avatar {
   width: 50px;
   height: 50px;
@@ -1812,7 +1558,7 @@ export default {
   flex-shrink: 0;
 }
 
-/* 粉丝信息 */
+/* 绮変笣淇℃伅 */
 .fan-info {
   flex: 1;
   min-width: 0;
@@ -1830,7 +1576,7 @@ export default {
   color: #999;
 }
 
-/* 回关按钮 */
+/* 鍥炲叧鎸夐挳 */
 .follow-btn {
   padding: 6px 16px;
   background-color: #3498db;
@@ -1847,14 +1593,14 @@ export default {
   background-color: #2980b9;
 }
 
-/* 消息列表 */
+/* 娑堟伅鍒楄〃 */
 .messages-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-/* 消息项 */
+/* 娑堟伅椤?*/
 .message-item {
   display: flex;
   gap: 15px;
@@ -1868,7 +1614,7 @@ export default {
   background-color: #f5f5f5;
 }
 
-/* 消息头像 */
+/* 娑堟伅澶村儚 */
 .message-avatar {
   width: 50px;
   height: 50px;
@@ -1882,7 +1628,7 @@ export default {
   flex-shrink: 0;
 }
 
-/* 消息内容 */
+/* 娑堟伅鍐呭 */
 .message-content {
   flex: 1;
   min-width: 0;
@@ -1907,14 +1653,14 @@ export default {
   color: #999;
 }
 
-/* 个人资料表单 */
+/* 涓汉璧勬枡琛ㄥ崟 */
 .profile-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* 表单组 */
+/* 琛ㄥ崟缁?*/
 .form-group {
   display: flex;
   flex-direction: column;
@@ -1927,7 +1673,7 @@ export default {
   color: #333;
 }
 
-/* 表单输入框 */
+/* 琛ㄥ崟杈撳叆妗?*/
 .form-input,
 .form-textarea {
   padding: 10px 12px;
@@ -1953,7 +1699,7 @@ export default {
   min-height: 80px;
 }
 
-/* 保存按钮 */
+/* 淇濆瓨鎸夐挳 */
 .save-btn {
   padding: 10px 20px;
   background-color: #3498db;
@@ -1971,14 +1717,14 @@ export default {
   background-color: #2980b9;
 }
 
-/* 设置列表 */
+/* 璁剧疆鍒楄〃 */
 .settings-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-/* 设置项 */
+/* 璁剧疆椤?*/
 .setting-item {
   display: flex;
   align-items: center;
@@ -1998,7 +1744,7 @@ export default {
   color: #333;
 }
 
-/* 开关按钮 */
+/* 寮€鍏虫寜閽?*/
 .switch {
   position: relative;
   display: inline-block;
@@ -2048,9 +1794,36 @@ input:checked + .slider:before {
   transform: translateX(24px);
 }
 
-/* 消息容器布局 */
+/* 娑堟伅瀹瑰櫒甯冨眬 */
 .messages-container h2 {
   margin-bottom: 20px;
+}
+
+.messages-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.messages-header h2 {
+  margin: 0;
+}
+
+.mark-all-read-btn {
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.mark-all-read-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .messages-layout {
@@ -2059,7 +1832,7 @@ input:checked + .slider:before {
   min-height: 400px;
 }
 
-/* 联系人侧边栏 */
+/* 鑱旂郴浜轰晶杈规爮 */
 .contacts-sidebar {
   width: 200px;
   background-color: #f9f9f9;
@@ -2091,14 +1864,14 @@ input:checked + .slider:before {
   font-size: 20px;
 }
 
-/* 消息输入区域 */
+/* 娑堟伅杈撳叆鍖哄煙 */
 .message-input-area {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* 新消息表单 */
+/* 鏂版秷鎭〃鍗?*/
 .new-message-form {
   background-color: #f9f9f9;
   padding: 20px;
@@ -2169,7 +1942,7 @@ input:checked + .slider:before {
   background-color: #d0d0d0;
 }
 
-/* 响应式设计 */
+/* 鍝嶅簲寮忚璁?*/
 @media (max-width: 768px) {
   .main-content-wrapper {
     flex-direction: column;
@@ -2252,7 +2025,7 @@ input:checked + .slider:before {
   }
 }
 
-/* 空状态提示 */
+/* 绌虹姸鎬佹彁绀?*/
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -2273,7 +2046,7 @@ input:checked + .slider:before {
   margin: 0;
 }
 
-/* 帖子表格样式 */
+/* 甯栧瓙琛ㄦ牸鏍峰紡 */
 .thread-table-container {
   margin-top: 20px;
   background-color: #f9f9f9;
@@ -2377,7 +2150,7 @@ input:checked + .slider:before {
   text-align: center;
 }
 
-/* 响应式设计 - 帖子表格 */
+/* 鍝嶅簲寮忚璁?- 甯栧瓙琛ㄦ牸 */
 @media (max-width: 768px) {
   .thread-info {
     min-width: 200px;
@@ -2402,7 +2175,7 @@ input:checked + .slider:before {
   }
 }
 
-/* 用户列表容器 */
+/* 鐢ㄦ埛鍒楄〃瀹瑰櫒 */
 .user-list-container h2 {
   margin-bottom: 20px;
 }
@@ -2488,19 +2261,15 @@ input:checked + .slider:before {
   opacity: 0.9;
 }
 
-/* 消息导航栏 */
+/* 娑堟伅瀵艰埅鏍?*/
 .message-tabs {
   display: flex;
-  flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 20px;
   border-bottom: 2px solid #e0e0e0;
 }
 
 .message-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   padding: 10px 20px;
   cursor: pointer;
   font-size: 15px;
@@ -2520,19 +2289,7 @@ input:checked + .slider:before {
   font-weight: 600;
 }
 
-.message-tab-badge {
-  min-width: 20px;
-  padding: 2px 6px;
-  border-radius: 999px;
-  background-color: #ff5a5f;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
-  text-align: center;
-}
-
-/* 通知列表 */
+/* 閫氱煡鍒楄〃 */
 .notification-list {
   display: flex;
   flex-direction: column;
@@ -2546,26 +2303,21 @@ input:checked + .slider:before {
   padding: 15px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  border: 1px solid transparent;
+  transition: background-color 0.2s;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    transform 0.2s;
 }
 
 .notification-item:hover {
   background-color: #f0f0f0;
-  transform: translateY(-1px);
 }
 
 .notification-item.unread {
-  background-color: #fff5f5;
-  border-color: rgba(255, 71, 87, 0.18);
+  background-color: #e8f0fe;
+  border-left: 3px solid var(--primary-color);
 }
 
-.notification-item.unread .notif-text {
-  font-weight: 600;
+.notification-item.unread:hover {
+  background-color: #d9e7fd;
 }
 
 .notif-icon {

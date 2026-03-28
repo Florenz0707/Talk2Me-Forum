@@ -174,6 +174,7 @@
 <script setup>
 import { ref, watch, inject } from "vue";
 import { authApi, userApi } from "../utils/api";
+import { getAuthToken, setUserAvatar } from "../utils/authStorage";
 
 const props = defineProps({
   visible: Boolean,
@@ -191,7 +192,7 @@ const fetchUserProfile = async () => {
   try {
     const response = await userApi.getCurrentProfile();
     if (response.data?.avatar_url) {
-      localStorage.setItem("userAvatar", response.data.avatar_url);
+      setUserAvatar(response.data.avatar_url);
     }
   } catch (error) {
     console.error("获取用户资料失败:", error);
@@ -275,7 +276,7 @@ const handleLogin = async () => {
   loginLoading.value = true;
   try {
     await authApi.login(loginForm.value.username, loginForm.value.password);
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (token) {
       await fetchUserProfile();
       updateLoginStatus(true);
@@ -324,7 +325,7 @@ const handleRegister = async () => {
 
     try {
       await authApi.login(username, password);
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       if (token) {
         await fetchUserProfile();
         updateLoginStatus(true);

@@ -1,4 +1,16 @@
 // API服务层 - 处理与后端的所有HTTP请求
+import { multiAccountManager } from "./multiAccount";
+import {
+  clearAuthSession,
+  clearUserInfo as clearStoredUserInfo,
+  getAuthToken,
+  getRefreshToken,
+  getUserInfo as getStoredUserInfo,
+  setAuthToken,
+  setRefreshToken,
+  setUserAvatar,
+  setUserInfo,
+} from "./authStorage";
 
 // API基础URL
 const API_BASE_URL = "/talk2me/api/v1";
@@ -14,9 +26,6 @@ function decodeJwtPayload(token) {
 }
 
 // 存储键名
-const TOKEN_KEY = "auth_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
-const USER_INFO_KEY = "user_info";
 
 // 错误类型定义
 export class ApiError extends Error {
@@ -37,11 +46,11 @@ async function request(endpoint, method, data = null, useAuth = true) {
 
   // 如果需要身份验证且有令牌，则添加Authorization头
   if (useAuth) {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = getAuthToken();
     // 校验 token：不存在或不是合法 JWT（无法解析 payload）均视为无效
     const payload = token ? decodeJwtPayload(token) : null;
     if (!token || !payload) {
-      localStorage.removeItem(TOKEN_KEY);
+      clearAuthSession();
       window.dispatchEvent(
         new CustomEvent("authChange", { detail: { isAuthenticated: false } }),
       );
@@ -51,9 +60,7 @@ async function request(endpoint, method, data = null, useAuth = true) {
     // 检查 token 是否已过期
     if (payload.exp && payload.exp * 1000 < Date.now()) {
       console.warn("Token 已过期，自动登出");
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem(USER_INFO_KEY);
+      clearAuthSession();
       window.dispatchEvent(
         new CustomEvent("authChange", { detail: { isAuthenticated: false } }),
       );
@@ -96,9 +103,7 @@ async function request(endpoint, method, data = null, useAuth = true) {
         case 401:
           errorMessage = responseData.message || "未授权或登录已过期";
           // 清除本地凭证并跳转登录页
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(REFRESH_TOKEN_KEY);
-          localStorage.removeItem(USER_INFO_KEY);
+          clearAuthSession();
           window.dispatchEvent(
             new CustomEvent("authChange", {
               detail: { isAuthenticated: false },
@@ -158,7 +163,7 @@ export const authApi = {
   // 3. 刷新用户身份凭证 - POST /api/v1/auth/refresh
   async refreshToken() {
     try {
-      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+      const refreshToken = getRefreshToken();
 
       if (!refreshToken) {
         throw new ApiError("没有刷新令牌", null, "NO_REFRESH_TOKEN");
@@ -173,15 +178,23 @@ export const authApi = {
 
       // 更新令牌 - 根据后端返回的数据结构
       if (response.data && response.data.access_token) {
-        localStorage.setItem(TOKEN_KEY, response.data.access_token);
+        setAuthToken(response.data.access_token);
+        multiAccountManager.updateCurrentToken(
+          response.data.access_token,
+          response.data.refresh_token,
+        );
       } else if (response.access_token) {
-        localStorage.setItem(TOKEN_KEY, response.access_token);
+        setAuthToken(response.access_token);
+        multiAccountManager.updateCurrentToken(
+          response.access_token,
+          response.refresh_token,
+        );
       }
 
       if (response.data && response.data.refresh_token) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh_token);
+        setRefreshToken(response.data.refresh_token);
       } else if (response.refresh_token) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
+        setRefreshToken(response.refresh_token);
       }
 
       return response;
@@ -202,46 +215,35 @@ export const authApi = {
         false,
       );
 
-      // 根据后端返回的数据结构存储令牌和用户信息
-      // 后端返回格式: { code, message, data: { access_token, refresh_token, user } }
       console.log("登录响应:", response);
+      let token, refreshToken, userInfo;
+
       if (response.data) {
-        if (response.data.access_token) {
-          localStorage.setItem(TOKEN_KEY, response.data.access_token);
-          console.log(
-            "Token已存储:",
-            response.data.access_token.substring(0, 20) + "...",
-          );
-        }
-        if (response.data.refresh_token) {
-          localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh_token);
-        }
-        if (response.data.user) {
-          localStorage.setItem(
-            USER_INFO_KEY,
-            JSON.stringify(response.data.user),
-          );
-        }
+        token = response.data.access_token;
+        refreshToken = response.data.refresh_token;
+        userInfo = response.data.user;
       } else {
-        // 兼容直接返回token的情况
-        if (response.access_token) {
-          localStorage.setItem(TOKEN_KEY, response.access_token);
-          console.log(
-            "Token已存储:",
-            response.access_token.substring(0, 20) + "...",
-          );
-        }
-        if (response.refresh_token) {
-          localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
-        }
-        if (response.user) {
-          localStorage.setItem(USER_INFO_KEY, JSON.stringify(response.user));
-        } else if (response.username) {
-          localStorage.setItem(
-            USER_INFO_KEY,
-            JSON.stringify({ username: response.username }),
-          );
-        }
+        token = response.access_token;
+        refreshToken = response.refresh_token;
+        userInfo = response.user || { username: response.username };
+      }
+
+      if (token) {
+        setAuthToken(token);
+        console.log("Token已存储:", token.substring(0, 20) + "...");
+      }
+      if (refreshToken) {
+        setRefreshToken(refreshToken);
+      }
+      if (userInfo) {
+        setUserInfo(userInfo);
+        setUserAvatar(userInfo.avatar || userInfo.avatar_url || "");
+        multiAccountManager.saveAccount(
+          username,
+          token,
+          refreshToken,
+          userInfo,
+        );
       }
 
       this._emitAuthChangeEvent(true);
@@ -252,27 +254,40 @@ export const authApi = {
     }
   },
 
-  // 5. 登出
+  // 5. 登出（保留账号信息）
   logout() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_INFO_KEY);
+    clearAuthSession();
     this._emitAuthChangeEvent(false);
+  },
+
+  // 切换账号
+  switchAccount(username) {
+    return multiAccountManager.switchAccount(username);
+  },
+
+  // 获取所有已登录账号
+  getAllAccounts() {
+    return multiAccountManager.getAllAccounts();
+  },
+
+  // 完全移除账号
+  removeAccount(username) {
+    multiAccountManager.removeAccount(username);
   },
 
   // 检查是否已登录
   isAuthenticated() {
-    return !!localStorage.getItem(TOKEN_KEY);
+    return !!getAuthToken();
   },
 
   // 获取当前令牌
   getToken() {
-    return localStorage.getItem(TOKEN_KEY);
+    return getAuthToken();
   },
 
   // 从 JWT token 中解码用户名（token 由后端签发，sub 字段为 username）
   getUsernameFromToken() {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = getAuthToken();
     if (!token) return null;
     const payload = decodeJwtPayload(token);
     return payload ? payload.sub : null;
@@ -280,18 +295,17 @@ export const authApi = {
 
   // 获取用户信息
   getUserInfo() {
-    const userInfo = localStorage.getItem(USER_INFO_KEY);
-    return userInfo ? JSON.parse(userInfo) : null;
+    return getStoredUserInfo();
   },
 
   // 更新用户信息
   updateUserInfo(userInfo) {
-    localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+    setUserInfo(userInfo);
   },
 
   // 清除用户信息
   clearUserInfo() {
-    localStorage.removeItem(USER_INFO_KEY);
+    clearStoredUserInfo();
   },
 
   // 触发认证状态变化事件
@@ -508,7 +522,7 @@ export const userApi = {
       formData.append("file", file);
 
       const url = `${API_BASE_URL}/users/avatar`;
-      const token = localStorage.getItem(TOKEN_KEY);
+      const token = getAuthToken();
       const headers = {};
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;

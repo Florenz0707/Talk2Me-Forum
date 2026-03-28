@@ -1,4 +1,3 @@
-echo $env:ANTHROPIC_BASE_URL echo $env:ANTHROPIC_BASE_URL
 <template>
   <div id="app">
     <router-view />
@@ -6,14 +5,16 @@ echo $env:ANTHROPIC_BASE_URL echo $env:ANTHROPIC_BASE_URL
 </template>
 
 <script setup>
-import { ref, onMounted, provide } from "vue";
+import { ref, onMounted, onUnmounted, provide } from "vue";
+import { notificationWS } from "./utils/websocket";
+import { getAuthToken } from "./utils/authStorage";
 
 // 全局登录状态
 const isLoggedIn = ref(false);
 
 // 检查用户登录状态
 const checkLoginStatus = () => {
-  const token = localStorage.getItem("auth_token");
+  const token = getAuthToken();
   isLoggedIn.value = token !== null && token !== "";
 };
 
@@ -48,6 +49,15 @@ provide("updateLoginStatus", updateLoginStatus);
 provide("isDarkMode", isDarkMode);
 provide("toggleDarkMode", toggleDarkMode);
 
+const handleAuthChange = (event) => {
+  isLoggedIn.value = !!event.detail.isAuthenticated;
+  if (event.detail.isAuthenticated) {
+    notificationWS.connect();
+  } else {
+    notificationWS.disconnect();
+  }
+};
+
 // 组件挂载时检查登录状态及深色模式偏好
 onMounted(() => {
   checkLoginStatus();
@@ -59,17 +69,20 @@ onMounted(() => {
     document.documentElement.classList.add("dark");
   }
 
+  // 初始化 WebSocket 连接
+  if (isLoggedIn.value) {
+    notificationWS.connect();
+  }
+
   // 监听localStorage变化，实现多标签页同步
-  window.addEventListener("storage", (event) => {
-    if (event.key === "auth_token") {
-      checkLoginStatus();
-    }
-  });
+  window.addEventListener("authChange", handleAuthChange);
 
   // 监听 authChange 事件（同 Tab 内 token 清除或登录成功时触发）
-  window.addEventListener("authChange", (event) => {
-    isLoggedIn.value = !!event.detail.isAuthenticated;
-  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener("authChange", handleAuthChange);
+  notificationWS.disconnect();
 });
 </script>
 

@@ -274,6 +274,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Header from "../components/Header.vue";
 import { postApi, sectionApi } from "../utils/api";
+import { getAuthToken } from "../utils/authStorage";
 
 const router = useRouter();
 const route = useRoute();
@@ -690,7 +691,7 @@ onMounted(() => {
   }, 600);
 
   // 检查token是否存在
-  const token = localStorage.getItem("auth_token");
+  const token = getAuthToken();
   console.log("CreateThreadView onMounted - token:", token ? "存在" : "不存在");
   if (token) {
     console.log("Token值:", token.substring(0, 30) + "...");

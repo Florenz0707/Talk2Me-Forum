@@ -318,6 +318,7 @@ import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { likeApi, replyApi, postApi, sectionApi } from "../utils/api";
 import Header from "../components/Header.vue";
+import { getUserAvatar } from "../utils/authStorage";
 
 export default {
   name: "ThreadDetailView",
@@ -338,6 +339,10 @@ export default {
 
     // 用户头像
     const userAvatar = ref("");
+
+    const syncCurrentUserAvatar = () => {
+      userAvatar.value = getUserAvatar() || "";
+    };
 
     // 处理头像点击
     const handleAvatarClick = () => {
@@ -715,6 +720,9 @@ export default {
 
       // 添加滚动监听
       window.addEventListener("scroll", handleScroll);
+      window.addEventListener("authChange", syncCurrentUserAvatar);
+      window.addEventListener("userAvatarChange", syncCurrentUserAvatar);
+      syncCurrentUserAvatar();
 
       // 获取帖子详情
       fetchThreadDetail();
@@ -735,6 +743,8 @@ export default {
 
     onBeforeUnmount(() => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("authChange", syncCurrentUserAvatar);
+      window.removeEventListener("userAvatarChange", syncCurrentUserAvatar);
       if (navigationGuard) {
         navigationGuard();
       }

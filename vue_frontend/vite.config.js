@@ -10,7 +10,8 @@ export default defineConfig({
     proxy: {
       "/talk2me": {
         target: "http://localhost:8099",
-        changeOrigin: true,
+        changeOrigin: false,
+        ws: true,
       },
     },
   },

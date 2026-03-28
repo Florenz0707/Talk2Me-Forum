@@ -8,11 +8,12 @@
           <router-link to="/sections" class="nav-button">板块</router-link>
         </div>
       </div>
+
       <div class="header-center">
         <div class="search-box">
           <input
-            type="text"
             v-model="searchKeyword"
+            type="text"
             placeholder="搜索帖子..."
             class="search-input"
             @keyup.enter="handleSearch"
@@ -22,12 +23,14 @@
           </button>
         </div>
       </div>
+
       <div class="user-actions">
         <template v-if="showAuthButtons">
           <button class="auth-circle-btn" @click="openModal('login')">
             登录
           </button>
         </template>
+
         <template v-else>
           <div
             class="user-avatar-container"
@@ -42,23 +45,39 @@
                 alt="用户头像"
                 class="avatar-image"
               />
+              <span v-if="hasUnread" class="avatar-unread-dot"></span>
             </router-link>
+
             <div class="user-dropdown-menu" :class="{ show: showUserMenu }">
-              <div class="dropdown-item" @click="goToMessages">
-                <i class="fas fa-envelope"></i>
-                <span>我的消息</span>
-              </div>
               <div class="dropdown-item" @click="goToLikes">
                 <i class="fas fa-heart"></i>
                 <span>收到的赞</span>
-              </div>
-              <div class="dropdown-item" @click="goToFollowers">
-                <i class="fas fa-user-plus"></i>
-                <span>新的粉丝</span>
+                <span
+                  v-if="notificationSummary.byType.LIKE > 0"
+                  class="menu-unread-badge"
+                >
+                  {{ formatUnreadCount(notificationSummary.byType.LIKE) }}
+                </span>
               </div>
               <div class="dropdown-item" @click="goToReplies">
                 <i class="fas fa-comment"></i>
                 <span>回复我的</span>
+                <span
+                  v-if="notificationSummary.byType.REPLY > 0"
+                  class="menu-unread-badge"
+                >
+                  {{ formatUnreadCount(notificationSummary.byType.REPLY) }}
+                </span>
+              </div>
+              <div class="dropdown-item" @click="goToFollowers">
+                <i class="fas fa-user-plus"></i>
+                <span>新的粉丝</span>
+                <span
+                  v-if="notificationSummary.byType.FOLLOW > 0"
+                  class="menu-unread-badge"
+                >
+                  {{ formatUnreadCount(notificationSummary.byType.FOLLOW) }}
+                </span>
               </div>
             </div>
           </div>
@@ -75,11 +94,18 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, onMounted } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import AuthModal from "./AuthModal.vue";
+import { notificationWS } from "../utils/websocket";
+import { getUserAvatar } from "../utils/authStorage";
+import {
+  applyIncomingNotification,
+  notificationSummary,
+  refreshNotificationSummary,
+  resetNotificationSummary,
+} from "../utils/notificationState";
 
-// 接收props
 defineProps({
   title: {
     type: String,
@@ -88,51 +114,37 @@ defineProps({
 });
 
 const router = useRouter();
+const isLoggedIn = inject("isLoggedIn", ref(false));
 
-// 从全局注入获取登录状态
-const isLoggedIn = inject("isLoggedIn");
-
-// 计算是否显示登录/注册按钮
 const showAuthButtons = computed(() => !isLoggedIn.value);
-
-// 用户菜单控制
+const hasUnread = computed(() => notificationSummary.total > 0);
 const showUserMenu = ref(false);
-
-// 用户头像
 const userAvatar = ref("");
 
-// Auth modal state
 const showAuthModal = ref(false);
 const authModalTab = ref("login");
+const searchKeyword = ref("");
+
+let pollInterval = null;
+let unsubscribeNotification = null;
 
 const openModal = (tab) => {
   authModalTab.value = tab;
   showAuthModal.value = true;
 };
 
-// 搜索关键词
-const searchKeyword = ref("");
-
-// 搜索处理函数
 const handleSearch = () => {
-  if (searchKeyword.value.trim()) {
-    router.push({
-      path: "/search",
-      query: { keyword: searchKeyword.value.trim() },
-    });
+  if (!searchKeyword.value.trim()) {
+    return;
   }
-};
-
-// 跳转到新消息
-const goToMessages = () => {
   router.push({
-    path: "/user",
-    query: { tab: "messages", messageTab: "private" },
+    path: "/search",
+    query: { keyword: searchKeyword.value.trim() },
   });
-  showUserMenu.value = false;
 };
 
-// 跳转到收到的赞
+const formatUnreadCount = (count) => (count > 99 ? "99+" : count);
+
 const goToLikes = () => {
   router.push({
     path: "/user",
@@ -141,13 +153,6 @@ const goToLikes = () => {
   showUserMenu.value = false;
 };
 
-// 跳转到新的粉丝
-const goToFollowers = () => {
-  router.push({ path: "/user", query: { statsTab: "followers" } });
-  showUserMenu.value = false;
-};
-
-// 跳转到回复我的
 const goToReplies = () => {
   router.push({
     path: "/user",
@@ -156,15 +161,74 @@ const goToReplies = () => {
   showUserMenu.value = false;
 };
 
-// 加载用户头像
-onMounted(() => {
-  const savedAvatar = localStorage.getItem("userAvatar");
-  if (savedAvatar) {
-    userAvatar.value = savedAvatar;
+const goToFollowers = () => {
+  router.push({
+    path: "/user",
+    query: { tab: "messages", messageTab: "followers" },
+  });
+  showUserMenu.value = false;
+};
+
+const startUnreadSync = () => {
+  if (!isLoggedIn.value) {
+    return;
   }
 
-  // 监听需要打开登录弹窗的事件（如 token 过期、401 响应）
-  window.addEventListener("open-login-modal", () => openModal("login"));
+  refreshNotificationSummary();
+
+  if (!pollInterval) {
+    pollInterval = setInterval(refreshNotificationSummary, 30000);
+  }
+
+  if (!unsubscribeNotification) {
+    unsubscribeNotification = notificationWS.onNotification((notification) => {
+      applyIncomingNotification(notification);
+    });
+  }
+};
+
+const stopUnreadSync = () => {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
+  if (unsubscribeNotification) {
+    unsubscribeNotification();
+    unsubscribeNotification = null;
+  }
+};
+
+const handleOpenLoginModal = () => {
+  openModal("login");
+};
+
+const syncUserAvatar = () => {
+  userAvatar.value = getUserAvatar() || "";
+};
+
+onMounted(() => {
+  syncUserAvatar();
+
+  window.addEventListener("open-login-modal", handleOpenLoginModal);
+  window.addEventListener("authChange", syncUserAvatar);
+  window.addEventListener("userAvatarChange", syncUserAvatar);
+  startUnreadSync();
+});
+
+watch(isLoggedIn, (loggedIn) => {
+  if (loggedIn) {
+    startUnreadSync();
+    return;
+  }
+  resetNotificationSummary();
+  stopUnreadSync();
+});
+
+onUnmounted(() => {
+  stopUnreadSync();
+  window.removeEventListener("open-login-modal", handleOpenLoginModal);
+  window.removeEventListener("authChange", syncUserAvatar);
+  window.removeEventListener("userAvatarChange", syncUserAvatar);
 });
 </script>
 
@@ -292,6 +356,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .avatar-image {
@@ -299,6 +364,31 @@ onMounted(() => {
   height: 30px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.avatar-unread-dot {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff4757;
+  border: 2px solid var(--forum-dark-color);
+}
+
+.menu-unread-badge {
+  min-width: 18px;
+  height: 18px;
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ff4757;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
 }
 
 .user-dropdown-menu {
@@ -342,6 +432,12 @@ onMounted(() => {
 .dropdown-item i {
   font-size: 16px;
   color: #666;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 4px 0;
 }
 
 .auth-circle-btn {
