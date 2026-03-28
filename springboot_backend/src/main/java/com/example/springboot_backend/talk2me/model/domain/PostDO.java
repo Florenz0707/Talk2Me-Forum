@@ -3,6 +3,7 @@ package com.example.springboot_backend.talk2me.model.domain;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.springboot_backend.core.model.BaseEntity;
+import java.time.LocalDateTime;
 
 @TableName("posts")
 public class PostDO extends BaseEntity {
@@ -17,6 +18,9 @@ public class PostDO extends BaseEntity {
 
   @TableField(exist = false)
   private Boolean isLiked;
+
+  @TableField(exist = false)
+  private LocalDateTime lastViewTime;
 
   public Long getSectionId() {
     return sectionId;
@@ -88,5 +92,13 @@ public class PostDO extends BaseEntity {
 
   public void setIsLiked(Boolean isLiked) {
     this.isLiked = isLiked;
+  }
+
+  public LocalDateTime getLastViewTime() {
+    return lastViewTime;
+  }
+
+  public void setLastViewTime(LocalDateTime lastViewTime) {
+    this.lastViewTime = lastViewTime;
   }
 }

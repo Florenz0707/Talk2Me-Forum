@@ -15,4 +15,6 @@ public interface IPostService {
   void deletePost(Long id, Long userId);
 
   Page<PostDO> listPosts(Long sectionId, Integer page, Integer size, Long currentUserId);
+
+  void refreshPostView(Long postId, Long currentUserId);
 }

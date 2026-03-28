@@ -82,7 +82,9 @@ CREATE TABLE IF NOT EXISTS post_views (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     post_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
-    create_time TIMESTAMP NOT NULL
+    is_deleted INT NOT NULL DEFAULT 0,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uk_post_view_user ON post_views(post_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_post_views_user_id ON post_views(user_id);

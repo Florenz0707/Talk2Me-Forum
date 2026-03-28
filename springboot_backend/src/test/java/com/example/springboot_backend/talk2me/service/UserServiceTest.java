@@ -8,6 +8,8 @@ import com.example.springboot_backend.talk2me.model.domain.UserDO;
 import com.example.springboot_backend.talk2me.model.domain.UserStatsDO;
 import com.example.springboot_backend.talk2me.model.vo.UpdateProfileRequest;
 import com.example.springboot_backend.talk2me.model.vo.UserProfileResponse;
+import com.example.springboot_backend.talk2me.repository.LikeMapper;
+import com.example.springboot_backend.talk2me.repository.PostViewMapper;
 import com.example.springboot_backend.talk2me.repository.UserMapper;
 import com.example.springboot_backend.talk2me.repository.UserStatsMapper;
 import com.example.springboot_backend.talk2me.service.impl.UserService;
@@ -25,6 +27,10 @@ class UserServiceTest {
   @Mock private UserMapper userMapper;
 
   @Mock private UserStatsMapper userStatsMapper;
+
+  @Mock private PostViewMapper postViewMapper;
+
+  @Mock private LikeMapper likeMapper;
 
   @InjectMocks private UserService userService;
 

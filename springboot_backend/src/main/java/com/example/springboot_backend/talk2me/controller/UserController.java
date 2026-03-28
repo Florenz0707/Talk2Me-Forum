@@ -1,7 +1,9 @@
 package com.example.springboot_backend.talk2me.controller;
 
+import com.example.springboot_backend.core.model.PageResult;
 import com.example.springboot_backend.core.model.Result;
 import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
+import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.vo.UpdateProfileRequest;
 import com.example.springboot_backend.talk2me.model.vo.UserProfileResponse;
 import com.example.springboot_backend.talk2me.service.IUserService;
@@ -51,6 +53,24 @@ public class UserController {
   @Operation(summary = "获取指定用户资料")
   public Result<UserProfileResponse> getUserProfile(@PathVariable Long userId) {
     return Result.success(userService.getProfile(userId));
+  }
+
+  @GetMapping("/history/posts")
+  @Operation(summary = "获取当前用户历史浏览记录")
+  public Result<PageResult<PostDO>> listViewedPosts(
+      Authentication auth,
+      @RequestParam(defaultValue = "1") Integer page,
+      @RequestParam(defaultValue = "20") Integer size,
+      @RequestParam(defaultValue = "desc") String order) {
+    return Result.success(
+        PageResult.of(userService.listViewedPosts(getCurrentUserId(auth), page, size, order)));
+  }
+
+  @DeleteMapping("/history/posts/{postId}")
+  @Operation(summary = "删除当前用户单条历史浏览记录")
+  public Result<Void> deleteViewedPost(Authentication auth, @PathVariable Long postId) {
+    userService.deleteViewedPost(getCurrentUserId(auth), postId);
+    return Result.success(null);
   }
 
   @PutMapping("/profile")

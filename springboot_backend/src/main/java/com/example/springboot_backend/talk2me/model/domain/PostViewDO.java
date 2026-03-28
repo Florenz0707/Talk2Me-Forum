@@ -1,30 +1,16 @@
 package com.example.springboot_backend.talk2me.model.domain;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.time.LocalDateTime;
+import com.example.springboot_backend.core.model.BaseEntity;
 
 @TableName("post_views")
-public class PostViewDO {
-  @TableId(type = IdType.AUTO)
-  private Long id;
-
+public class PostViewDO extends BaseEntity {
   private Long postId;
   private Long userId;
 
-  @TableField(fill = FieldFill.INSERT)
-  private LocalDateTime createTime;
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
+  @TableField("is_deleted")
+  private Integer historyDeleted;
 
   public Long getPostId() {
     return postId;
@@ -42,11 +28,11 @@ public class PostViewDO {
     this.userId = userId;
   }
 
-  public LocalDateTime getCreateTime() {
-    return createTime;
+  public Integer getHistoryDeleted() {
+    return historyDeleted;
   }
 
-  public void setCreateTime(LocalDateTime createTime) {
-    this.createTime = createTime;
+  public void setHistoryDeleted(Integer historyDeleted) {
+    this.historyDeleted = historyDeleted;
   }
 }

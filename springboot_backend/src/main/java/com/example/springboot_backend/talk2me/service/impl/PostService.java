@@ -11,6 +11,7 @@ import com.example.springboot_backend.talk2me.repository.LikeMapper;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
 import com.example.springboot_backend.talk2me.repository.PostViewMapper;
 import com.example.springboot_backend.talk2me.service.IPostService;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +53,8 @@ public class PostService implements IPostService {
   public PostDO getPost(Long id, Long currentUserId) {
     PostDO post = postMapper.selectById(id);
     if (post != null && isActiveStatus(post.getStatus())) {
-      applyView(post, currentUserId);
+      refreshPostView(post.getId(), currentUserId);
+      post = postMapper.selectById(id);
       post.setIsLiked(isPostLikedByUser(post.getId(), currentUserId));
     }
     return post;
@@ -96,22 +98,51 @@ public class PostService implements IPostService {
     return result;
   }
 
-  private void applyView(PostDO post, Long currentUserId) {
+  @Override
+  @Transactional
+  public void refreshPostView(Long postId, Long currentUserId) {
     if (currentUserId == null) {
       return;
     }
 
-    PostViewDO postView = new PostViewDO();
-    postView.setPostId(post.getId());
-    postView.setUserId(currentUserId);
-    try {
-      postViewMapper.insert(postView);
-    } catch (DuplicateKeyException ignored) {
+    PostViewDO existingPostView = findPostView(postId, currentUserId);
+    if (existingPostView != null) {
+      touchPostView(existingPostView);
       return;
     }
 
+    PostViewDO postView = new PostViewDO();
+    postView.setPostId(postId);
+    postView.setUserId(currentUserId);
+    postView.setHistoryDeleted(0);
+    try {
+      postViewMapper.insert(postView);
+    } catch (DuplicateKeyException ignored) {
+      PostViewDO duplicatedPostView = findPostView(postId, currentUserId);
+      if (duplicatedPostView != null) {
+        touchPostView(duplicatedPostView);
+      }
+      return;
+    }
+
+    PostDO post = postMapper.selectById(postId);
+    if (post == null) {
+      return;
+    }
     post.setViewCount(defaultCount(post.getViewCount()) + 1);
     postMapper.updateById(post);
+  }
+
+  private PostViewDO findPostView(Long postId, Long currentUserId) {
+    LambdaQueryWrapper<PostViewDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper.eq(PostViewDO::getPostId, postId).eq(PostViewDO::getUserId, currentUserId);
+    return postViewMapper.selectOne(wrapper);
+  }
+
+  private void touchPostView(PostViewDO postView) {
+    postView.setHistoryDeleted(0);
+    postView.setUpdateTime(LocalDateTime.now());
+    postViewMapper.updateById(postView);
   }
 
   private void fillPostLikedState(List<PostDO> posts, Long currentUserId) {
