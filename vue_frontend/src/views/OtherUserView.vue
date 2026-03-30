@@ -118,6 +118,21 @@ export default {
       });
     };
 
+    const resolvePostUserId = (post) => {
+      if (!post || typeof post !== "object") {
+        return "";
+      }
+
+      return (
+        post.userId ||
+        post.userid ||
+        post.authorId ||
+        post.user?.id ||
+        post.user?.userId ||
+        ""
+      );
+    };
+
     const goToThread = (threadId) => {
       router.push(`/thread/${threadId}`);
     };
@@ -179,8 +194,11 @@ export default {
           const records = Array.isArray(response.data.records)
             ? response.data.records
             : [];
+          const filteredRecords = records.filter((post) =>
+            isSameUserId(resolvePostUserId(post), userId),
+          );
 
-          userPosts.value = records.map((post) => ({
+          userPosts.value = filteredRecords.map((post) => ({
             id: post.id,
             title: post.title,
             createdAt: post.createTime,
@@ -188,14 +206,14 @@ export default {
             replies: post.replyCount || 0,
           }));
 
-          if (records.length > 0 && !userAvatar.value) {
-            userAvatar.value = records[0].authorAvatar || "";
+          if (filteredRecords.length > 0 && !userAvatar.value) {
+            userAvatar.value = filteredRecords[0].authorAvatar || "";
           }
           if (
-            records.length > 0 &&
+            filteredRecords.length > 0 &&
             (!username.value || username.value === "用户")
           ) {
-            username.value = records[0].username || `用户${userId}`;
+            username.value = filteredRecords[0].username || `用户${userId}`;
           }
         } else {
           userPosts.value = [];
