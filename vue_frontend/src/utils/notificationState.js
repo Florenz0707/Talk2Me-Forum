@@ -126,9 +126,40 @@ export function getNotificationEventType(notification) {
   return String(notification?.eventType || "CREATED").toUpperCase();
 }
 
+function pickFirstDefined(...values) {
+  for (const value of values) {
+    if (value !== undefined && value !== null && value !== "") {
+      return value;
+    }
+  }
+  return "";
+}
+
 export function normalizeNotification(notification) {
   const rawType = getNotificationRawType(notification);
   const type = getTrackedType(rawType);
+  const senderId = pickFirstDefined(
+    notification?.userId,
+    notification?.senderId,
+    notification?.sender_id,
+    notification?.actorId,
+    notification?.actor_id,
+    notification?.user_id,
+  );
+  const replyContent = pickFirstDefined(
+    notification?.replyContent,
+    notification?.reply?.content,
+    notification?.content,
+  );
+  const commentContent = pickFirstDefined(
+    notification?.commentContent,
+    notification?.targetContent,
+    notification?.originalContent,
+    notification?.parentContent,
+    notification?.quotedContent,
+    notification?.target?.content,
+    notification?.sourceContent,
+  );
 
   return {
     ...notification,
@@ -141,6 +172,20 @@ export function normalizeNotification(notification) {
       notification?.createdAt ||
       notification?.createdTime ||
       new Date().toISOString(),
+    userId: senderId,
+    senderId,
+    replyContent,
+    commentContent,
+    targetId: pickFirstDefined(
+      notification?.targetId,
+      notification?.replyToId,
+      notification?.parentId,
+    ),
+    targetType: pickFirstDefined(
+      notification?.targetType,
+      notification?.entityType,
+    ),
+    postId: pickFirstDefined(notification?.postId, notification?.post_id),
   };
 }
 
@@ -173,6 +218,55 @@ export function resetNotificationSummary() {
 }
 
 export function applyIncomingNotification(notification) {
+  // 处理分页格式的回复通知
+  if (notification?.data?.records && Array.isArray(notification.data.records)) {
+    const replies = notification.data.records;
+    const results = [];
+
+    replies.forEach((reply) => {
+      const replyNotification = {
+        id: reply.id,
+        type: "REPLY",
+        rawType: "REPLY",
+        eventType: "CREATED",
+        actorId: reply.userId,
+        postId: reply.postId,
+        content: reply.content,
+        replyContent: pickFirstDefined(reply.replyContent, reply.content),
+        commentContent: pickFirstDefined(
+          reply.commentContent,
+          reply.targetContent,
+          reply.originalContent,
+          reply.parentContent,
+          reply.quotedContent,
+        ),
+        targetId: pickFirstDefined(
+          reply.targetId,
+          reply.replyToId,
+          reply.parentId,
+        ),
+        targetType: pickFirstDefined(reply.targetType, reply.entityType),
+        floorNumber: reply.floorNumber,
+        likeCount: reply.likeCount,
+        isLiked: reply.isLiked,
+        isRead: false,
+        createTime: reply.createTime || new Date().toISOString(),
+      };
+
+      const normalized = normalizeNotification(replyNotification);
+      if (normalized.id != null) {
+        notificationMeta.set(normalized.id, normalized);
+        results.push(normalized);
+      }
+    });
+
+    setSummaryCounts(
+      buildCountsFromNotifications(Array.from(notificationMeta.values())),
+    );
+    return results.length > 0 ? results[0] : null;
+  }
+
+  // 原有的单条通知处理逻辑
   const normalized = normalizeNotification(notification);
 
   if (!TRACKED_TYPES.includes(normalized.type) || normalized.id == null) {

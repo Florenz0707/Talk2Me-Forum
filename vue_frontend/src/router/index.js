@@ -1,13 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import UserView from "../views/UserView.vue";
 import ColorTest from "../components/ColorTest.vue";
-import { getAuthToken } from "../utils/authStorage";
-
-// 检查是否已登录的函数
-const isAuthenticated = () => {
-  const accessToken = getAuthToken();
-  return accessToken !== null && accessToken !== "";
-};
+import { authApi } from "../utils/api";
 
 const routes = [
   {
@@ -64,11 +58,13 @@ const router = createRouter({
 });
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    // 检查是否已登录
-    if (!isAuthenticated()) {
+    const authenticated = await authApi.ensureSession();
+
+    if (!authenticated) {
       // 未登录，重定向到首页（通过Header弹窗登录）
+      window.dispatchEvent(new CustomEvent("open-login-modal"));
       next({ path: "/home" });
     } else {
       // 已登录，继续访问

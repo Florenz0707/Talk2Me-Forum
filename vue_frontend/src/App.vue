@@ -7,15 +7,19 @@
 <script setup>
 import { ref, onMounted, onUnmounted, provide } from "vue";
 import { notificationWS } from "./utils/websocket";
-import { getAuthToken } from "./utils/authStorage";
+import { authApi } from "./utils/api";
 
 // 全局登录状态
 const isLoggedIn = ref(false);
 
 // 检查用户登录状态
-const checkLoginStatus = () => {
-  const token = getAuthToken();
-  isLoggedIn.value = token !== null && token !== "";
+const checkLoginStatus = async () => {
+  try {
+    isLoggedIn.value = await authApi.ensureSession();
+  } catch (error) {
+    console.error("检查登录状态失败:", error);
+    isLoggedIn.value = false;
+  }
 };
 
 // 更新登录状态

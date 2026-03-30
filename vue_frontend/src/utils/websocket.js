@@ -172,6 +172,7 @@ class NotificationWebSocket {
     }
     try {
       const notification = JSON.parse(body);
+      console.log("[WebSocket] 收到通知:", notification);
       this.listeners.forEach((listener) => {
         try {
           listener(notification);

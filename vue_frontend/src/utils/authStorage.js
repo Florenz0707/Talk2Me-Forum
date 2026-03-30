@@ -32,6 +32,7 @@ function getSessionScopedItem(key) {
   const legacyValue = localStorageRef?.getItem(key);
   if (legacyValue !== null && legacyValue !== undefined && sessionStorageRef) {
     sessionStorageRef.setItem(key, legacyValue);
+    localStorageRef?.removeItem(key);
   }
   return legacyValue;
 }

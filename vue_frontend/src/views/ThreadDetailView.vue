@@ -316,10 +316,17 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, computed, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { likeApi, replyApi, postApi, sectionApi } from "../utils/api";
+import {
+  authApi,
+  likeApi,
+  replyApi,
+  postApi,
+  sectionApi,
+  userApi,
+} from "../utils/api";
 import Header from "../components/Header.vue";
 import { getUserAvatar } from "../utils/authStorage";
-import { emitUserProfileUpdated } from "../utils/profileStats";
+import { emitUserProfileUpdated, isSameUserId } from "../utils/profileStats";
 
 export default {
   name: "ThreadDetailView",
@@ -407,7 +414,30 @@ export default {
 
     // 跳转到用户主页
     const goToUserProfile = (userId) => {
-      router.push(`/user/${userId}`);
+      // 获取当前登录用户ID
+      if (!userId) {
+        return;
+      }
+
+      const currentUserId = authApi.getCurrentUserId();
+      const isCurrentUser = isSameUserId(currentUserId, userId);
+
+      console.debug("[ThreadDetail] goToUserProfile", {
+        currentUserId,
+        targetUserId: userId,
+        isCurrentUser,
+      });
+
+      // 如果是本用户，跳转到个人页面
+      if (isCurrentUser) {
+        router.push({ name: "User" });
+        return;
+      }
+
+      router.push({
+        name: "OtherUser",
+        params: { id: String(userId) },
+      });
     };
 
     // 跳转到板块页面
@@ -540,10 +570,28 @@ export default {
         });
 
         if (response.code === 200 && response.data) {
+          let username = response.data.username;
+          let avatar = response.data.authorAvatar || response.data.avatar;
+
+          if ((!username || !avatar) && response.data.userId) {
+            try {
+              const userRes = await userApi.getUserProfile(
+                response.data.userId,
+              );
+              if (userRes.code === 200 && userRes.data) {
+                username = username || userRes.data.username;
+                avatar = avatar || userRes.data.avatar;
+              }
+            } catch (userError) {
+              console.error("获取用户资料失败:", userError);
+            }
+          }
+
           const comment = {
             id: response.data.id,
-            author: `用户${response.data.userId}`,
+            author: username || `用户${response.data.userId}`,
             authorId: response.data.userId,
+            authorAvatar: avatar || "",
             content: response.data.content,
             time: formatTime(response.data.createTime) || "刚刚",
             likes: response.data.likeCount || 0,
@@ -600,10 +648,28 @@ export default {
         });
 
         if (response.code === 200 && response.data) {
+          let username = response.data.username;
+          let avatar = response.data.authorAvatar || response.data.avatar;
+
+          if ((!username || !avatar) && response.data.userId) {
+            try {
+              const userRes = await userApi.getUserProfile(
+                response.data.userId,
+              );
+              if (userRes.code === 200 && userRes.data) {
+                username = username || userRes.data.username;
+                avatar = avatar || userRes.data.avatar;
+              }
+            } catch (userError) {
+              console.error("获取用户资料失败:", userError);
+            }
+          }
+
           const reply = {
             id: response.data.id,
-            author: `用户${response.data.userId}`,
+            author: username || `用户${response.data.userId}`,
             authorId: response.data.userId,
+            authorAvatar: avatar || "",
             content: response.data.content,
             time: formatTime(response.data.createTime) || "刚刚",
             likes: response.data.likeCount || 0,
@@ -668,12 +734,29 @@ export default {
         const response = await postApi.getPostById(threadId);
         if (response.code === 200 && response.data) {
           const post = response.data;
+
+          // 如果没有用户名或头像，根据 userId 获取用户资料
+          let username = post.username;
+          let avatar = post.authorAvatar || post.avatar;
+
+          if ((!username || !avatar) && post.userId) {
+            try {
+              const userRes = await userApi.getUserProfile(post.userId);
+              if (userRes.code === 200 && userRes.data) {
+                username = username || userRes.data.username;
+                avatar = avatar || userRes.data.avatar;
+              }
+            } catch (userError) {
+              console.error("获取用户资料失败:", userError);
+            }
+          }
+
           thread.value = {
             id: post.id,
             title: post.title,
-            author: post.username || `用户${post.userId}`,
+            author: username || `用户${post.userId}`,
             authorId: post.userId,
-            authorAvatar: post.authorAvatar || "",
+            authorAvatar: avatar || "",
             sectionId: post.sectionId,
             sectionName: post.sectionName || "",
             content: post.content,
@@ -714,18 +797,42 @@ export default {
           size: 50,
         });
         if (response.code === 200 && response.data) {
-          comments.value = response.data.records.map((reply) => ({
-            id: reply.id,
-            author: reply.username || `用户${reply.userId}`,
-            authorId: reply.userId,
-            authorAvatar: reply.authorAvatar || "",
-            content: reply.content,
-            time: formatTime(reply.createTime),
-            likes: reply.likeCount || 0,
-            isLiked: reply.isLiked || false,
-            isPinned: false,
-            replies: [],
-          }));
+          const replies = response.data.records;
+
+          // 为每个评论获取用户信息
+          const commentsWithUserInfo = await Promise.all(
+            replies.map(async (reply) => {
+              let username = reply.username;
+              let avatar = reply.authorAvatar || reply.avatar;
+
+              if ((!username || !avatar) && reply.userId) {
+                try {
+                  const userRes = await userApi.getUserProfile(reply.userId);
+                  if (userRes.code === 200 && userRes.data) {
+                    username = username || userRes.data.username;
+                    avatar = avatar || userRes.data.avatar;
+                  }
+                } catch (userError) {
+                  console.error("获取评论用户资料失败:", userError);
+                }
+              }
+
+              return {
+                id: reply.id,
+                author: username || `用户${reply.userId}`,
+                authorId: reply.userId,
+                authorAvatar: avatar || "",
+                content: reply.content,
+                time: formatTime(reply.createTime),
+                likes: reply.likeCount || 0,
+                isLiked: reply.isLiked || false,
+                isPinned: false,
+                replies: [],
+              };
+            }),
+          );
+
+          comments.value = commentsWithUserInfo;
         }
       } catch (error) {
         console.error("获取评论列表失败:", error);

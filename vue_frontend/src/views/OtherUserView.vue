@@ -81,7 +81,7 @@
 <script>
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { postApi, userApi } from "../utils/api";
+import { authApi, postApi, userApi } from "../utils/api";
 import Header from "../components/Header.vue";
 import { isSameUserId, onUserProfileUpdated } from "../utils/profileStats";
 
@@ -135,6 +135,20 @@ export default {
           targetUserId: route.params.id,
         },
       });
+    };
+
+    const redirectToOwnProfileIfNeeded = (userId = route.params.id) => {
+      if (!userId) {
+        return false;
+      }
+
+      const currentUserId = authApi.getCurrentUserId();
+      if (!isSameUserId(currentUserId, userId)) {
+        return false;
+      }
+
+      router.replace({ name: "User" });
+      return true;
     };
 
     const fetchUserProfile = async (userId = route.params.id) => {
@@ -193,7 +207,7 @@ export default {
     };
 
     const loadPageData = async (userId = route.params.id) => {
-      if (!userId) return;
+      if (!userId || redirectToOwnProfileIfNeeded(userId)) return;
 
       loading.value = true;
       try {

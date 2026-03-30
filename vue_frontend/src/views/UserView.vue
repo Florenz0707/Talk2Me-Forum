@@ -214,7 +214,16 @@
 
             <!-- 我的消息内容 -->
             <div v-if="activeNavItem === 'messages'" class="messages-container">
-              <h2>我的消息</h2>
+              <div class="messages-header">
+                <h2>我的消息</h2>
+                <button
+                  v-if="hasUnreadInCurrentTab"
+                  class="mark-all-read-btn"
+                  @click="handleMarkAllRead"
+                >
+                  全部已读
+                </button>
+              </div>
 
               <!-- 消息导航栏 -->
               <div class="message-tabs">
@@ -298,16 +307,51 @@
                   <div
                     v-for="notif in replyNotifications"
                     :key="notif.id"
-                    class="notification-item"
+                    class="notification-item reply-notification"
                     :class="{ unread: !notif.isRead }"
                     @click="handleNotificationClick(notif)"
                   >
-                    <i class="fas fa-comment notif-icon"></i>
+                    <div
+                      class="notif-avatar is-clickable"
+                      @click.stop="goToNotificationSenderProfile(notif)"
+                    >
+                      <img
+                        v-if="notif.senderAvatar"
+                        :src="notif.senderAvatar"
+                        alt="用户头像"
+                        class="avatar-img"
+                      />
+                      <i v-else class="fas fa-user-circle"></i>
+                    </div>
                     <div class="notif-content">
-                      <span class="notif-text">{{ notif.content }}</span>
-                      <span class="notif-time">{{
-                        formatTime(notif.createTime)
-                      }}</span>
+                      <div class="notif-header">
+                        <div class="reply-notif-title">
+                          <span
+                            class="notif-username is-clickable"
+                            @click.stop="goToNotificationSenderProfile(notif)"
+                            >{{ notif.senderName || "用户" }}</span
+                          >
+                          <span class="notif-action">回复了我的评论</span>
+                        </div>
+                        <span class="notif-time">{{
+                          formatTime(notif.createTime)
+                        }}</span>
+                      </div>
+                      <div class="reply-notification-body">
+                        <div class="reply-main">
+                          <div class="notif-preview">
+                            {{ getReplyPreview(notif) }}
+                          </div>
+                        </div>
+                        <div
+                          class="reply-context"
+                          :class="{
+                            'is-truncated': isReplyContextTruncated(notif),
+                          }"
+                        >
+                          {{ getReplyContextPreview(notif) }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -587,7 +631,7 @@ export default {
 
     // 数据指标导航
     const activeStatsTab = ref(null);
-    const currentUserId = ref("");
+    const currentUserId = ref(authApi.getCurrentUserId() || "");
     const profileLikesCount = ref(0);
     const profileFollowingCount = ref(0);
     const profileFollowersCount = ref(0);
@@ -621,6 +665,14 @@ export default {
     const likesCount = computed(() => profileLikesCount.value);
     const followingCount = computed(() => profileFollowingCount.value);
     const followersCount = computed(() => profileFollowersCount.value);
+    const hasUnreadInCurrentTab = computed(() => {
+      if (activeMessageTab.value === "likes") return likeUnreadCount.value > 0;
+      if (activeMessageTab.value === "replies")
+        return replyUnreadCount.value > 0;
+      if (activeMessageTab.value === "followers")
+        return followUnreadCount.value > 0;
+      return false;
+    });
 
     // 收藏的帖子数据（从后端拉取，暂无接口时为空）
     const favoriteThreads = ref([]);
@@ -639,17 +691,138 @@ export default {
     };
 
     const formatUnreadCount = (count) => (count > 99 ? "99+" : count);
+    const REPLY_CONTEXT_CHAR_LIMIT = 36;
+    const userProfileCache = new Map();
+    const userProfileRequests = new Map();
+
+    const pickFirstText = (...values) => {
+      for (const value of values) {
+        if (typeof value === "string" && value.trim()) {
+          return value.trim();
+        }
+      }
+      return "";
+    };
+
+    const getReplyText = (notification) =>
+      pickFirstText(
+        notification?.replyContent,
+        notification?.content,
+        notification?.message,
+      );
+
+    const getReplyContextText = (notification) =>
+      pickFirstText(
+        notification?.commentContent,
+        notification?.targetContent,
+        notification?.originalContent,
+        notification?.parentContent,
+        notification?.quotedContent,
+        notification?.sourceContent,
+      );
+
+    const getReplyPreview = (notification) =>
+      getReplyText(notification) || "回复内容暂不可用";
+
+    const getReplyContextPreview = (notification) => {
+      const contextText = getReplyContextText(notification);
+      if (!contextText) {
+        return "相关评论内容暂不可用";
+      }
+      if (contextText.length <= REPLY_CONTEXT_CHAR_LIMIT) {
+        return contextText;
+      }
+      return contextText.slice(0, REPLY_CONTEXT_CHAR_LIMIT);
+    };
+
+    const isReplyContextTruncated = (notification) =>
+      getReplyContextText(notification).length > REPLY_CONTEXT_CHAR_LIMIT;
+
+    const buildReplyNotification = (notification, userInfo = null) => ({
+      ...notification,
+      senderName: notification?.senderName || userInfo?.username || "用户",
+      senderAvatar: notification?.senderAvatar || userInfo?.avatar || "",
+      replyContent: getReplyText(notification),
+      commentContent: getReplyContextText(notification),
+    });
+
+    const getUserProfileWithCache = async (userId) => {
+      if (!userId) {
+        return null;
+      }
+
+      if (userProfileCache.has(userId)) {
+        return userProfileCache.get(userId);
+      }
+
+      if (userProfileRequests.has(userId)) {
+        return userProfileRequests.get(userId);
+      }
+
+      const request = userApi
+        .getUserProfile(userId)
+        .then((res) => {
+          const profile = res?.data
+            ? {
+                username: res.data.username || "",
+                avatar: res.data.avatar || "",
+              }
+            : null;
+          if (profile) {
+            userProfileCache.set(userId, profile);
+          }
+          return profile;
+        })
+        .catch((error) => {
+          console.error(`获取用户 ${userId} 信息失败:`, error);
+          return null;
+        })
+        .finally(() => {
+          userProfileRequests.delete(userId);
+        });
+
+      userProfileRequests.set(userId, request);
+      return request;
+    };
+
+    const enrichReplyNotifications = async (notifications = []) => {
+      const senderIds = [
+        ...new Set(notifications.map((item) => item?.userId).filter(Boolean)),
+      ];
+
+      await Promise.all(
+        senderIds.map((userId) => getUserProfileWithCache(userId)),
+      );
+
+      return notifications.map((notification) =>
+        buildReplyNotification(
+          notification,
+          userProfileCache.get(notification?.userId) || null,
+        ),
+      );
+    };
 
     const prependNotification = (listRef, notification) => {
-      const hasSameId =
-        notification?.id !== undefined &&
-        listRef.value.some((item) => item.id === notification.id);
-
-      if (!hasSameId) {
+      if (notification?.id === undefined) {
         listRef.value.unshift(notification);
         return true;
       }
 
+      const existingIndex = listRef.value.findIndex(
+        (item) => item.id === notification.id,
+      );
+
+      if (existingIndex === -1) {
+        listRef.value.unshift(notification);
+        return true;
+      }
+
+      const mergedNotification = {
+        ...listRef.value[existingIndex],
+        ...notification,
+      };
+      listRef.value.splice(existingIndex, 1);
+      listRef.value.unshift(mergedNotification);
       return false;
     };
 
@@ -874,21 +1047,141 @@ export default {
     const loadNotifications = async () => {
       try {
         const records = await fetchNotificationRecords();
+
+        // 获取所有通知中的用户ID
+        const replyRecords = records.filter((n) => n.type === "REPLY");
+        const enrichedReplyRecords =
+          await enrichReplyNotifications(replyRecords);
         likeNotifications.value = records.filter((n) => n.type === "LIKE");
-        replyNotifications.value = records.filter((n) => n.type === "REPLY");
+        replyNotifications.value = enrichedReplyRecords;
         followNotifications.value = records.filter((n) => n.type === "FOLLOW");
         notificationStatsLoaded.value = true;
-        if (activeNavItem.value === "messages") {
-          await markTabNotificationsAsRead(activeMessageTab.value);
-        }
+        return;
+        /* eslint-disable no-unreachable, no-undef */
+
+        // 批量获取用户信息
+
+        await Promise.all(
+          userIds.map(async (userId) => {
+            try {
+              const res = await userApi.getUserProfile(userId);
+              if (res.data) {
+                userInfoMap.set(userId, {
+                  username: res.data.username,
+                  avatar: res.data.avatar,
+                });
+              }
+            } catch (error) {
+              console.error(`获取用户 ${userId} 信息失败:`, error);
+            }
+          }),
+        );
+
+        // 将用户信息附加到通知上
+        const enrichedRecords = records.map((n) => {
+          const userInfo = userInfoMap.get(n.userId);
+          return {
+            ...n,
+            senderName: userInfo?.username || "用户",
+            senderAvatar: userInfo?.avatar || "",
+          };
+        });
+
+        likeNotifications.value = enrichedRecords.filter(
+          (n) => n.type === "LIKE",
+        );
+        replyNotifications.value = enrichedRecords.filter(
+          (n) => n.type === "REPLY",
+        );
+        followNotifications.value = enrichedRecords.filter(
+          (n) => n.type === "FOLLOW",
+        );
+        notificationStatsLoaded.value = true;
+        /* eslint-enable no-unreachable, no-undef */
       } catch (error) {
         console.error("加载通知失败:", error);
       }
     };
 
     // 处理WebSocket通知
-    const handleNotification = (notification) => {
+    const handleNotification = async (notification) => {
+      // 处理分页格式的回复通知
+      if (
+        notification?.data?.records &&
+        Array.isArray(notification.data.records)
+      ) {
+        applyIncomingNotification(notification);
+        const normalizedReplies = notification.data.records.map((reply) =>
+          normalizeNotification({
+            ...reply,
+            type: "REPLY",
+            rawType: "REPLY",
+            eventType: "CREATED",
+            actorId: reply.userId,
+            replyContent: pickFirstText(reply.replyContent, reply.content),
+            commentContent: pickFirstText(
+              reply.commentContent,
+              reply.targetContent,
+              reply.originalContent,
+              reply.parentContent,
+              reply.quotedContent,
+            ),
+          }),
+        );
+        const enrichedReplies =
+          await enrichReplyNotifications(normalizedReplies);
+        enrichedReplies.forEach((replyNotification) => {
+          prependNotification(replyNotifications, replyNotification);
+        });
+        return;
+        /* eslint-disable no-unreachable, no-undef */
+        const replies = notification.data.records;
+        const userIds = [
+          ...new Set(replies.map((r) => r.userId).filter(Boolean)),
+        ];
+
+        const userInfoMap = new Map();
+        await Promise.all(
+          userIds.map(async (userId) => {
+            try {
+              const res = await userApi.getUserProfile(userId);
+              if (res.code === 200 && res.data) {
+                userInfoMap.set(userId, {
+                  username: res.data.username,
+                  avatar: res.data.avatar,
+                });
+              }
+            } catch (error) {
+              console.error(`获取用户 ${userId} 信息失败:`, error);
+            }
+          }),
+        );
+
+        replies.forEach((reply) => {
+          const userInfo = userInfoMap.get(reply.userId);
+          const replyNotif = {
+            id: reply.id,
+            type: "REPLY",
+            userId: reply.userId,
+            postId: reply.postId,
+            content: reply.content,
+            createTime: reply.createTime,
+            isRead: false,
+            senderName: userInfo?.username || "用户",
+            senderAvatar: userInfo?.avatar || "",
+          };
+          prependNotification(replyNotifications, replyNotif);
+        });
+
+        applyIncomingNotification(notification);
+        return;
+        /* eslint-enable no-unreachable, no-undef */
+      }
+
       const normalizedNotification = applyIncomingNotification(notification);
+      if (!normalizedNotification) {
+        return;
+      }
       if (normalizedNotification.eventType === "DELETED") {
         removeNotificationById(likeNotifications, normalizedNotification.id);
         removeNotificationById(replyNotifications, normalizedNotification.id);
@@ -909,7 +1202,12 @@ export default {
         notificationStatsLoaded.value = true;
         fetchUserInfo();
       } else if (normalizedNotification.type === "REPLY") {
-        prependNotification(replyNotifications, normalizedNotification);
+        const [replyNotification] = await enrichReplyNotifications([
+          normalizedNotification,
+        ]);
+        if (replyNotification) {
+          prependNotification(replyNotifications, replyNotification);
+        }
       } else if (normalizedNotification.type === "FOLLOW") {
         prependNotification(followNotifications, normalizedNotification);
         notificationStatsLoaded.value = true;
@@ -930,6 +1228,33 @@ export default {
       } catch (error) {
         console.error("鏍囪閫氱煡宸茶澶辫触:", error);
       }
+    };
+
+    const goToUserProfile = (userId) => {
+      if (!userId) {
+        return;
+      }
+
+      const resolvedCurrentUserId =
+        authApi.getCurrentUserId() || currentUserId.value;
+
+      if (isSameUserId(resolvedCurrentUserId, userId)) {
+        router.push({ name: "User" });
+        return;
+      }
+
+      router.push({
+        name: "OtherUser",
+        params: { id: String(userId) },
+      });
+    };
+
+    const goToNotificationSenderProfile = (notif) => {
+      goToUserProfile(notif?.userId || notif?.actorId);
+    };
+
+    const handleMarkAllRead = async () => {
+      await markTabNotificationsAsRead(activeMessageTab.value);
     };
 
     const handleLogout = async () => {
@@ -977,14 +1302,6 @@ export default {
       }
     });
 
-    watch([activeNavItem, activeMessageTab], ([navItem, messageTab]) => {
-      if (navItem !== "messages") {
-        return;
-      }
-
-      markTabNotificationsAsRead(messageTab);
-    });
-
     // 401 后用户重新登录时，自动重新加载用户信息
     watch(isLoggedIn, (newValue, oldValue) => {
       if (newValue && !oldValue) {
@@ -1002,9 +1319,10 @@ export default {
       },
     );
 
-    onMounted(() => {
+    onMounted(async () => {
       // 未登录则跳回主页并弹出登录框
-      if (!authApi.isAuthenticated()) {
+      const authenticated = await authApi.ensureSession();
+      if (!authenticated) {
         window.dispatchEvent(new CustomEvent("open-login-modal"));
         router.push("/");
         return;
@@ -1195,6 +1513,9 @@ export default {
       favoritesLoading,
       formatTime,
       formatUnreadCount,
+      getReplyPreview,
+      getReplyContextPreview,
+      isReplyContextTruncated,
       editUsername,
       editBio,
       editBirthday,
@@ -1215,6 +1536,9 @@ export default {
       handleSendMessage,
       cancelNewMessage,
       handleNotificationClick,
+      goToNotificationSenderProfile,
+      handleMarkAllRead,
+      hasUnreadInCurrentTab,
       activeStatsTab,
       likeUnreadCount,
       replyUnreadCount,
@@ -2074,6 +2398,32 @@ input:checked + .slider:before {
   margin-bottom: 20px;
 }
 
+.messages-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.messages-header h2 {
+  margin-bottom: 0;
+}
+
+.mark-all-read-btn {
+  padding: 6px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.mark-all-read-btn:hover {
+  opacity: 0.88;
+}
+
 .messages-layout {
   display: flex;
   gap: 20px;
@@ -2561,6 +2911,7 @@ input:checked + .slider:before {
 }
 
 .notification-item {
+  --reply-context-bg: #f9f9f9;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -2576,11 +2927,13 @@ input:checked + .slider:before {
 }
 
 .notification-item:hover {
+  --reply-context-bg: #f0f0f0;
   background-color: #f0f0f0;
   transform: translateY(-1px);
 }
 
 .notification-item.unread {
+  --reply-context-bg: #fff5f5;
   background-color: #fff5f5;
   border-color: rgba(255, 71, 87, 0.18);
 }
@@ -2593,6 +2946,62 @@ input:checked + .slider:before {
   font-size: 20px;
   color: var(--primary-color);
   margin-top: 2px;
+}
+
+.notif-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.notif-avatar.is-clickable {
+  cursor: pointer;
+}
+
+.notif-avatar .avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.notif-avatar i {
+  font-size: 40px;
+  color: #999;
+}
+
+.reply-notification .notif-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.notif-username {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.notif-username.is-clickable {
+  cursor: pointer;
+}
+
+.reply-notif-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.notif-action {
+  color: #666;
+  font-size: 13px;
 }
 
 .notif-content {
@@ -2608,8 +3017,97 @@ input:checked + .slider:before {
   line-height: 1.5;
 }
 
+.notif-preview {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.reply-notification-body {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
+.reply-main {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.reply-main .notif-preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.reply-context {
+  position: relative;
+  flex: 0 0 150px;
+  max-width: 150px;
+  min-width: 120px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(15, 23, 42, 0.08);
+  color: #8b94a4;
+  font-size: 13px;
+  line-height: 1.45;
+  max-height: calc(1.45em * 3);
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.reply-context.is-truncated::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 42px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    var(--reply-context-bg) 82%
+  );
+  pointer-events: none;
+}
+
 .notif-time {
   font-size: 12px;
   color: #999;
+}
+
+@media (max-width: 768px) {
+  .reply-notification-body {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .reply-context {
+    flex-basis: auto;
+    max-width: none;
+    min-width: 0;
+    width: 100%;
+    padding-left: 0;
+    padding-top: 10px;
+    border-left: 0;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    max-height: calc(1.45em * 2);
+  }
+
+  .reply-context.is-truncated::after {
+    top: auto;
+    left: 0;
+    width: auto;
+    height: 28px;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0),
+      var(--reply-context-bg) 85%
+    );
+  }
 }
 </style>
