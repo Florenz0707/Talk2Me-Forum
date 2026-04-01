@@ -46,3 +46,8 @@ repos:
         language: system
         pass_filenames: false
         files: pom\.xml$
+    -   id: frontend-build
+        name: Frontend Build
+        entry: bash -c "cd vue_frontend && pnpm install && pnpm run build"
+        language: system
+        pass_filenames: false

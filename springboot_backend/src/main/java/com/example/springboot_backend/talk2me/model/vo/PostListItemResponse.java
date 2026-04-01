@@ -1,35 +1,35 @@
-package com.example.springboot_backend.talk2me.model.domain;
+package com.example.springboot_backend.talk2me.model.vo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.springboot_backend.core.model.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
-@TableName("posts")
-public class PostDO extends BaseEntity {
+public class PostListItemResponse {
+  private Long id;
   private Long sectionId;
   private Long userId;
   private String title;
-  private String content;
   private Integer viewCount;
   private Integer likeCount;
   private Integer replyCount;
   private Integer status;
-
-  @TableField(exist = false)
+  private LocalDateTime createTime;
+  private LocalDateTime updateTime;
   private Boolean isLiked;
-
-  @TableField(exist = false)
   private LocalDateTime lastViewTime;
 
-  @TableField(exist = false)
   @JsonProperty("section_name")
   private String sectionName;
 
-  @TableField(exist = false)
   @JsonProperty("user_name")
   private String userName;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
 
   public Long getSectionId() {
     return sectionId;
@@ -53,14 +53,6 @@ public class PostDO extends BaseEntity {
 
   public void setTitle(String title) {
     this.title = title;
-  }
-
-  public String getContent() {
-    return content;
-  }
-
-  public void setContent(String content) {
-    this.content = content;
   }
 
   public Integer getViewCount() {
@@ -93,6 +85,22 @@ public class PostDO extends BaseEntity {
 
   public void setStatus(Integer status) {
     this.status = status;
+  }
+
+  public LocalDateTime getCreateTime() {
+    return createTime;
+  }
+
+  public void setCreateTime(LocalDateTime createTime) {
+    this.createTime = createTime;
+  }
+
+  public LocalDateTime getUpdateTime() {
+    return updateTime;
+  }
+
+  public void setUpdateTime(LocalDateTime updateTime) {
+    this.updateTime = updateTime;
   }
 
   public Boolean getIsLiked() {

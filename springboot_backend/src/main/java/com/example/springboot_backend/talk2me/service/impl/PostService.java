@@ -10,10 +10,14 @@ import com.example.springboot_backend.talk2me.model.vo.UpdatePostRequest;
 import com.example.springboot_backend.talk2me.repository.LikeMapper;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
 import com.example.springboot_backend.talk2me.repository.PostViewMapper;
+import com.example.springboot_backend.talk2me.repository.SectionMapper;
+import com.example.springboot_backend.talk2me.repository.UserMapper;
 import com.example.springboot_backend.talk2me.service.IPostService;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.dao.DuplicateKeyException;
@@ -25,11 +29,20 @@ public class PostService implements IPostService {
   private final PostMapper postMapper;
   private final LikeMapper likeMapper;
   private final PostViewMapper postViewMapper;
+  private final SectionMapper sectionMapper;
+  private final UserMapper userMapper;
 
-  public PostService(PostMapper postMapper, LikeMapper likeMapper, PostViewMapper postViewMapper) {
+  public PostService(
+      PostMapper postMapper,
+      LikeMapper likeMapper,
+      PostViewMapper postViewMapper,
+      SectionMapper sectionMapper,
+      UserMapper userMapper) {
     this.postMapper = postMapper;
     this.likeMapper = likeMapper;
     this.postViewMapper = postViewMapper;
+    this.sectionMapper = sectionMapper;
+    this.userMapper = userMapper;
   }
 
   @Override
@@ -56,6 +69,7 @@ public class PostService implements IPostService {
       refreshPostView(post.getId(), currentUserId);
       post = postMapper.selectById(id);
       post.setIsLiked(isPostLikedByUser(post.getId(), currentUserId));
+      fillPostMetadata(post);
     }
     return post;
   }
@@ -94,6 +108,7 @@ public class PostService implements IPostService {
     }
     wrapper.orderByDesc(PostDO::getCreateTime);
     Page<PostDO> result = postMapper.selectPage(pageParam, wrapper);
+    fillPostMetadata(result.getRecords());
     fillPostLikedState(result.getRecords(), currentUserId);
     return result;
   }
@@ -189,5 +204,41 @@ public class PostService implements IPostService {
 
   private boolean isActiveStatus(Integer status) {
     return status == null || status == 0;
+  }
+
+  private void fillPostMetadata(PostDO post) {
+    if (post == null) {
+      return;
+    }
+    fillPostMetadata(List.of(post));
+  }
+
+  private void fillPostMetadata(List<PostDO> posts) {
+    if (posts == null || posts.isEmpty()) {
+      return;
+    }
+
+    List<Long> sectionIds = posts.stream().map(PostDO::getSectionId).distinct().toList();
+    List<Long> userIds = posts.stream().map(PostDO::getUserId).distinct().toList();
+
+    Map<Long, String> sectionNames = new HashMap<>();
+    if (!sectionIds.isEmpty()) {
+      sectionMapper
+          .selectBatchIds(sectionIds)
+          .forEach(section -> sectionNames.put(section.getId(), section.getName()));
+    }
+
+    Map<Long, String> userNames = new HashMap<>();
+    if (!userIds.isEmpty()) {
+      userMapper
+          .selectBatchIds(userIds)
+          .forEach(user -> userNames.put(user.getId(), user.getUsername()));
+    }
+
+    posts.forEach(
+        post -> {
+          post.setSectionName(sectionNames.get(post.getSectionId()));
+          post.setUserName(userNames.get(post.getUserId()));
+        });
   }
 }

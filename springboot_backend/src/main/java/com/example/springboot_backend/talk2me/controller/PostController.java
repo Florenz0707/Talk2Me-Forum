@@ -5,9 +5,11 @@ import com.example.springboot_backend.core.model.Result;
 import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
 import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.vo.CreatePostRequest;
+import com.example.springboot_backend.talk2me.model.vo.PostListItemResponse;
 import com.example.springboot_backend.talk2me.model.vo.UpdatePostRequest;
 import com.example.springboot_backend.talk2me.service.IPostService;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -68,13 +70,39 @@ public class PostController {
   }
 
   @GetMapping
-  public Result<PageResult<PostDO>> listPosts(
+  public Result<PageResult<PostListItemResponse>> listPosts(
       @RequestParam(required = false) Long sectionId,
       @RequestParam(defaultValue = "1") Integer page,
       @RequestParam(defaultValue = "20") Integer size,
       Authentication auth) {
-    return Result.success(
-        PageResult.of(
-            postService.listPosts(sectionId, page, size, getOptionalCurrentUserId(auth))));
+    var postPage = postService.listPosts(sectionId, page, size, getOptionalCurrentUserId(auth));
+    List<PostListItemResponse> records =
+        postPage.getRecords().stream().map(this::toPostListItem).toList();
+    PageResult<PostListItemResponse> pageResult = new PageResult<>();
+    pageResult.setRecords(records);
+    pageResult.setTotalNum(postPage.getTotal());
+    pageResult.setPageSize(postPage.getSize());
+    pageResult.setCurrentPage(postPage.getCurrent());
+    pageResult.setTotalPages(postPage.getPages());
+    return Result.success(pageResult);
+  }
+
+  private PostListItemResponse toPostListItem(PostDO post) {
+    PostListItemResponse item = new PostListItemResponse();
+    item.setId(post.getId());
+    item.setSectionId(post.getSectionId());
+    item.setUserId(post.getUserId());
+    item.setTitle(post.getTitle());
+    item.setViewCount(post.getViewCount());
+    item.setLikeCount(post.getLikeCount());
+    item.setReplyCount(post.getReplyCount());
+    item.setStatus(post.getStatus());
+    item.setCreateTime(post.getCreateTime());
+    item.setUpdateTime(post.getUpdateTime());
+    item.setIsLiked(post.getIsLiked());
+    item.setLastViewTime(post.getLastViewTime());
+    item.setSectionName(post.getSectionName());
+    item.setUserName(post.getUserName());
+    return item;
   }
 }
