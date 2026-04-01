@@ -24,9 +24,9 @@ docker run -d -p 8099:8099 --env-file .env --name springboot-backend springboot-
 
 ### 访问地址
 
-- API Base URL: http://localhost:8099/talk2me
-- Swagger UI: http://localhost:8099/talk2me/swagger-ui/index.html
-- H2 Console: http://localhost:8099/talk2me/h2-console
+- API Base URL: http://{YOUR_ADDRESS}/talk2me
+- Swagger UI: http://{YOUR_ADDRESS}/talk2me/swagger-ui/index.html
+- H2 Console: http://{YOUR_ADDRESS}/talk2me/h2-console
 
 默认开发配置已对齐以上地址：
 
@@ -41,7 +41,7 @@ docker run -d -p 8099:8099 --env-file .env --name springboot-backend springboot-
 - 回复系统（楼层制）
 - 点赞功能（帖子/回复）
 - 关注/取关
-- 通知系统（点赞/回复/关注）
+- 通知系统（点赞/回复/关注/关注者发帖）
 - 通知实时推送（WebSocket + Redis Pub/Sub）
 
 ## 通知实时推送（WS + Redis）
@@ -66,13 +66,30 @@ NOTIFICATION_REDIS_TOPIC=talk2me:notification:events
 - 用户订阅地址：`/user/queue/notifications`
 - STOMP `CONNECT` 需携带 Header：`Authorization: Bearer <access_token>`
 
+### WebSocket 通知语义（重要）
+
+通知 WS 是“增量事件流”，不是“通知列表快照”：
+
+- 连接成功后不会自动全量回放历史通知。
+- 首屏应先调用 `GET /api/v1/notifications` 拉取列表，再消费 WS 增量。
+- 同一个通知主键 `id` 可收到不同 `eventType`，用于表达状态变化。
+
+`eventType` 语义：
+
+- `CREATED`：通知创建/生效，前端应插入或更新该通知。
+- `DELETED`：通知失效（如取消点赞、删除回复导致通知撤销），前端应删除该通知。
+
+幂等处理建议：
+
+- 以通知 `id` 作为唯一键去重。
+- 对 `CREATED` 执行 upsert，对 `DELETED` 执行 remove（不存在时忽略）。
+
 ### 通知相关接口
 
 - `GET /api/v1/notifications`
 - `GET /api/v1/notifications/unread-count`
 - `POST /api/v1/notifications/{notificationId}/read`
 - `POST /api/v1/notifications/read-all`
-- Phase 1 协议说明：`NOTIFICATION_PHASE1_CONTRACT.md`
 
 ## 测试脚本
 
