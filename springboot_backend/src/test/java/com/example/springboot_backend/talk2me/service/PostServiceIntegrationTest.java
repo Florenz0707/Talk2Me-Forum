@@ -2,16 +2,22 @@ package com.example.springboot_backend.talk2me.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.reset;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.springboot_backend.talk2me.model.domain.NotificationDO;
 import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.domain.UserDO;
+import com.example.springboot_backend.talk2me.model.domain.UserFollowDO;
+import com.example.springboot_backend.talk2me.model.vo.CreatePostRequest;
 import com.example.springboot_backend.talk2me.repository.LikeMapper;
 import com.example.springboot_backend.talk2me.repository.NotificationMapper;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
 import com.example.springboot_backend.talk2me.repository.PostViewMapper;
 import com.example.springboot_backend.talk2me.repository.ReplyMapper;
+import com.example.springboot_backend.talk2me.repository.UserFollowMapper;
 import com.example.springboot_backend.talk2me.repository.UserMapper;
 import com.example.springboot_backend.talk2me.repository.UserStatsMapper;
 import com.example.springboot_backend.talk2me.service.impl.NotificationRealtimeService;
@@ -43,6 +49,10 @@ class PostServiceIntegrationTest {
 
   @Autowired private NotificationMapper notificationMapper;
 
+  @Autowired private UserFollowMapper userFollowMapper;
+
+  @Autowired private INotificationService notificationService;
+
   @MockBean private NotificationRealtimeService notificationRealtimeService;
 
   @BeforeEach
@@ -52,6 +62,7 @@ class PostServiceIntegrationTest {
     postViewMapper.delete(null);
     replyMapper.delete(null);
     postMapper.delete(null);
+    userFollowMapper.delete(null);
     userStatsMapper.delete(null);
     userMapper.delete(null);
     reset(notificationRealtimeService);
@@ -113,6 +124,80 @@ class PostServiceIntegrationTest {
     assertFalse(Boolean.TRUE.equals(fetchedUnlikedPost.getIsLiked()));
   }
 
+  @Test
+  void createPost_NotifiesFollowersAboutNewPostOnly() {
+    UserDO author = insertUser("notify-author");
+    UserDO follower = insertUser("notify-follower");
+    UserDO nonFollower = insertUser("notify-other");
+    insertFollow(follower.getId(), author.getId());
+
+    CreatePostRequest request = new CreatePostRequest();
+    request.setSectionId(1L);
+    request.setTitle("followee new post");
+    request.setContent("content");
+
+    PostDO created = postService.createPost(request, author.getId());
+    assertNotNull(created.getId());
+
+    assertEquals(1L, notificationService.countUnread(follower.getId()));
+    assertEquals(0L, notificationService.countUnread(nonFollower.getId()));
+    assertEquals(0L, notificationService.countUnread(author.getId()));
+
+    NotificationDO followerNotification =
+        notificationService.listNotifications(follower.getId(), 1, 20).getRecords().get(0);
+    assertEquals("FOLLOWEE_POST", followerNotification.getType());
+    assertEquals("POST", followerNotification.getTargetType());
+    assertEquals(created.getId(), followerNotification.getTargetId());
+    assertEquals(author.getId(), followerNotification.getActorId());
+  }
+
+  @Test
+  void createPost_NoFollowersDoesNotCreateNotification() {
+    UserDO author = insertUser("notify-no-follower-author");
+
+    CreatePostRequest request = new CreatePostRequest();
+    request.setSectionId(1L);
+    request.setTitle("no follower post");
+    request.setContent("content");
+
+    PostDO created = postService.createPost(request, author.getId());
+    assertNotNull(created.getId());
+    assertEquals(0L, notificationService.countUnread(author.getId()));
+    assertTrue(notificationService.listNotifications(author.getId(), 1, 20).getRecords().isEmpty());
+  }
+
+  @Test
+  void createPost_NotifiesAllFollowers() {
+    UserDO author = insertUser("notify-all-author");
+    UserDO followerA = insertUser("notify-all-follower-a");
+    UserDO followerB = insertUser("notify-all-follower-b");
+    insertFollow(followerA.getId(), author.getId());
+    insertFollow(followerB.getId(), author.getId());
+
+    CreatePostRequest request = new CreatePostRequest();
+    request.setSectionId(1L);
+    request.setTitle("followers post");
+    request.setContent("content");
+
+    PostDO created = postService.createPost(request, author.getId());
+    assertNotNull(created.getId());
+
+    assertEquals(1L, notificationService.countUnread(followerA.getId()));
+    assertEquals(1L, notificationService.countUnread(followerB.getId()));
+
+    NotificationDO followerANotification =
+        notificationService.listNotifications(followerA.getId(), 1, 20).getRecords().get(0);
+    NotificationDO followerBNotification =
+        notificationService.listNotifications(followerB.getId(), 1, 20).getRecords().get(0);
+
+    assertEquals("FOLLOWEE_POST", followerANotification.getType());
+    assertEquals("FOLLOWEE_POST", followerBNotification.getType());
+    assertEquals(created.getId(), followerANotification.getTargetId());
+    assertEquals(created.getId(), followerBNotification.getTargetId());
+    assertEquals(author.getId(), followerANotification.getActorId());
+    assertEquals(author.getId(), followerBNotification.getActorId());
+  }
+
   private UserDO insertUser(String username) {
     UserDO user = new UserDO();
     user.setUsername(username);
@@ -139,5 +224,17 @@ class PostServiceIntegrationTest {
     post.setUpdateTime(LocalDateTime.now());
     postMapper.insert(post);
     return post;
+  }
+
+  private void insertFollow(Long followerId, Long followeeId) {
+    UserFollowDO follow = new UserFollowDO();
+    follow.setFollowerId(followerId);
+    follow.setFolloweeId(followeeId);
+
+    LambdaQueryWrapper<UserFollowDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper.eq(UserFollowDO::getFollowerId, followerId).eq(UserFollowDO::getFolloweeId, followeeId);
+    if (userFollowMapper.selectCount(wrapper) == 0) {
+      userFollowMapper.insert(follow);
+    }
   }
 }

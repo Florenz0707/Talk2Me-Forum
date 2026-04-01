@@ -5,13 +5,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.springboot_backend.talk2me.model.domain.LikeDO;
 import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.domain.PostViewDO;
+import com.example.springboot_backend.talk2me.model.domain.UserDO;
+import com.example.springboot_backend.talk2me.model.domain.UserFollowDO;
 import com.example.springboot_backend.talk2me.model.vo.CreatePostRequest;
 import com.example.springboot_backend.talk2me.model.vo.UpdatePostRequest;
 import com.example.springboot_backend.talk2me.repository.LikeMapper;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
 import com.example.springboot_backend.talk2me.repository.PostViewMapper;
 import com.example.springboot_backend.talk2me.repository.SectionMapper;
+import com.example.springboot_backend.talk2me.repository.UserFollowMapper;
 import com.example.springboot_backend.talk2me.repository.UserMapper;
+import com.example.springboot_backend.talk2me.service.INotificationService;
 import com.example.springboot_backend.talk2me.service.IPostService;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -30,19 +34,25 @@ public class PostService implements IPostService {
   private final LikeMapper likeMapper;
   private final PostViewMapper postViewMapper;
   private final SectionMapper sectionMapper;
+  private final UserFollowMapper userFollowMapper;
   private final UserMapper userMapper;
+  private final INotificationService notificationService;
 
   public PostService(
       PostMapper postMapper,
       LikeMapper likeMapper,
       PostViewMapper postViewMapper,
       SectionMapper sectionMapper,
-      UserMapper userMapper) {
+      UserFollowMapper userFollowMapper,
+      UserMapper userMapper,
+      INotificationService notificationService) {
     this.postMapper = postMapper;
     this.likeMapper = likeMapper;
     this.postViewMapper = postViewMapper;
     this.sectionMapper = sectionMapper;
+    this.userFollowMapper = userFollowMapper;
     this.userMapper = userMapper;
+    this.notificationService = notificationService;
   }
 
   @Override
@@ -58,6 +68,7 @@ public class PostService implements IPostService {
     post.setReplyCount(0);
     post.setStatus(0);
     postMapper.insert(post);
+    notifyFollowersPostCreated(post);
     return post;
   }
 
@@ -240,5 +251,31 @@ public class PostService implements IPostService {
           post.setSectionName(sectionNames.get(post.getSectionId()));
           post.setUserName(userNames.get(post.getUserId()));
         });
+  }
+
+  private void notifyFollowersPostCreated(PostDO post) {
+    if (post == null || post.getId() == null || post.getUserId() == null) {
+      return;
+    }
+
+    LambdaQueryWrapper<UserFollowDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper.eq(UserFollowDO::getFolloweeId, post.getUserId());
+    List<UserFollowDO> followers = userFollowMapper.selectList(wrapper);
+    if (followers.isEmpty()) {
+      return;
+    }
+
+    UserDO author = userMapper.selectById(post.getUserId());
+    String authorName = author == null ? "你关注的人" : author.getUsername();
+    String content = authorName + " 发布了新帖子";
+    followers.forEach(
+        follower ->
+            notificationService.createNotification(
+                follower.getFollowerId(),
+                post.getUserId(),
+                "FOLLOWEE_POST",
+                "POST",
+                post.getId(),
+                content));
   }
 }
