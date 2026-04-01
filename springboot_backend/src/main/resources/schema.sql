@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     birthday DATE,
     gender VARCHAR(10),
     occupation VARCHAR(100),
+    preferences CLOB,
     create_time TIMESTAMP NOT NULL,
     update_time TIMESTAMP NOT NULL
 );

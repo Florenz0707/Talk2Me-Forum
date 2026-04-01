@@ -31,6 +31,8 @@ public class UserDO extends BaseEntity {
   @Size(max = 100)
   private String occupation;
 
+  private String preferences;
+
   public String getUsername() {
     return username;
   }
@@ -93,5 +95,13 @@ public class UserDO extends BaseEntity {
 
   public void setOccupation(String occupation) {
     this.occupation = occupation;
+  }
+
+  public String getPreferences() {
+    return preferences;
+  }
+
+  public void setPreferences(String preferences) {
+    this.preferences = preferences;
   }
 }

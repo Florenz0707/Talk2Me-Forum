@@ -13,11 +13,13 @@ import com.example.springboot_backend.talk2me.repository.PostViewMapper;
 import com.example.springboot_backend.talk2me.repository.UserMapper;
 import com.example.springboot_backend.talk2me.repository.UserStatsMapper;
 import com.example.springboot_backend.talk2me.service.impl.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -32,13 +34,18 @@ class UserServiceTest {
 
   @Mock private LikeMapper likeMapper;
 
-  @InjectMocks private UserService userService;
+  private UserService userService;
 
   private UserDO testUser;
   private UserStatsDO testStats;
 
   @BeforeEach
   void setUp() {
+    userService =
+        new UserService(
+            userMapper, userStatsMapper, postViewMapper, likeMapper, new ObjectMapper());
+    setField(userService, "maxPreferencesLength", 8192);
+
     testUser = new UserDO();
     testUser.setId(1L);
     testUser.setUsername("testuser");
@@ -91,5 +98,87 @@ class UserServiceTest {
 
     assertNotNull(response);
     verify(userMapper).updateById(any(UserDO.class));
+  }
+
+  @Test
+  void getPreferences_ReturnsDefaultsWhenEmpty() {
+    when(userMapper.selectById(1L)).thenReturn(testUser);
+
+    var preferences = userService.getPreferences(1L);
+
+    assertEquals("system", preferences.path("theme").asText());
+    assertEquals("zh-CN", preferences.path("language").asText());
+    assertTrue(preferences.path("notification").path("enableWs").asBoolean());
+  }
+
+  @Test
+  void updatePreferences_Success() {
+    when(userMapper.selectById(1L)).thenReturn(testUser);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode request = mapper.createObjectNode();
+    request.put("theme", "dark");
+    ObjectNode notification = mapper.createObjectNode();
+    notification.put("muteLike", true);
+    request.set("notification", notification);
+
+    var updated = userService.updatePreferences(1L, request);
+
+    assertEquals("dark", updated.path("theme").asText());
+    assertTrue(updated.path("notification").path("muteLike").asBoolean());
+    verify(userMapper).updateById(any(UserDO.class));
+  }
+
+  @Test
+  void updatePreferences_InvalidField() {
+    when(userMapper.selectById(1L)).thenReturn(testUser);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode request = mapper.createObjectNode();
+    request.put("unknownField", "x");
+
+    assertThrows(IllegalArgumentException.class, () -> userService.updatePreferences(1L, request));
+  }
+
+  @Test
+  void patchPreferences_MergesWithStoredPreferences() {
+    when(userMapper.selectById(1L)).thenReturn(testUser);
+    testUser.setPreferences(
+        "{\"theme\":\"system\",\"language\":\"zh-CN\",\"notification\":{\"muteLike\":false,\"muteReply\":false,\"muteFollow\":false,\"muteFolloweePost\":false,\"enableWs\":true}}");
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode patch = mapper.createObjectNode();
+    ObjectNode notification = mapper.createObjectNode();
+    notification.put("muteLike", true);
+    patch.set("notification", notification);
+
+    var updated = userService.patchPreferences(1L, patch);
+
+    assertTrue(updated.path("notification").path("muteLike").asBoolean());
+    assertEquals("system", updated.path("theme").asText());
+    verify(userMapper).updateById(any(UserDO.class));
+  }
+
+  @Test
+  void updatePreferences_TooLargeRejected() {
+    when(userMapper.selectById(1L)).thenReturn(testUser);
+    setField(userService, "maxPreferencesLength", 40);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode request = mapper.createObjectNode();
+    request.put("theme", "dark");
+    request.put("language", "zh-CN-extra-long-value");
+
+    assertThrows(IllegalArgumentException.class, () -> userService.updatePreferences(1L, request));
+  }
+
+  private void setField(Object target, String fieldName, Object value) {
+    try {
+      Field field = target.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      field.set(target, value);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

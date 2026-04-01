@@ -14,7 +14,12 @@ import com.example.springboot_backend.talk2me.repository.PostViewMapper;
 import com.example.springboot_backend.talk2me.repository.UserMapper;
 import com.example.springboot_backend.talk2me.repository.UserStatsMapper;
 import com.example.springboot_backend.talk2me.service.IUserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,19 +42,25 @@ public class UserService implements IUserService {
   private final UserStatsMapper userStatsMapper;
   private final PostViewMapper postViewMapper;
   private final LikeMapper likeMapper;
+  private final ObjectMapper objectMapper;
 
   @Value("${upload.avatar.path:uploads/avatars}")
   private String avatarUploadPath;
+
+  @Value("${user.preferences.max-length:8192}")
+  private int maxPreferencesLength;
 
   public UserService(
       UserMapper userMapper,
       UserStatsMapper userStatsMapper,
       PostViewMapper postViewMapper,
-      LikeMapper likeMapper) {
+      LikeMapper likeMapper,
+      ObjectMapper objectMapper) {
     this.userMapper = userMapper;
     this.userStatsMapper = userStatsMapper;
     this.postViewMapper = postViewMapper;
     this.likeMapper = likeMapper;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -112,6 +123,63 @@ public class UserService implements IUserService {
     }
 
     return buildProfileResponse(user, stats);
+  }
+
+  @Override
+  public JsonNode getPreferences(Long userId) {
+    UserDO user = userMapper.selectById(userId);
+    if (user == null) {
+      throw new RuntimeException("用户不存在");
+    }
+    return mergedPreferences(user.getPreferences());
+  }
+
+  @Override
+  @Transactional
+  public JsonNode updatePreferences(Long userId, JsonNode preferences) {
+    UserDO user = userMapper.selectById(userId);
+    if (user == null) {
+      throw new RuntimeException("用户不存在");
+    }
+    JsonNode validated = validateAndNormalizePreferences(preferences);
+    persistPreferences(user, validated);
+    return validated;
+  }
+
+  @Override
+  @Transactional
+  public JsonNode patchPreferences(Long userId, JsonNode patchPreferences) {
+    UserDO user = userMapper.selectById(userId);
+    if (user == null) {
+      throw new RuntimeException("用户不存在");
+    }
+    if (patchPreferences == null || patchPreferences.isNull() || !patchPreferences.isObject()) {
+      throw new IllegalArgumentException("patchPreferences 必须是 JSON 对象");
+    }
+
+    JsonNode current = mergedPreferences(user.getPreferences());
+    ObjectNode mergedPatch = merge((ObjectNode) current.deepCopy(), patchPreferences);
+    JsonNode validated = validateAndNormalizePreferences(mergedPatch);
+    persistPreferences(user, validated);
+    return validated;
+  }
+
+  private void persistPreferences(UserDO user, JsonNode validatedPreferences) {
+    String serialized;
+    try {
+      serialized = objectMapper.writeValueAsString(validatedPreferences);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("用户配置序列化失败", e);
+    }
+
+    int payloadLength = serialized.getBytes(StandardCharsets.UTF_8).length;
+    if (payloadLength > maxPreferencesLength) {
+      throw new IllegalArgumentException("preferences 大小超过限制: " + maxPreferencesLength + " bytes");
+    }
+
+    user.setPreferences(serialized);
+    user.setUpdateTime(LocalDateTime.now());
+    userMapper.updateById(user);
   }
 
   @Override
@@ -230,5 +298,115 @@ public class UserService implements IUserService {
     return likeMapper.selectList(wrapper).stream()
         .map(LikeDO::getTargetId)
         .collect(Collectors.toSet());
+  }
+
+  private JsonNode mergedPreferences(String rawPreferences) {
+    ObjectNode defaults = defaultPreferences();
+    if (rawPreferences == null || rawPreferences.isBlank()) {
+      return defaults;
+    }
+    try {
+      JsonNode parsed = objectMapper.readTree(rawPreferences);
+      if (parsed == null || !parsed.isObject()) {
+        return defaults;
+      }
+      return merge(defaults, parsed);
+    } catch (JsonProcessingException e) {
+      return defaults;
+    }
+  }
+
+  private JsonNode validateAndNormalizePreferences(JsonNode preferences) {
+    if (preferences == null || preferences.isNull() || !preferences.isObject()) {
+      throw new IllegalArgumentException("preferences 必须是 JSON 对象");
+    }
+
+    ObjectNode merged = merge(defaultPreferences(), preferences);
+    validateTopLevel(merged);
+    validateNotification(merged.path("notification"));
+    return merged;
+  }
+
+  private void validateTopLevel(JsonNode preferences) {
+    preferences
+        .fieldNames()
+        .forEachRemaining(
+            field -> {
+              if (!"theme".equals(field)
+                  && !"language".equals(field)
+                  && !"notification".equals(field)) {
+                throw new IllegalArgumentException("不支持的配置字段: " + field);
+              }
+            });
+
+    String theme = preferences.path("theme").asText();
+    if (!"system".equals(theme) && !"light".equals(theme) && !"dark".equals(theme)) {
+      throw new IllegalArgumentException("theme 仅支持 system/light/dark");
+    }
+
+    String language = preferences.path("language").asText();
+    if (language.isBlank() || language.length() > 20) {
+      throw new IllegalArgumentException("language 长度必须在 1-20 之间");
+    }
+  }
+
+  private void validateNotification(JsonNode notification) {
+    if (!notification.isObject()) {
+      throw new IllegalArgumentException("notification 必须是对象");
+    }
+    notification
+        .fieldNames()
+        .forEachRemaining(
+            field -> {
+              boolean supported =
+                  "enableWs".equals(field)
+                      || "muteLike".equals(field)
+                      || "muteReply".equals(field)
+                      || "muteFollow".equals(field)
+                      || "muteFolloweePost".equals(field);
+              if (!supported) {
+                throw new IllegalArgumentException("不支持的 notification 字段: " + field);
+              }
+              if (!notification.path(field).isBoolean()) {
+                throw new IllegalArgumentException(field + " 必须是布尔值");
+              }
+            });
+  }
+
+  private ObjectNode defaultPreferences() {
+    ObjectNode defaults = objectMapper.createObjectNode();
+    defaults.put("theme", "system");
+    defaults.put("language", "zh-CN");
+
+    ObjectNode notification = objectMapper.createObjectNode();
+    notification.put("enableWs", true);
+    notification.put("muteLike", false);
+    notification.put("muteReply", false);
+    notification.put("muteFollow", false);
+    notification.put("muteFolloweePost", false);
+    defaults.set("notification", notification);
+    return defaults;
+  }
+
+  private ObjectNode merge(ObjectNode base, JsonNode patch) {
+    if (patch == null || !patch.isObject()) {
+      return base;
+    }
+    patch
+        .fieldNames()
+        .forEachRemaining(
+            field -> {
+              JsonNode patchValue = patch.get(field);
+              JsonNode baseValue = base.get(field);
+              if (baseValue != null
+                  && baseValue.isObject()
+                  && patchValue != null
+                  && patchValue.isObject()) {
+                base.set(field, merge((ObjectNode) baseValue.deepCopy(), patchValue));
+              } else {
+                base.set(field, patchValue);
+              }
+            });
+    return base;
   }
 }

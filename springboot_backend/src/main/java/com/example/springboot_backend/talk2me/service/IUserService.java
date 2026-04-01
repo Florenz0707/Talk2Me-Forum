@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.vo.UpdateProfileRequest;
 import com.example.springboot_backend.talk2me.model.vo.UserProfileResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface IUserService {
@@ -15,6 +16,12 @@ public interface IUserService {
   void deleteViewedPost(Long userId, Long postId);
 
   UserProfileResponse updateProfile(Long userId, UpdateProfileRequest request);
+
+  JsonNode getPreferences(Long userId);
+
+  JsonNode updatePreferences(Long userId, JsonNode preferences);
+
+  JsonNode patchPreferences(Long userId, JsonNode patchPreferences);
 
   String uploadAvatar(Long userId, MultipartFile file);
 }

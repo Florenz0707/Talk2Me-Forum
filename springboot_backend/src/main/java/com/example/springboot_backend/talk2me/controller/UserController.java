@@ -7,6 +7,7 @@ import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.vo.UpdateProfileRequest;
 import com.example.springboot_backend.talk2me.model.vo.UserProfileResponse;
 import com.example.springboot_backend.talk2me.service.IUserService;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -78,6 +79,26 @@ public class UserController {
   public Result<UserProfileResponse> updateProfile(
       Authentication auth, @Valid @RequestBody UpdateProfileRequest request) {
     return Result.success(userService.updateProfile(getCurrentUserId(auth), request));
+  }
+
+  @GetMapping("/preferences")
+  @Operation(summary = "获取当前用户自定义配置")
+  public Result<JsonNode> getPreferences(Authentication auth) {
+    return Result.success(userService.getPreferences(getCurrentUserId(auth)));
+  }
+
+  @PutMapping("/preferences")
+  @Operation(summary = "更新当前用户自定义配置")
+  public Result<JsonNode> updatePreferences(
+      Authentication auth, @RequestBody JsonNode preferences) {
+    return Result.success(userService.updatePreferences(getCurrentUserId(auth), preferences));
+  }
+
+  @PatchMapping("/preferences")
+  @Operation(summary = "局部更新当前用户自定义配置")
+  public Result<JsonNode> patchPreferences(
+      Authentication auth, @RequestBody JsonNode patchPreferences) {
+    return Result.success(userService.patchPreferences(getCurrentUserId(auth), patchPreferences));
   }
 
   @PostMapping("/avatar")

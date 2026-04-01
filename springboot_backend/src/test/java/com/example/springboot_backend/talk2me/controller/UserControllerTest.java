@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,7 +16,9 @@ import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.vo.UpdateProfileRequest;
 import com.example.springboot_backend.talk2me.model.vo.UserProfileResponse;
 import com.example.springboot_backend.talk2me.service.IUserService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -116,5 +119,66 @@ class UserControllerTest {
     mockMvc.perform(delete("/api/v1/users/history/posts/10")).andExpect(status().isOk());
 
     verify(userService).deleteViewedPost(1L, 10L);
+  }
+
+  @Test
+  @WithMockUser(username = "1")
+  void getPreferences_Success() throws Exception {
+    ObjectNode preferences = objectMapper.createObjectNode();
+    preferences.put("theme", "system");
+    preferences.put("language", "zh-CN");
+
+    when(userService.getPreferences(1L)).thenReturn(preferences);
+
+    mockMvc
+        .perform(get("/api/v1/users/preferences"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.theme").value("system"))
+        .andExpect(jsonPath("$.data.language").value("zh-CN"));
+  }
+
+  @Test
+  @WithMockUser(username = "1")
+  void updatePreferences_Success() throws Exception {
+    ObjectNode request = objectMapper.createObjectNode();
+    ObjectNode notification = objectMapper.createObjectNode();
+    notification.put("muteLike", true);
+    request.set("notification", notification);
+
+    ObjectNode response = objectMapper.createObjectNode();
+    response.put("theme", "system");
+    response.put("language", "zh-CN");
+    response.set("notification", notification);
+
+    when(userService.updatePreferences(eq(1L), any(JsonNode.class))).thenReturn(response);
+
+    mockMvc
+        .perform(
+            put("/api/v1/users/preferences")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.notification.muteLike").value(true));
+  }
+
+  @Test
+  @WithMockUser(username = "1")
+  void patchPreferences_Success() throws Exception {
+    ObjectNode request = objectMapper.createObjectNode();
+    request.put("theme", "dark");
+
+    ObjectNode response = objectMapper.createObjectNode();
+    response.put("theme", "dark");
+    response.put("language", "zh-CN");
+
+    when(userService.patchPreferences(eq(1L), any(JsonNode.class))).thenReturn(response);
+
+    mockMvc
+        .perform(
+            patch("/api/v1/users/preferences")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.theme").value("dark"));
   }
 }

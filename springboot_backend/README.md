@@ -24,13 +24,13 @@ docker run -d -p 8099:8099 --env-file .env --name springboot-backend springboot-
 
 ### 访问地址
 
-- API Base URL: http://{YOUR_ADDRESS}/talk2me
-- Swagger UI: http://{YOUR_ADDRESS}/talk2me/swagger-ui/index.html
-- H2 Console: http://{YOUR_ADDRESS}/talk2me/h2-console
+- API Base URL: "http://{YOUR_ADDRESS}/talk2me"
+- Swagger UI: "http://{YOUR_ADDRESS}/talk2me/swagger-ui/index.html"
+- H2 Console: "http://{YOUR_ADDRESS}/talk2me/h2-console"
 
 默认开发配置已对齐以上地址：
 
-- `server.port=8099`
+- `server.port={PORT}`
 - `server.servlet.context-path=/talk2me`
 
 ## 功能模块
@@ -43,6 +43,45 @@ docker run -d -p 8099:8099 --env-file .env --name springboot-backend springboot-
 - 关注/取关
 - 通知系统（点赞/回复/关注/关注者发帖）
 - 通知实时推送（WebSocket + Redis Pub/Sub）
+- 用户自定义配置（JSON）
+
+## 用户自定义配置（Preferences）
+
+用户配置存储在 `users.preferences`（JSON 字符串）字段。
+
+接口：
+
+- `GET /api/v1/users/preferences`：获取当前用户完整配置（含默认值补齐）
+- `PUT /api/v1/users/preferences`：全量更新配置
+- `PATCH /api/v1/users/preferences`：局部更新配置（基于当前配置做 merge）
+
+当前默认结构：
+
+```json
+{
+  "theme": "system",
+  "language": "zh-CN",
+  "notification": {
+    "enableWs": true,
+    "muteLike": false,
+    "muteReply": false,
+    "muteFollow": false,
+    "muteFolloweePost": false
+  }
+}
+```
+
+约束：
+
+- 配置仅允许白名单字段
+- `theme` 仅支持：`system` / `light` / `dark`
+- `notification` 子字段必须为布尔值
+- 配置体最大长度由 `USER_PREFERENCES_MAX_LENGTH` 控制（默认 8192 bytes）
+
+当前约定（重要）：
+
+- `notification` 下的静音开关（如 `muteLike` / `muteReply` / `muteFollow` / `muteFolloweePost`）目前仅作为前端展示与交互配置。
+- 通知“是否创建/是否实时推送”当前仍按后端既有业务规则执行，不由这些配置项在后端侧拦截。
 
 ## 通知实时推送（WS + Redis）
 
@@ -83,6 +122,11 @@ NOTIFICATION_REDIS_TOPIC=talk2me:notification:events
 
 - 以通知 `id` 作为唯一键去重。
 - 对 `CREATED` 执行 upsert，对 `DELETED` 执行 remove（不存在时忽略）。
+
+与用户偏好配置的关系：
+
+- 当前阶段，通知过滤效果应在前端实现（例如前端根据 `users.preferences.notification.*` 决定展示或静音）。
+- 后端暂不根据用户偏好跳过通知创建或跳过 WS 推送。
 
 ### 通知相关接口
 
