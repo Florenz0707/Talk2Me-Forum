@@ -62,7 +62,7 @@ const handleAuthChange = (event) => {
   }
 };
 
-// 组件挂载时检查登录状态及深色模式偏好
+// 组件挂载时检查登录状态并恢复主题
 onMounted(() => {
   checkLoginStatus();
 
@@ -78,10 +78,8 @@ onMounted(() => {
     notificationWS.connect();
   }
 
-  // 监听localStorage变化，实现多标签页同步
+  // 监听鉴权状态变化，保持当前标签页同步
   window.addEventListener("authChange", handleAuthChange);
-
-  // 监听 authChange 事件（同 Tab 内 token 清除或登录成功时触发）
 });
 
 onUnmounted(() => {

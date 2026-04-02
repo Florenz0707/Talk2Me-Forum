@@ -33,12 +33,13 @@
               <div class="stat-label">粉丝数</div>
             </div>
           </div>
+
           <div class="action-buttons">
             <button class="btn-follow" @click="handleFollow">
               <i class="fas fa-user-plus"></i> 关注
             </button>
-            <button class="btn-message" @click="handleMessage">
-              <i class="fas fa-comment"></i> 发消息
+            <button class="btn-message is-disabled" @click="handleMessage">
+              <i class="fas fa-comment"></i> 私信暂未开放
             </button>
           </div>
         </div>
@@ -47,14 +48,14 @@
 
     <div class="main-content-container">
       <div class="content-card">
-        <h2>用户发表的帖子</h2>
+        <h2>用户发布的帖子</h2>
         <div v-if="loading" class="empty-state">
           <i class="fas fa-spinner fa-spin"></i>
           <p>加载中...</p>
         </div>
         <div v-else-if="userPosts.length === 0" class="empty-state">
           <i class="fas fa-file-alt"></i>
-          <p>该用户还没有发表过帖子</p>
+          <p>该用户还没有发布过帖子</p>
         </div>
         <div v-else class="thread-list">
           <div
@@ -142,14 +143,7 @@ export default {
     };
 
     const handleMessage = () => {
-      router.push({
-        path: "/user",
-        query: {
-          tab: "messages",
-          targetUser: username.value,
-          targetUserId: route.params.id,
-        },
-      });
+      alert("私信功能暂未开放");
     };
 
     const redirectToOwnProfileIfNeeded = (userId = route.params.id) => {
@@ -459,6 +453,16 @@ export default {
   background-color: white;
   color: #333;
   border: 1px solid #ddd;
+}
+
+.btn-message.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-message.is-disabled:hover {
+  background-color: white;
+  transform: none;
 }
 
 .btn-message:hover {
