@@ -135,6 +135,32 @@ function pickFirstDefined(...values) {
   return "";
 }
 
+function normalizeLegacyReplyRecord(reply) {
+  return normalizeNotification({
+    ...reply,
+    type: "REPLY",
+    rawType: "REPLY",
+    eventType: getNotificationEventType(reply) || "CREATED",
+    actorId: pickFirstDefined(reply?.actorId, reply?.userId),
+    postId: pickFirstDefined(reply?.postId, reply?.sourcePostId),
+    replyContent: pickFirstDefined(reply?.replyContent, reply?.content),
+    commentContent: pickFirstDefined(
+      reply?.commentContent,
+      reply?.targetContent,
+      reply?.originalContent,
+      reply?.parentContent,
+      reply?.quotedContent,
+    ),
+    targetId: pickFirstDefined(
+      reply?.targetId,
+      reply?.replyToId,
+      reply?.parentId,
+    ),
+    targetType: pickFirstDefined(reply?.targetType, reply?.entityType),
+    createTime: reply?.createTime || new Date().toISOString(),
+  });
+}
+
 export function normalizeNotification(notification) {
   const rawType = getNotificationRawType(notification);
   const type = getTrackedType(rawType);
@@ -160,6 +186,66 @@ export function normalizeNotification(notification) {
     notification?.target?.content,
     notification?.sourceContent,
   );
+  const senderName = pickFirstDefined(
+    notification?.senderName,
+    notification?.actorName,
+    notification?.actor?.name,
+    notification?.actor?.username,
+    notification?.sender?.name,
+    notification?.sender?.username,
+    notification?.username,
+    notification?.user?.username,
+  );
+  const senderAvatar = pickFirstDefined(
+    notification?.senderAvatar,
+    notification?.actorAvatar,
+    notification?.actor?.avatar,
+    notification?.sender?.avatar,
+    notification?.avatar,
+    notification?.avatarUrl,
+    notification?.user?.avatar,
+    notification?.user?.avatarUrl,
+  );
+  const targetTitle = pickFirstDefined(
+    notification?.targetTitle,
+    notification?.postTitle,
+    notification?.threadTitle,
+    notification?.topicTitle,
+    notification?.target?.title,
+    notification?.post?.title,
+    notification?.thread?.title,
+    notification?.topic?.title,
+  );
+  const targetPreview = pickFirstDefined(
+    notification?.targetPreview,
+    notification?.preview,
+    notification?.targetSummary,
+    notification?.targetExcerpt,
+    notification?.target?.preview,
+    notification?.target?.summary,
+    notification?.postPreview,
+    notification?.threadPreview,
+    replyContent,
+    commentContent,
+  );
+  const targetUrl = pickFirstDefined(
+    notification?.targetUrl,
+    notification?.url,
+    notification?.link,
+    notification?.target?.url,
+    notification?.target?.link,
+  );
+  const actionText = pickFirstDefined(
+    notification?.actionText,
+    notification?.verb,
+    notification?.action,
+  );
+  const targetUserId = pickFirstDefined(
+    notification?.targetUserId,
+    notification?.target?.userId,
+    notification?.target?.id,
+    notification?.profileUserId,
+  );
 
   return {
     ...notification,
@@ -174,19 +260,51 @@ export function normalizeNotification(notification) {
       new Date().toISOString(),
     userId: senderId,
     senderId,
+    senderName,
+    senderAvatar,
     replyContent,
     commentContent,
+    targetTitle,
+    targetPreview,
+    targetUrl,
+    actionText,
+    targetUserId,
     targetId: pickFirstDefined(
       notification?.targetId,
       notification?.replyToId,
       notification?.parentId,
+      notification?.target?.id,
+      targetUserId,
     ),
     targetType: pickFirstDefined(
       notification?.targetType,
       notification?.entityType,
+      notification?.target?.type,
     ),
-    postId: pickFirstDefined(notification?.postId, notification?.post_id),
+    postId: pickFirstDefined(
+      notification?.postId,
+      notification?.post_id,
+      notification?.threadId,
+      notification?.thread_id,
+      notification?.topicId,
+      notification?.topic_id,
+      notification?.sourcePostId,
+      notification?.source_post_id,
+      notification?.post?.id,
+      notification?.post?.postId,
+      notification?.thread?.id,
+      notification?.thread?.postId,
+      notification?.target?.postId,
+    ),
   };
+}
+
+export function extractIncomingNotifications(notification) {
+  if (notification?.data?.records && Array.isArray(notification.data.records)) {
+    return notification.data.records.map(normalizeLegacyReplyRecord);
+  }
+
+  return [normalizeNotification(notification)];
 }
 
 export async function refreshNotificationSummary() {
@@ -218,71 +336,24 @@ export function resetNotificationSummary() {
 }
 
 export function applyIncomingNotification(notification) {
-  // 处理分页格式的回复通知
-  if (notification?.data?.records && Array.isArray(notification.data.records)) {
-    const replies = notification.data.records;
-    const results = [];
+  const normalizedNotifications = extractIncomingNotifications(notification);
+  const trackedNotifications = normalizedNotifications.filter(
+    (normalized) =>
+      TRACKED_TYPES.includes(normalized.type) && normalized.id != null,
+  );
 
-    replies.forEach((reply) => {
-      const replyNotification = {
-        id: reply.id,
-        type: "REPLY",
-        rawType: "REPLY",
-        eventType: "CREATED",
-        actorId: reply.userId,
-        postId: reply.postId,
-        content: reply.content,
-        replyContent: pickFirstDefined(reply.replyContent, reply.content),
-        commentContent: pickFirstDefined(
-          reply.commentContent,
-          reply.targetContent,
-          reply.originalContent,
-          reply.parentContent,
-          reply.quotedContent,
-        ),
-        targetId: pickFirstDefined(
-          reply.targetId,
-          reply.replyToId,
-          reply.parentId,
-        ),
-        targetType: pickFirstDefined(reply.targetType, reply.entityType),
-        floorNumber: reply.floorNumber,
-        likeCount: reply.likeCount,
-        isLiked: reply.isLiked,
-        isRead: false,
-        createTime: reply.createTime || new Date().toISOString(),
-      };
-
-      const normalized = normalizeNotification(replyNotification);
-      if (normalized.id != null) {
-        notificationMeta.set(normalized.id, normalized);
-        results.push(normalized);
-      }
-    });
-
-    setSummaryCounts(
-      buildCountsFromNotifications(Array.from(notificationMeta.values())),
-    );
-    return results.length > 0 ? results[0] : null;
-  }
-
-  // 原有的单条通知处理逻辑
-  const normalized = normalizeNotification(notification);
-
-  if (!TRACKED_TYPES.includes(normalized.type) || normalized.id == null) {
-    return normalized;
-  }
-
-  if (normalized.eventType === "DELETED") {
-    notificationMeta.delete(normalized.id);
-  } else {
+  trackedNotifications.forEach((normalized) => {
+    if (normalized.eventType === "DELETED") {
+      notificationMeta.delete(normalized.id);
+      return;
+    }
     notificationMeta.set(normalized.id, normalized);
-  }
+  });
 
   setSummaryCounts(
     buildCountsFromNotifications(Array.from(notificationMeta.values())),
   );
-  return normalized;
+  return normalizedNotifications[0] || null;
 }
 
 export function markNotificationAsReadInSummary(notification) {

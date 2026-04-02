@@ -5,7 +5,7 @@
         <h1 class="page-title">{{ title }}</h1>
         <div class="nav-buttons">
           <router-link to="/home" class="nav-button">首页</router-link>
-          <router-link to="/sections" class="nav-button">板块</router-link>
+          <router-link to="/sections" class="nav-button">分区</router-link>
         </div>
       </div>
 
@@ -71,7 +71,7 @@
               </div>
               <div class="dropdown-item" @click="goToFollowers">
                 <i class="fas fa-user-plus"></i>
-                <span>新的粉丝</span>
+                <span>新增粉丝</span>
                 <span
                   v-if="notificationSummary.byType.FOLLOW > 0"
                   class="menu-unread-badge"
@@ -148,7 +148,7 @@ const formatUnreadCount = (count) => (count > 99 ? "99+" : count);
 const goToLikes = () => {
   router.push({
     path: "/user",
-    query: { tab: "messages", messageTab: "likes" },
+    query: { tab: "notifications", messageTab: "likes" },
   });
   showUserMenu.value = false;
 };
@@ -156,7 +156,7 @@ const goToLikes = () => {
 const goToReplies = () => {
   router.push({
     path: "/user",
-    query: { tab: "messages", messageTab: "replies" },
+    query: { tab: "notifications", messageTab: "replies" },
   });
   showUserMenu.value = false;
 };
@@ -164,7 +164,7 @@ const goToReplies = () => {
 const goToFollowers = () => {
   router.push({
     path: "/user",
-    query: { tab: "messages", messageTab: "followers" },
+    query: { tab: "notifications", messageTab: "followers" },
   });
   showUserMenu.value = false;
 };
