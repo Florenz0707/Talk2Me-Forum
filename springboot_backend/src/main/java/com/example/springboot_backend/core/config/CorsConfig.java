@@ -200,6 +200,8 @@ public class CorsConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/posts", "/api/v1/posts/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/replies", "/api/v1/replies/**")
+                    .permitAll()
                     // 其他认证相关端点需要认证
                     .requestMatchers("/api/v1/auth/**")
                     .authenticated()

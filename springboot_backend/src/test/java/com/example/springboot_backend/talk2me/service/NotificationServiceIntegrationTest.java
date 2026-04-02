@@ -93,7 +93,7 @@ class NotificationServiceIntegrationTest {
     assertTrue(Boolean.TRUE.equals(updatedFirst.getIsRead()));
     assertEquals(1L, notificationService.countUnread(100L));
 
-    notificationService.markAllRead(100L);
+    notificationService.markAllRead(100L, "all");
 
     NotificationDO updatedSecond = notificationMapper.selectById(second.getId());
     NotificationDO untouchedOtherUserNotification =
@@ -102,6 +102,30 @@ class NotificationServiceIntegrationTest {
     assertFalse(Boolean.TRUE.equals(untouchedOtherUserNotification.getIsRead()));
     assertEquals(0L, notificationService.countUnread(100L));
     assertEquals(1L, notificationService.countUnread(101L));
+  }
+
+  @Test
+  void markAllRead_ByTypeOnlyMarksMatchingNotifications() {
+    NotificationDO likePost =
+        notificationService.createNotification(100L, 201L, "LIKE_POST", "POST", 301L, null);
+    NotificationDO likeReply =
+        notificationService.createNotification(100L, 202L, "LIKE_REPLY", "REPLY", 302L, null);
+    NotificationDO replyPost =
+        notificationService.createNotification(
+            100L, 203L, "REPLY_POST", "REPLY", 303L, "reply body");
+
+    notificationService.markAllRead(100L, "like_reply");
+
+    assertFalse(Boolean.TRUE.equals(notificationMapper.selectById(likePost.getId()).getIsRead()));
+    assertTrue(Boolean.TRUE.equals(notificationMapper.selectById(likeReply.getId()).getIsRead()));
+    assertFalse(Boolean.TRUE.equals(notificationMapper.selectById(replyPost.getId()).getIsRead()));
+    assertEquals(2L, notificationService.countUnread(100L));
+  }
+
+  @Test
+  void markAllRead_RejectsUnsupportedType() {
+    assertThrows(
+        IllegalArgumentException.class, () -> notificationService.markAllRead(100L, "UNKNOWN"));
   }
 
   @Test

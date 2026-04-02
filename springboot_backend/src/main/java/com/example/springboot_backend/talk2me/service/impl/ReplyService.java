@@ -7,6 +7,7 @@ import com.example.springboot_backend.talk2me.model.domain.PostDO;
 import com.example.springboot_backend.talk2me.model.domain.ReplyDO;
 import com.example.springboot_backend.talk2me.model.domain.UserStatsDO;
 import com.example.springboot_backend.talk2me.model.vo.CreateReplyRequest;
+import com.example.springboot_backend.talk2me.model.vo.ReplyDetailResponse;
 import com.example.springboot_backend.talk2me.repository.LikeMapper;
 import com.example.springboot_backend.talk2me.repository.PostMapper;
 import com.example.springboot_backend.talk2me.repository.ReplyMapper;
@@ -67,7 +68,7 @@ public class ReplyService implements IReplyService {
     postMapper.updateById(post);
 
     notificationService.createNotification(
-        post.getUserId(), userId, "REPLY_POST", "REPLY", reply.getId(), "你的帖子有了新回复");
+        post.getUserId(), userId, "REPLY_POST", "REPLY", reply.getId(), reply.getContent());
 
     return reply;
   }
@@ -83,6 +84,16 @@ public class ReplyService implements IReplyService {
     Page<ReplyDO> result = replyMapper.selectPage(pageParam, wrapper);
     fillReplyLikedState(result.getRecords(), currentUserId);
     return result;
+  }
+
+  @Override
+  public ReplyDetailResponse getReplyDetail(Long replyId, Long currentUserId) {
+    ReplyDetailResponse replyDetail = replyMapper.selectReplyDetailById(replyId);
+    if (replyDetail == null) {
+      throw new RuntimeException("Reply not found");
+    }
+    replyDetail.setIsLiked(isReplyLikedByUser(replyId, currentUserId));
+    return replyDetail;
   }
 
   @Override
@@ -157,6 +168,19 @@ public class ReplyService implements IReplyService {
     Set<Long> likedReplyIds =
         getLikedReplyIds(currentUserId, replies.stream().map(ReplyDO::getId).toList());
     replies.forEach(reply -> reply.setIsLiked(likedReplyIds.contains(reply.getId())));
+  }
+
+  private boolean isReplyLikedByUser(Long replyId, Long currentUserId) {
+    if (currentUserId == null || replyId == null) {
+      return false;
+    }
+
+    LambdaQueryWrapper<LikeDO> wrapper = new LambdaQueryWrapper<>();
+    wrapper
+        .eq(LikeDO::getUserId, currentUserId)
+        .eq(LikeDO::getTargetType, "REPLY")
+        .eq(LikeDO::getTargetId, replyId);
+    return likeMapper.selectCount(wrapper) > 0;
   }
 
   private Set<Long> getLikedReplyIds(Long currentUserId, java.util.List<Long> replyIds) {

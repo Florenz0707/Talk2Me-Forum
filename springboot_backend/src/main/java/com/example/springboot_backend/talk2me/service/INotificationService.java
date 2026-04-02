@@ -23,5 +23,5 @@ public interface INotificationService {
 
   void markRead(Long recipientId, Long notificationId);
 
-  void markAllRead(Long recipientId);
+  void markAllRead(Long recipientId, String type);
 }

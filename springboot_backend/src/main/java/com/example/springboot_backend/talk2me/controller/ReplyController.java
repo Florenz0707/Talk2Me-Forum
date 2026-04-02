@@ -5,6 +5,7 @@ import com.example.springboot_backend.core.model.Result;
 import com.example.springboot_backend.core.security.UserDetailsServiceImpl;
 import com.example.springboot_backend.talk2me.model.domain.ReplyDO;
 import com.example.springboot_backend.talk2me.model.vo.CreateReplyRequest;
+import com.example.springboot_backend.talk2me.model.vo.ReplyDetailResponse;
 import com.example.springboot_backend.talk2me.service.IReplyService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
@@ -58,6 +59,11 @@ public class ReplyController {
       Authentication auth) {
     return Result.success(
         replyService.listReplies(postId, page, size, getOptionalCurrentUserId(auth)));
+  }
+
+  @GetMapping("/replies/{id}")
+  public Result<ReplyDetailResponse> getReplyDetail(@PathVariable Long id, Authentication auth) {
+    return Result.success(replyService.getReplyDetail(id, getOptionalCurrentUserId(auth)));
   }
 
   @DeleteMapping("/replies/{id}")

@@ -44,8 +44,8 @@ public class NotificationController {
   }
 
   @PostMapping("/read-all")
-  public Result<Void> markAllRead() {
-    notificationService.markAllRead(getCurrentUserId());
+  public Result<Void> markAllRead(@RequestParam(defaultValue = "all") String type) {
+    notificationService.markAllRead(getCurrentUserId(), type);
     return Result.success(null);
   }
 }

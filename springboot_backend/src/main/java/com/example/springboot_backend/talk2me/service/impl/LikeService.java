@@ -184,7 +184,7 @@ public class LikeService implements ILikeService {
         return;
       }
       notificationService.createNotification(
-          post.getUserId(), actorId, "LIKE_POST", "POST", targetId, "你的帖子收到了一个赞");
+          post.getUserId(), actorId, "LIKE_POST", "POST", targetId, null);
       return;
     }
 
@@ -194,7 +194,7 @@ public class LikeService implements ILikeService {
         return;
       }
       notificationService.createNotification(
-          reply.getUserId(), actorId, "LIKE_REPLY", "REPLY", targetId, "你的评论收到了一个赞");
+          reply.getUserId(), actorId, "LIKE_REPLY", "REPLY", targetId, null);
     }
   }
 }
